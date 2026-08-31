@@ -181,7 +181,9 @@ onMounted(() => {
             <Button icon="pi pi-plus" label="新建" @click="openDeptCreate" />
         </div>
         <DataTable :value="orgStore.departments" data-key="id" striped-rows>
-            <template #empty>暂无数据</template>
+            <template #empty>
+                <div class="e-table-empty">暂无数据</div>
+            </template>
             <Column field="id" header="序号" />
             <Column field="name" header="名称" />
             <Column header="启用">
@@ -205,7 +207,9 @@ onMounted(() => {
             <Button icon="pi pi-plus" label="新建" @click="openRoleCreate" />
         </div>
         <DataTable :value="orgStore.roles" data-key="id" striped-rows>
-            <template #empty>暂无数据</template>
+            <template #empty>
+                <div class="e-table-empty">暂无数据</div>
+            </template>
             <Column field="id" header="序号" />
             <Column field="name" header="名称" />
             <Column field="level" header="权限等级" />

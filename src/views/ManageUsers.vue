@@ -195,7 +195,7 @@ onMounted(async () => {
                 </div>
             </template>
             <template #empty>
-                <div class="table-empty">
+                <div class="e-table-empty">
                     {{ users.length ? '没有符合条件的用户' : '暂无用户数据' }}
                 </div>
             </template>
@@ -252,14 +252,6 @@ onMounted(async () => {
     .search {
         flex: 1;
         min-width: 14rem;
-    }
-}
-</style>
-
-<style lang="less">
-.user-manage-table {
-    .p-select-label {
-        font-size: 15px;
     }
 }
 </style>

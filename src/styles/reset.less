@@ -39,13 +39,15 @@
 }
 
 // 基础布局样式
+body {
+    font-family: 'Inter', '微软雅黑';
+}
 #app {
     width: 100vw;
     height: 100vh;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    font-family: 'Inter', '微软雅黑';
     main {
         flex: 1;
         width: 100%;
@@ -54,11 +56,18 @@
     }
 }
 
-.p-inputtext {
+// 覆写组件库样式
+.p-inputtext,
+.p-select-label,
+.p-select-option,
+.p-datepicker-calendar-containerl,
+.p-datepicker-title {
     font-size: var(--p-inputtext-font) !important;
 }
+.p-datepicker-day-view {
+    font-size: 14px !important;
+}
 .p-select-option {
-    font-size: 15px;
     --p-select-option-padding: 6px 8px;
 }
 .p-toast .p-toast-message-detail {
@@ -98,6 +107,11 @@ a.e-card:hover {
     box-shadow:
         0 2px 6px 0 rgba(0, 0, 0, 0.1),
         0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+.e-table-empty {
+    text-align: center;
+    color: var(--p-text-muted-color);
+    padding: 24px;
 }
 
 // 消除初始样式
