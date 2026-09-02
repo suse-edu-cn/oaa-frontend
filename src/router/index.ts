@@ -32,6 +32,11 @@ const router = createRouter({
             component: () => import('@/views/ManageOrg.vue'),
             meta: { requiresAuth: true },
         },
+        {
+            path: '/manage/term',
+            component: () => import('@/views/ManageTerm.vue'),
+            meta: { requiresAuth: true },
+        },
         // 设置
         {
             path: '/settings',

@@ -42,6 +42,11 @@ const links: MenuItem[] = [
                 icon: 'pi pi-sitemap',
                 to: '/manage/org',
             },
+            {
+                label: '招新/换届管理',
+                icon: 'pi pi-calendar',
+                to: '/manage/term',
+            },
         ],
     },
     {
