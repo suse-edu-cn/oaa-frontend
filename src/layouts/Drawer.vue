@@ -50,6 +50,24 @@ const links: MenuItem[] = [
         ],
     },
     {
+        separator: true,
+    },
+    {
+        label: '申请',
+        items: [
+            {
+                label: '我的申请',
+                icon: 'pi pi-file-edit',
+                to: '/apply',
+            },
+            {
+                label: '审核申请',
+                icon: 'pi pi-block-quote',
+                to: '/apply/review',
+            },
+        ],
+    },
+    {
         label: '设置',
         items: [
             {

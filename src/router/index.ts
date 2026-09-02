@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import cookies from 'js-cookie'
 
 import setToast from '@/utils/setToast'
-import HomeView from '@/views/AppHome.vue'
+import HomeView from '@/views/MainHome.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -18,7 +18,7 @@ const router = createRouter({
         { path: '/manage/org', component: () => import('@/views/ManageOrg.vue') },
         { path: '/manage/term', component: () => import('@/views/ManageTerm.vue') },
         // 设置
-        { path: '/settings', component: () => import('@/views/AppSettings.vue') },
+        { path: '/settings', component: () => import('@/views/MainSettings.vue') },
     ],
 })
 

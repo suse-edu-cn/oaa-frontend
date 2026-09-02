@@ -186,7 +186,7 @@ async function onDeleteTerm() {
 }
 
 function formatPeriod(p: TermPeriod) {
-    return p.start_at + '~' + p.end_at
+    return p.start_at + ' ~ ' + p.end_at
 }
 
 // 判断现在是否在进行中的活动周期内
