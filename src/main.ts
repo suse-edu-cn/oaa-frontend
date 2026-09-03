@@ -4,6 +4,7 @@ import router from '@/router'
 import { initAuthStore } from '@/utils/initAuthStore'
 
 import PrimeVue from 'primevue/config'
+import { Tooltip } from 'primevue'
 import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice'
 import 'primeicons/primeicons.css'
@@ -18,6 +19,7 @@ app.use(PrimeVue, {
         preset: Aura,
     },
 })
+app.directive('tooltip', Tooltip)
 app.use(ToastService)
 initAuthStore()
 

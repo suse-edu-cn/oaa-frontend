@@ -1,9 +1,4 @@
-export interface UserAvatar {
-    /** 相对路径，前端传给后端用 URI */
-    uri: string
-    /** 签名后 URL，用于展示 */
-    url: string
-}
+import type { ImageResponse } from './api'
 
 /** 当前用户信息 /user/me */
 export interface UserInfo {
@@ -11,7 +6,7 @@ export interface UserInfo {
     student_id: string
     username: string
     name: string
-    avatar: UserAvatar
+    avatar: ImageResponse
     email: string
     department: string
     role: string

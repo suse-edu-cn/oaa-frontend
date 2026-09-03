@@ -17,6 +17,8 @@ const router = createRouter({
         { path: '/manage/users', component: () => import('@/views/ManageUsers.vue') },
         { path: '/manage/org', component: () => import('@/views/ManageOrg.vue') },
         { path: '/manage/term', component: () => import('@/views/ManageTerm.vue') },
+        // 申请
+        { path: '/apply', component: () => import('@/views/ApplyInfo.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/MainSettings.vue') },
     ],
