@@ -19,6 +19,7 @@ const router = createRouter({
         { path: '/manage/term', component: () => import('@/views/ManageTerm.vue') },
         // 申请
         { path: '/apply', component: () => import('@/views/ApplyInfo.vue') },
+        { path: '/apply/new', component: () => import('@/views/ApplyNew.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/MainSettings.vue') },
     ],
