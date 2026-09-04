@@ -14,7 +14,7 @@ import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 import request from '@/utils/request'
-import uploadImage from '@/utils/uploadImage'
+import { uploadImage } from '@/utils/uploader'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -72,7 +72,7 @@ async function uploadAvatar(event: Event) {
 
     if (!file) return
 
-    const uploaded = await uploadImage(file, { scene: 'avatar' })
+    const uploaded = await uploadImage(file, 'avatar')
     if (!uploaded) {
         target.value = ''
         return

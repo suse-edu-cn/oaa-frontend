@@ -1,4 +1,4 @@
-import type { ImageResponse } from './api'
+import type { UploadResponse } from './api'
 
 /** 部门与职位引用 */
 export interface OrgRef {
@@ -37,7 +37,7 @@ export interface ApplicationItem {
     user_id: number
     name: string
     gender: string
-    avatar: ImageResponse
+    avatar: UploadResponse
     student_id: string
     college: string
     major_class: string

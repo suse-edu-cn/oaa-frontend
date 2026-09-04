@@ -7,7 +7,7 @@ export interface ApiResponse<T = any> {
     data: T
 }
 
-export interface ImageResponse {
+export interface UploadResponse {
     uri: string
     url: string
 }

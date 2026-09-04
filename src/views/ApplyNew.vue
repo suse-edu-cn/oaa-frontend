@@ -9,7 +9,7 @@ import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, Tog
 import { useAuthStore } from '@/stores/auth'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
-import uploadImage from '@/utils/uploadImage'
+import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 import type { ApiResponse } from '@/types/api'
 import type { ApplicationCreateData } from '@/types/application'
@@ -80,7 +80,7 @@ async function uploadAvatar(event: Event) {
     const file = target.files?.[0]
     if (!file) return
 
-    const uploaded = await uploadImage(file, { scene: 'application' })
+    const uploaded = await uploadImage(file, 'application')
     if (!uploaded) {
         target.value = ''
         return
