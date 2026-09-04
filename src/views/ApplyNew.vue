@@ -8,6 +8,7 @@ import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, Tog
 
 import { useAuthStore } from '@/stores/auth'
 import { useOrgStore } from '@/stores/org'
+import { fromDate } from '@/utils/date'
 import request from '@/utils/request'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
@@ -57,8 +58,7 @@ const submitting = ref(false)
 
 // ================= 周期 =================
 const terms = ref<TermInfo[]>([])
-
-// 加载可选的活动周期
+// 加载可供选择的活动周期
 async function loadTerms() {
     const resp = await request<ApiResponse<TermInfo[]>>({
         url: '/term/list',
@@ -74,7 +74,6 @@ async function loadTerms() {
 // 图片上传处理
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarUrl = ref('')
-
 async function uploadAvatar(event: Event) {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
@@ -94,13 +93,6 @@ async function uploadAvatar(event: Event) {
 }
 
 // ================= 提交 =================
-function toDateString(d: Date | null) {
-    if (!d) return ''
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${d.getFullYear()}-${m}-${day}`
-}
-
 // 已交互过的字段
 const touched = reactive(new Set<string>())
 const initial = { ...formData.value }
@@ -116,21 +108,19 @@ watch(
     { deep: true }
 )
 
-// 全量校验各字段
+// 校验各字段
 const allErrors = computed<Record<string, string>>(() => {
     const result: Record<string, string> = {}
 
     // 申请周期必须选择
     if (!formData.value.termId) result.termId = '请选择申请周期'
-
     // 志愿的部门与职位需成对填写
     if (!formData.value.firstDept) result.firstDept = '请选择第一志愿的部门'
     if (!formData.value.firstRole) result.firstRole = '请选择第一志愿的职位'
     if (!formData.value.secondDept) result.secondDept = '请选择第二志愿的部门'
     if (!formData.value.secondRole) result.secondRole = '请选择第二志愿的职位'
-
     // 其余字段与创建申请请求体一一对应
-    const parsed = applicationSchema.safeParse({ ...formData.value, birth_date: toDateString(birthDate.value) })
+    const parsed = applicationSchema.safeParse({ ...formData.value, birth_date: fromDate(birthDate.value) })
     if (!parsed.success) {
         for (const issue of parsed.error.issues) {
             const field = String(issue.path[0])
@@ -141,7 +131,7 @@ const allErrors = computed<Record<string, string>>(() => {
     return result
 })
 
-// 页面显示格式错误：只包含已交互字段
+// 页面显示格式错误
 const errors = computed(() =>
     Object.fromEntries(Object.entries(allErrors.value).filter(([field]) => touched.has(field)))
 )
@@ -150,7 +140,7 @@ const errors = computed(() =>
 const canSubmit = computed(() => confirmed.value && !Object.keys(allErrors.value).length)
 
 async function onSubmit() {
-    // 按钮 disabled 已保证均已选择，此处仅用于收窄类型
+    // 此处用于收窄类型
     const { termId, firstDept, firstRole, secondDept, secondRole } = formData.value
     if (!termId || !firstDept || !firstRole || !secondDept || !secondRole) return
 
@@ -162,7 +152,7 @@ async function onSubmit() {
         phone: formData.value.phone,
         qq: formData.value.qq,
         political_status: formData.value.political_status,
-        birth_date: toDateString(birthDate.value),
+        birth_date: fromDate(birthDate.value),
         avatar: formData.value.avatar,
         first_choice: { department_id: firstDept, role_id: firstRole },
         second_choice: { department_id: secondDept, role_id: secondRole },

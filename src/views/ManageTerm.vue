@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Select } from 'primevue'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { fromDate, toDate } from '@/utils/date'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import type { ApiResponse } from '@/types/api'
@@ -66,14 +67,6 @@ const canSave = computed(() => {
     return formEditEnd.value >= formEditStart.value && formQueryEnd.value >= formQueryStart.value
 })
 
-function toDate(s: string): Date | null {
-    return s ? new Date(`${s}T00:00:00`) : null
-}
-function fromDate(d: Date): string {
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${d.getFullYear()}-${m}-${day}`
-}
 // 打开新建周期对话框
 function openCreate() {
     dialogMode.value = 'create'
