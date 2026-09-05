@@ -21,6 +21,7 @@ const router = createRouter({
         { path: '/apply', component: () => import('@/views/ApplyInfo.vue') },
         { path: '/apply/new', component: () => import('@/views/ApplyNew.vue') },
         { path: '/apply/edit/:id', component: () => import('@/views/ApplyEdit.vue') },
+        { path: '/apply/review', component: () => import('@/views/ApplyReview.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/MainSettings.vue') },
     ],

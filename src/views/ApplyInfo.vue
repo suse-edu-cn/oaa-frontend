@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 
 import { Button, Card, Tag } from 'primevue'
 
+import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
@@ -15,6 +16,14 @@ const applications = ref<ApplicationItem[]>([])
 const loading = ref(true)
 const tooltip =
     '当前录取状态，“待定”意为当前录取工作尚未开始，请耐心等待。录取完成结果共有 4 种：录取第一志愿、录取第二志愿、已调剂、未通过。'
+
+// 头像灯箱预览，各卡片共用一个实例
+const previewVisible = ref(false)
+const previewUrl = ref('')
+function previewAvatar(url: string) {
+    previewUrl.value = url
+    previewVisible.value = true
+}
 
 // 加载当前用户的申请
 async function loadApplications() {
@@ -158,8 +167,14 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- 照片 -->
-                    <img v-if="a.avatar?.url" class="img" :src="a.avatar.url" alt="用户头像" />
+                    <!-- 照片，点击放大查看 -->
+                    <img
+                        v-if="a.avatar?.url"
+                        :src="a.avatar.url"
+                        alt="用户头像"
+                        class="img"
+                        @click="previewAvatar(a.avatar.url)"
+                    />
                 </div>
 
                 <!-- 文字内容 -->
@@ -181,6 +196,9 @@ onMounted(() => {
                 <span class="card-footer">提交时间：{{ formatTime(a.created_at) }}</span>
             </template>
         </Card>
+
+        <!-- 头像灯箱预览 -->
+        <Lightbox v-model="previewVisible" :src="previewUrl" alt="用户头像" />
     </main>
 </template>
 
@@ -311,6 +329,7 @@ onMounted(() => {
         object-fit: cover;
         border-radius: var(--e-border-radius);
         border: 1px solid #eee;
+        cursor: pointer;
     }
 }
 
