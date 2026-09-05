@@ -12,9 +12,8 @@ import { fromDate } from '@/utils/date'
 import request from '@/utils/request'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
-import type { ApiResponse } from '@/types/api'
-import type { ApplicationCreateData } from '@/types/application'
-import type { TermInfo } from '@/types/term'
+
+import type { ApiResponse, ApplicationCreateData, DepartmentItem, RoleItem, TermInfo } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -90,6 +89,91 @@ async function uploadAvatar(event: Event) {
     setToast('success', '头像上传成功', '')
 
     target.value = ''
+}
+
+// ================= 志愿 =================
+// 各志愿部门下可供申请的职位
+const firstRoles = ref<RoleItem[]>([])
+const secondRoles = ref<RoleItem[]>([])
+
+// 获取部门下可供申请的职位
+async function fetchRoles(departmentId: number | null) {
+    if (!departmentId) return []
+    const resp = await request<ApiResponse<RoleItem[]>>({
+        url: '/application/role',
+        method: 'GET',
+        params: { department_id: departmentId },
+    })
+    if (resp?.code == 200) {
+        return resp.data ?? []
+    }
+    setToast('error', '获取职位列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    return []
+}
+
+// 各志愿职位可供申请的部门
+const firstDepts = ref<DepartmentItem[]>([])
+const secondDepts = ref<DepartmentItem[]>([])
+const firstDeptOptions = computed(() => (firstDepts.value.length ? firstDepts.value : orgStore.departments))
+const secondDeptOptions = computed(() => (secondDepts.value.length ? secondDepts.value : orgStore.departments))
+// 各志愿部门下可供申请的职位
+const firstRoleOptions = computed(() => (firstRoles.value.length ? firstRoles.value : orgStore.roles))
+const secondRoleOptions = computed(() => (secondRoles.value.length ? secondRoles.value : orgStore.roles))
+
+// 获取职位可供申请的部门
+async function fetchDepts(roleId: number | null) {
+    if (!roleId) return []
+    const resp = await request<ApiResponse<DepartmentItem[]>>({
+        url: '/application/department',
+        method: 'GET',
+        params: { role_id: roleId },
+    })
+    if (resp?.code == 200) {
+        return resp.data ?? []
+    }
+    setToast('error', '获取部门列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    return []
+}
+
+// 切换部门后刷新对应职位
+async function onFirstDeptChange() {
+    const deptId = formData.value.firstDept
+    firstDepts.value = []
+    formData.value.firstRole = null
+    const roles = await fetchRoles(deptId)
+    // 此期间切换部门时，丢弃结果
+    if (formData.value.firstDept === deptId) firstRoles.value = roles
+}
+async function onSecondDeptChange() {
+    const deptId = formData.value.secondDept
+    secondDepts.value = []
+    formData.value.secondRole = null
+    const roles = await fetchRoles(deptId)
+    if (formData.value.secondDept === deptId) secondRoles.value = roles
+}
+
+// 切换职位后刷新可供申请的部门，过滤部门选项
+async function onFirstRoleChange() {
+    const roleId = formData.value.firstRole
+    const depts = await fetchDepts(roleId)
+    // 此期间切换职位，丢弃结果
+    if (formData.value.firstRole !== roleId) return
+    firstDepts.value = depts
+    // 当前部门已不可申请该职位时清空
+    if (roleId && formData.value.firstDept && !depts.some((d) => d.id === formData.value.firstDept)) {
+        formData.value.firstDept = null
+        firstRoles.value = []
+    }
+}
+async function onSecondRoleChange() {
+    const roleId = formData.value.secondRole
+    const depts = await fetchDepts(roleId)
+    if (formData.value.secondRole !== roleId) return
+    secondDepts.value = depts
+    if (roleId && formData.value.secondDept && !depts.some((d) => d.id === formData.value.secondDept)) {
+        formData.value.secondDept = null
+        secondRoles.value = []
+    }
 }
 
 // ================= 提交 =================
@@ -293,10 +377,11 @@ onMounted(() => {
                             <label>部门</label>
                             <Select
                                 v-model="formData.firstDept"
-                                :options="orgStore.departments"
+                                :options="firstDeptOptions"
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择部门"
+                                @change="onFirstDeptChange"
                             />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.firstDept }}
@@ -306,10 +391,11 @@ onMounted(() => {
                             <label>职位</label>
                             <Select
                                 v-model="formData.firstRole"
-                                :options="orgStore.roles"
+                                :options="firstRoleOptions"
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择职位"
+                                @change="onFirstRoleChange"
                             />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.firstRole }}
@@ -323,10 +409,11 @@ onMounted(() => {
                             <label>部门</label>
                             <Select
                                 v-model="formData.secondDept"
-                                :options="orgStore.departments"
+                                :options="secondDeptOptions"
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择部门"
+                                @change="onSecondDeptChange"
                             />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.secondDept }}
@@ -336,10 +423,11 @@ onMounted(() => {
                             <label>职位</label>
                             <Select
                                 v-model="formData.secondRole"
-                                :options="orgStore.roles"
+                                :options="secondRoleOptions"
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择职位"
+                                @change="onSecondRoleChange"
                             />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.secondRole }}
