@@ -20,6 +20,7 @@ const router = createRouter({
         // 申请
         { path: '/apply', component: () => import('@/views/ApplyInfo.vue') },
         { path: '/apply/new', component: () => import('@/views/ApplyNew.vue') },
+        { path: '/apply/edit/:id', component: () => import('@/views/ApplyEdit.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/MainSettings.vue') },
     ],

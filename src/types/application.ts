@@ -6,28 +6,7 @@ export interface OrgRef {
     role_id: number
 }
 
-/** 创建申请请求体 */
-export interface ApplicationCreateData {
-    /** 申请的活动周期 */
-    term_id: number
-    college: string
-    major_class: string
-    gender: string
-    phone: string
-    qq: string
-    political_status: string
-    birth_date: string
-    /** 相对路径，前端传给后端用 uri */
-    avatar: string
-    first_choice: OrgRef
-    second_choice: OrgRef
-    /** 是否服从调剂 */
-    allow_adjust: boolean
-    resume: string
-    reason: string
-}
-
-/** 招新 / 换届申请条目 */
+/** 招新 / 换届申请条目 /apply */
 export interface ApplicationItem {
     id: number
     term_id: number
@@ -58,4 +37,31 @@ export interface ApplicationItem {
     decision_remark: string
     created_at: string
     updated_at: string
+}
+
+/** 创建申请请求体 /apply/new */
+export interface ApplicationCreateData {
+    /** 申请的活动周期 */
+    term_id: number
+    college: string
+    major_class: string
+    gender: string
+    phone: string
+    qq: string
+    political_status: string
+    birth_date: string
+    /** 相对路径，前端传给后端用 uri */
+    avatar: string
+    first_choice: OrgRef
+    second_choice: OrgRef
+    /** 是否服从调剂 */
+    allow_adjust: boolean
+    resume: string
+    reason: string
+}
+
+/** 修改申请请求体 /apply/edit/{id} */
+export interface ApplicationUpdateData extends Omit<ApplicationCreateData, 'term_id'> {
+    /** 待修改的申请 id */
+    application_id: number
 }

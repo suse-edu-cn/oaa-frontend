@@ -1,4 +1,4 @@
-import type { ImageResponse } from './api'
+import type { UploadResponse } from './api'
 
 /** 当前用户信息 /user/me */
 export interface UserInfo {
@@ -6,7 +6,7 @@ export interface UserInfo {
     student_id: string
     username: string
     name: string
-    avatar: ImageResponse
+    avatar: UploadResponse
     email: string
     department: string
     role: string
