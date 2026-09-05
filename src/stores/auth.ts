@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import type { UserInfo } from '@/types/user'
+import type { UserInfo } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
     const isReady = ref(false)

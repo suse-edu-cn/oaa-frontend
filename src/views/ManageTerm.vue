@@ -7,8 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { fromDate, toDate } from '@/utils/date'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse } from '@/types/api'
-import type { TermCreateData, TermInfo, TermPeriod, TermUpdateData } from '@/types/term'
+import type { ApiResponse, TermCreateData, TermInfo, TermPeriod, TermUpdateData } from '@/types'
 
 // 周期类型
 const TERM_TYPES = ['招新', '换届'] as const

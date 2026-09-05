@@ -3,7 +3,7 @@ import cookies from 'js-cookie'
 import router from '@/router'
 
 import { useAuthStore } from '@/stores/auth'
-import type { ApiResponse } from '@/types/api'
+import type { ApiResponse } from '@/types'
 import setToast from './setToast'
 
 const instance = axios.create({

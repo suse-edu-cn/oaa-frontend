@@ -7,8 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { useOrgStore } from '@/stores/org'
-import type { ApiResponse } from '@/types/api'
-import type { UserBatchErrorItem, UserListData, UserInfo } from '@/types/user'
+import type { ApiResponse, UserBatchErrorItem, UserListData, UserInfo } from '@/types'
 
 // 部门和职位的下拉菜单
 const orgStore = useOrgStore()

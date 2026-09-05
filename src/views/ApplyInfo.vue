@@ -7,8 +7,7 @@ import { Button, Card, Tag } from 'primevue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse } from '@/types/api'
-import type { ApplicationItem, OrgRef } from '@/types/application'
+import type { ApiResponse, ApplicationItem, OrgRef } from '@/types'
 
 const orgStore = useOrgStore()
 

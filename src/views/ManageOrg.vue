@@ -7,9 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse } from '@/types/api'
-import type { DepartmentItem } from '@/types/department'
-import type { RoleItem } from '@/types/role'
+import type { ApiResponse, DepartmentItem, RoleItem } from '@/types'
 
 const orgStore = useOrgStore()
 

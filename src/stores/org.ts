@@ -3,9 +3,7 @@ import { defineStore } from 'pinia'
 
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse } from '@/types/api'
-import type { DepartmentItem } from '@/types/department'
-import type { RoleItem } from '@/types/role'
+import type { ApiResponse, DepartmentItem, RoleItem } from '@/types'
 
 /** 部门 & 职位架构引用数据 */
 export const useOrgStore = defineStore('org', () => {
@@ -48,7 +46,6 @@ export const useOrgStore = defineStore('org', () => {
             await fetchAll()
         }
     }
-    /** 强制刷新缓存 */
     async function refresh() {
         await fetchAll()
     }

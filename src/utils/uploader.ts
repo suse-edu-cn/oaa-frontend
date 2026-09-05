@@ -1,6 +1,6 @@
 import request from './request'
 import setToast from './setToast'
-import type { ApiResponse, UploadResponse } from '@/types/api'
+import type { ApiResponse, UploadResponse } from '@/types'
 
 // 图片内置校验规则，不允许调用方覆盖
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif']

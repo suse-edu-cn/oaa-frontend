@@ -2,8 +2,7 @@ import cookies from 'js-cookie'
 
 import request from './request'
 import { useAuthStore } from '@/stores/auth'
-import type { ApiResponse } from '@/types/api'
-import type { UserInfo } from '@/types/user'
+import type { ApiResponse, UserInfo } from '@/types'
 
 export async function initAuthStore() {
     const authStore = useAuthStore()
