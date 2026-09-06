@@ -83,10 +83,10 @@ async function onSave(data: ApplicationFormData) {
     submitting.value = false
 
     if (resp?.code == 200) {
-        setToast('success', '保存成功', '申请已更新')
+        setToast('success', '申请更新成功')
         router.push('/apply')
     } else {
-        setToast('error', '保存失败', resp?.message || '未知错误，请联系负责后端的同学')
+        setToast('error', '申请更新失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
 }
 
@@ -103,10 +103,10 @@ async function onDelete() {
     deleting.value = false
 
     if (resp?.code == 200) {
-        setToast('success', '删除成功', '申请已删除')
+        setToast('success', '申请删除成功')
         router.push('/apply')
     } else {
-        setToast('error', '删除失败', resp?.message || '未知错误，请联系负责后端的同学')
+        setToast('error', '申请删除失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
 }
 

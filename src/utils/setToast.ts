@@ -4,7 +4,7 @@ export const initToast = (instance: any) => {
     toastInstance = instance
 }
 
-export default function (severity: string, summary: string, detail: string) {
+export default function (severity: string, summary: string, detail?: string) {
     if (toastInstance) {
         toastInstance.add({ severity, summary, detail, life: 4500 })
     } else {

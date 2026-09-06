@@ -96,7 +96,7 @@ function openEdit(term: TermInfo) {
 async function onSave() {
     // 校验 term_id
     if (dialogMode.value === 'edit' && !dialogTargetId.value) {
-        setToast('error', '保存失败', '缺少周期标识（term_id），请刷新页面后重试')
+        setToast('error', '保存失败', '缺少活动周期标识 term_id，请刷新页面后重试')
         return
     }
     if (!dialogTargetId.value && !formYear.value) return
@@ -169,7 +169,7 @@ async function onDeleteTerm() {
     deleting.value = false
 
     if (resp?.code == 200) {
-        setToast('success', '删除成功', `“${target.title}” 已删除`)
+        setToast('success', `${target.title}删除成功`)
         deleteVisible.value = false
         await loadTerms(true)
     } else {

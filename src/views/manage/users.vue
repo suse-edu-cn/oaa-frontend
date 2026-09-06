@@ -57,7 +57,7 @@ async function onDelete() {
     if (resp?.code == 200) {
         // 前端同步移除该用户
         users.value = users.value.filter((u) => u.user_id !== target.user_id)
-        setToast('success', '删除成功', `已删除用户：${target.name}（${target.username}）`)
+        setToast('success', '删除成功', `已删除用户 ${target.name}（${target.username}）`)
         deleteVisible.value = false
     } else {
         setToast('error', '删除失败', resp?.message || '未知错误，请联系负责后端的同学')

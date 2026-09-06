@@ -28,10 +28,10 @@ async function onSubmit(data: ApplicationFormData, termId: number | null) {
     submitting.value = false
 
     if (resp?.code == 200) {
-        setToast('success', '提交成功', '申请已提交，请等待审核')
+        setToast('success', '申请提交成功，请等待审核')
         router.push('/apply')
     } else {
-        setToast('error', '提交失败', resp?.message || '未知错误，请联系负责后端的同学')
+        setToast('error', '申请提交失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
 }
 </script>

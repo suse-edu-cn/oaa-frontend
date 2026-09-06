@@ -156,7 +156,7 @@ async function onDialogConfirm() {
                 },
             })
             if (resp?.code == 200) {
-                setToast('success', '面试官已新建', user.name)
+                setToast('success', '添加面试官成功')
                 dialogVisible.value = false
                 await loadStaff()
             } else {
@@ -183,7 +183,7 @@ async function onDialogConfirm() {
         })
         if (resp?.code == 200) {
             target.remark = dialogFormRemark.value.trim()
-            setToast('success', '更新面试官成功', target.name)
+            setToast('success', '更新面试官成功')
             dialogVisible.value = false
         } else {
             setToast('error', '更新面试官失败', resp?.message || '未知错误，请联系负责后端的同学')
@@ -216,7 +216,7 @@ async function onDelete() {
         })
         if (resp?.code == 200) {
             staff.value = staff.value.filter((s) => s.id !== target.id)
-            setToast('success', '删除成功', `已移除面试官：${target.name}`)
+            setToast('success', `已移除面试官 ${target.name}`)
             deleteVisible.value = false
         } else {
             setToast('error', '删除面试官失败', resp?.message || '未知错误，请联系负责后端的同学')

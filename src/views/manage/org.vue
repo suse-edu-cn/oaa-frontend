@@ -59,7 +59,7 @@ async function onDeptConfirm() {
     if (!name) return
     // 不允许重名
     if (orgStore.departments.some((i) => i.name === name && i.id !== deptTargetId.value)) {
-        setToast('error', `${deptDialogTitle.value}失败`, `名称「${name}」已存在`)
+        setToast('error', `${deptDialogTitle.value}失败`, `名称 “${name}” 已存在`)
         return
     }
 
@@ -75,7 +75,7 @@ async function onDeptConfirm() {
     deptSaving.value = false
 
     if (resp?.code == 200) {
-        setToast('success', deptDialogMode.value === 'create' ? '部门已新建' : '部门已更新', name)
+        setToast('success', deptDialogMode.value === 'create' ? `${name}部门已新建` : `${name}部门已更新`)
         deptDialogVisible.value = false
         // 刷新 org 缓存
         await orgStore.refresh()
@@ -117,10 +117,9 @@ function openRoleEdit(item: RoleItem) {
     roleDialogVisible.value = true
 }
 
-// 编辑已有职位，关闭启用开关时需二次确认
+// 编辑已有职位
 function onRoleActiveChange(value: boolean) {
     if (roleDialogMode.value === 'edit' && !value) {
-        // 先回弹为开启，确认停用后才真正关闭
         roleFormActive.value = true
         confirmRoleVisible.value = true
     }
@@ -155,9 +154,9 @@ async function onRoleConfirm() {
     roleSaving.value = false
 
     if (resp?.code == 200) {
-        setToast('success', roleDialogMode.value === 'create' ? '职位已新建' : '职位已更新', name)
+        setToast('success', roleDialogMode.value === 'create' ? `${name}职位已创建` : `${name}职位已更新`)
         roleDialogVisible.value = false
-        // 刷新组织架构缓存，两个列表即时生效
+        // 刷新组织架构缓存
         await orgStore.refresh()
     } else {
         setToast('error', `${roleDialogTitle.value}失败`, resp?.message || '未知错误，请联系负责后端的同学')
