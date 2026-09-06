@@ -32,5 +32,12 @@ export default defineConfigWithVueTs([
             '@typescript-eslint/no-explicit-any': 'off',
         },
     },
+    {
+        name: 'app/views-override',
+        files: ['src/views/**/*.vue'],
+        rules: {
+            'vue/multi-word-component-names': 'off',
+        },
+    },
     skipFormatting,
 ])

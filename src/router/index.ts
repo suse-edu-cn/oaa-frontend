@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import cookies from 'js-cookie'
 
 import setToast from '@/utils/setToast'
-import HomeView from '@/views/MainHome.vue'
+import HomeView from '@/views/home/index.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -10,20 +10,20 @@ const router = createRouter({
         { path: '/', component: HomeView, meta: { requiresAuth: false } },
 
         // 个人
-        { path: '/auth', component: () => import('@/views/UserAuth.vue'), meta: { requiresAuth: false } },
-        { path: '/user', component: () => import('@/views/UserHome.vue') },
-        { path: '/user/edit', component: () => import('@/views/UserEdit.vue') },
+        { path: '/auth', component: () => import('@/views/user/auth.vue'), meta: { requiresAuth: false } },
+        { path: '/user', component: () => import('@/views/user/index.vue') },
+        { path: '/user/edit', component: () => import('@/views/user/edit.vue') },
         // 管理
-        { path: '/manage/users', component: () => import('@/views/ManageUsers.vue') },
-        { path: '/manage/org', component: () => import('@/views/ManageOrg.vue') },
-        { path: '/manage/term', component: () => import('@/views/ManageTerm.vue') },
+        { path: '/manage/users', component: () => import('@/views/manage/users.vue') },
+        { path: '/manage/org', component: () => import('@/views/manage/org.vue') },
+        { path: '/manage/term', component: () => import('@/views/manage/term.vue') },
         // 申请
-        { path: '/apply', component: () => import('@/views/ApplyInfo.vue') },
-        { path: '/apply/new', component: () => import('@/views/ApplyNew.vue') },
-        { path: '/apply/edit/:id', component: () => import('@/views/ApplyEdit.vue') },
-        { path: '/apply/review', component: () => import('@/views/ApplyReview.vue') },
+        { path: '/apply', component: () => import('@/views/apply/index.vue') },
+        { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
+        { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue') },
+        { path: '/apply/review', component: () => import('@/views/apply/review.vue') },
         // 设置
-        { path: '/settings', component: () => import('@/views/MainSettings.vue') },
+        { path: '/settings', component: () => import('@/views/settings/index.vue') },
     ],
 })
 

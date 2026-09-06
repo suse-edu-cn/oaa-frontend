@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { version } from '../../package.json'
+import { version } from '../../../package.json'
 const gitVersion: string = __GIT_VERSION__
 </script>
 

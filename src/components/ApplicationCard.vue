@@ -120,7 +120,6 @@ function formatTime(iso: string) {
                     </div>
                 </div>
 
-                <!-- 照片，点击放大查看 -->
                 <img
                     v-if="application.avatar?.url"
                     :src="application.avatar.url"

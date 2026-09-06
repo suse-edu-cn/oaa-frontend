@@ -15,9 +15,8 @@ import type { ApiResponse, ApplicationFormPrefill, ApplicationFormData, Applicat
 const route = useRoute()
 const router = useRouter()
 
-// 待编辑申请的 id，来自路由参数
+// 待编辑申请的 id
 const routeId = Number(route.params.id)
-
 const submitting = ref(false)
 
 // ================= 加载 =================
