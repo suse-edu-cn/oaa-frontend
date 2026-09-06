@@ -1,0 +1,27 @@
+name: ⚙️ 功能变更请求
+description: 可以在这里请求对现有的一些东西进行修改
+labels: ['Type: Change']
+title: '[CHANGE] '
+body:
+    - type: textarea
+      attributes:
+          label: 具体要求
+          description: 你可以在此处描述你希望增加的功能的具体信息，或者你希望达到的效果等。
+      validations:
+          required: true
+
+    - type: dropdown
+      attributes:
+          label: 该请求的优先级
+          description: 你可以在此处表述你希望该功能请求得到注意的优先级怎么样。
+          options:
+              - 高
+              - 中
+              - 低
+
+    - type: checkboxes
+      attributes:
+          label: 提交 Issue 前须知
+          options:
+              - label: 我已经查看近期 Issues（包含 Open 和 Closed），未发现已存在此 Issue 或相似/同类型的 Issue。
+                required: true

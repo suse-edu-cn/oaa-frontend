@@ -7,19 +7,19 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
             - name: Setup Node
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+              uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 11
 
             - name: Install dependencies
               run: pnpm install
@@ -34,7 +34,7 @@ jobs:
                   VERSION=$(node -p "require('./package.json').version")
                   COUNT=$(git rev-list --count HEAD)
                   HASH=$(git rev-parse --short=7 HEAD)
-                  ARTIFACT_NAME="ci-v${VERSION}-${COUNT}-g${HASH}"
+                  ARTIFACT_NAME="oaa-fe-v${VERSION}-${COUNT}-g${HASH}"
                   echo "name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
                   zip -r "${ARTIFACT_NAME}.zip" dist
 
