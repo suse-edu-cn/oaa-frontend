@@ -35,7 +35,13 @@ watch(visible, (value) => {
         </div>
         <template #footer>
             <Button label="取消" severity="secondary" text @click="visible = false" />
-            <Button label="确认" severity="danger" :disabled="!acknowledged" @click="emit('confirm')" />
+            <Button
+                label="确认"
+                severity="danger"
+                :disabled="!acknowledged"
+                :loading="loading"
+                @click="emit('confirm')"
+            />
         </template>
     </Dialog>
 </template>

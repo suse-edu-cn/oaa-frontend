@@ -22,6 +22,9 @@ const router = createRouter({
         { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
         { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue') },
         { path: '/apply/review', component: () => import('@/views/apply/review.vue') },
+        // 面试
+        { path: '/apply/interview', redirect: '/apply/interview/staff' },
+        { path: '/apply/interview/staff', component: () => import('@/views/apply/interview/staff.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/settings/index.vue') },
     ],

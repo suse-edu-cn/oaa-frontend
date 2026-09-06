@@ -53,7 +53,7 @@ const links: MenuItem[] = [
         separator: true,
     },
     {
-        label: '申请',
+        label: '招新换届',
         items: [
             {
                 label: '我的申请',
@@ -64,6 +64,11 @@ const links: MenuItem[] = [
                 label: '审核申请',
                 icon: 'pi pi-block-quote',
                 to: '/apply/review',
+            },
+            {
+                label: '面试安排',
+                icon: 'pi pi-calendar',
+                to: '/apply/interview',
             },
         ],
     },

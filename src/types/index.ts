@@ -1,6 +1,7 @@
 export * from './api'
 export * from './application'
 export * from './department'
+export * from './interview'
 export * from './role'
 export * from './term'
 export * from './user'
