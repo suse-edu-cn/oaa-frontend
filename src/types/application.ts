@@ -60,9 +60,8 @@ export interface ApplicationCreateData {
     reason: string
 }
 
-/** 申请表单预填数据，编辑页由申请数据构造，创建页留空 */
+/** 申请表单预填数据 */
 export interface ApplicationFormPrefill {
-    /** 姓名、学号仅展示不可编辑 */
     name?: string
     student_id?: string
     termId?: number | null
@@ -73,7 +72,6 @@ export interface ApplicationFormPrefill {
     qq?: string
     political_status?: string
     birth_date?: string
-    /** 头像相对路径与展示地址 */
     avatar?: string
     avatar_url?: string
     firstDept?: number | null
@@ -85,7 +83,7 @@ export interface ApplicationFormPrefill {
     reason?: string
 }
 
-/** 申请表单提交的数据，不含周期；创建页补 term_id，编辑页补 application_id */
+/** 申请表单提交的数据 */
 export type ApplicationFormData = Omit<ApplicationCreateData, 'term_id'>
 
 /** 修改申请请求体 /apply/edit/{id} */

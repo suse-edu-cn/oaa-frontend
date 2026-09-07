@@ -2,15 +2,16 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 
-import { Button, Dialog, Select, Tab, TabList, Tabs, Textarea } from 'primevue'
+import { Button, Column, DataTable, Dialog, Select, Tab, TabList, Tabs, Textarea } from 'primevue'
 
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
+import { fromIso } from '@/utils/date'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { ApiResponse, ApplicationItem, RoleItem, TermInfo } from '@/types'
+import type { ApiResponse, ApplicationItem, InterviewResultItem, RoleItem, TermInfo } from '@/types'
 
 const orgStore = useOrgStore()
 
@@ -66,20 +67,49 @@ async function loadApplications() {
 }
 watch([termId, deptId], loadApplications)
 
-// ================= 处理状态筛选 =================
-// 待定视为未处理，录取 / 已调剂 / 未通过视为已处理
-const activeTab = ref('unprocessed')
-const filteredApplications = computed(() => {
-    if (activeTab.value === 'unprocessed') return applications.value.filter((a) => a.decision === '待定')
-    if (activeTab.value === 'processed') return applications.value.filter((a) => a.decision !== '待定')
-    return applications.value
+// ================= 列表切换 =================
+// 已审核展示审批记录，全部申请展示申请卡片
+const activeTab = ref('reviewed')
+
+// ================= 审批记录 =================
+const results = ref<InterviewResultItem[]>([])
+const resultsLoading = ref(false)
+// 请求序号，快速切换周期时丢弃旧响应
+let resultRequests = 0
+async function loadResults() {
+    if (!termId.value) return
+
+    const seq = ++resultRequests
+    resultsLoading.value = true
+    try {
+        const resp = await request<ApiResponse<InterviewResultItem[]>>({
+            url: '/interviewer/result/list',
+            method: 'GET',
+            params: { term_id: termId.value },
+        })
+        if (seq !== resultRequests) return
+        if (resp?.code == 200) {
+            results.value = resp.data ?? []
+        } else {
+            setToast('error', '获取审批记录失败', resp?.message || '未知错误，请联系负责后端的同学')
+        }
+    } finally {
+        if (seq === resultRequests) resultsLoading.value = false
+    }
+}
+// 处于已审核 Tab 时，周期变化或切回该 Tab 都重新拉取
+watch([termId, activeTab], () => {
+    if (activeTab.value === 'reviewed') loadResults()
 })
 
 // ================= 审批 =================
 const decisionOptions = ['录取第一志愿', '录取第二志愿', '已调剂', '未通过', '待定']
 
 const reviewVisible = ref(false)
+const dialogType = ref<'create' | 'edit'>('create')
 const reviewTarget = ref<ApplicationItem | null>(null)
+const editTarget = ref<InterviewResultItem | null>(null)
+const dialogTitle = computed(() => (dialogType.value === 'create' ? '审批申请' : '修改审批'))
 const reviewForm = ref({
     decision: '',
     deptId: null as number | null,
@@ -110,15 +140,15 @@ async function loadResultRoles(departmentId: number) {
     }
 }
 
-// 部门变化后重载职位
 function onResultDeptChange() {
     reviewForm.value.roleId = null
     if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
     else resultRoles.value = []
 }
-// 预填当前申请的决议与结果，便于重新审批
 function openReview(a: ApplicationItem) {
+    dialogType.value = 'create'
     reviewTarget.value = a
+    editTarget.value = null
     reviewForm.value = {
         decision: a.decision || '',
         deptId: a.result?.department_id ?? null,
@@ -127,6 +157,21 @@ function openReview(a: ApplicationItem) {
     }
     resultRoles.value = []
     // 预填了部门时拉取对应职位
+    if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
+    reviewVisible.value = true
+}
+
+function openResultEdit(r: InterviewResultItem) {
+    dialogType.value = 'edit'
+    reviewTarget.value = null
+    editTarget.value = r
+    reviewForm.value = {
+        decision: r.decision || '',
+        deptId: r.result_department_id || null,
+        roleId: r.result_role_id || null,
+        remark: r.remark || '',
+    }
+    resultRoles.value = []
     if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
     reviewVisible.value = true
 }
@@ -141,45 +186,67 @@ const reviewCanSave = computed(() => {
 const reviewSaving = ref(false)
 
 async function onReviewConfirm() {
-    const target = reviewTarget.value
     const decision = reviewForm.value.decision
-    if (!target || !decision) return
+    if (!decision) return
+
+    // create 直接用申请；edit 记录里只有 application_id，需回申请列表反查
+    const isEdit = dialogType.value === 'edit'
+    const appId = isEdit ? editTarget.value?.application_id : reviewTarget.value?.id
+    if (!appId) return
+    const app = isEdit ? applications.value.find((a) => a.id === appId) : reviewTarget.value
 
     const data: Record<string, unknown> = {
-        application_id: target.id,
+        application_id: appId,
         decision,
         remark: reviewForm.value.remark.trim(),
     }
     // 录取按对应志愿的部门 / 职位提交，已调剂按表单选择提交
-    if (decision === '录取第一志愿') {
-        data.result_department_id = target.first_choice.department_id
-        data.result_role_id = target.first_choice.role_id
-    } else if (decision === '录取第二志愿') {
-        data.result_department_id = target.second_choice.department_id
-        data.result_role_id = target.second_choice.role_id
-    } else if (decision === '已调剂') {
+    if (decision === '已调剂') {
         data.result_department_id = reviewForm.value.deptId
         data.result_role_id = reviewForm.value.roleId
+    } else if (decision === '录取第一志愿' || decision === '录取第二志愿') {
+        // 申请不在列表（如被部门过滤）时，录取志愿沿用记录中已存的结果
+        const choice = decision === '录取第一志愿' ? app?.first_choice : app?.second_choice
+        data.result_department_id = choice?.department_id ?? editTarget.value?.result_department_id
+        data.result_role_id = choice?.role_id ?? editTarget.value?.result_role_id
     }
 
     reviewSaving.value = true
     try {
         const resp = await request<ApiResponse<null>>({
-            url: '/interviewer/result/create',
+            url: isEdit ? '/interviewer/result/update' : '/interviewer/result/create',
             method: 'POST',
             data,
         })
         if (resp?.code == 200) {
-            setToast('success', '审批已提交', target.name)
+            setToast('success', isEdit ? '审批已更新' : '审批已提交')
             reviewVisible.value = false
-            // 刷新列表以显示最新决议
+            // 刷新申请列表与审批记录
             await loadApplications()
+            loadResults()
         } else {
-            setToast('error', '提交审批失败', resp?.message || '未知错误，请联系负责后端的同学')
+            setToast(
+                'error',
+                isEdit ? '更新审批失败' : '提交审批失败',
+                resp?.message || '未知错误，请联系负责后端的同学'
+            )
         }
     } finally {
         reviewSaving.value = false
     }
+}
+
+// ================= 展示辅助 =================
+// 结果部门 / 职位 id 反查名称
+function resultOrgText(departmentId?: number, roleId?: number) {
+    if (!departmentId && !roleId) return '—'
+    const dept = orgStore.departments.find((d) => d.id === departmentId)?.name
+    const role = orgStore.roles.find((r) => r.id === roleId)?.name
+    return (
+        [dept ?? (departmentId ? `部门 #${departmentId}` : ''), role ?? (roleId ? `职位 #${roleId}` : '')]
+            .filter(Boolean)
+            .join(' ') || '—'
+    )
 }
 
 // 图片预览 lightbox
@@ -223,41 +290,90 @@ onMounted(() => {
             />
         </div>
 
-        <!-- 处理状态筛选 -->
         <Tabs v-model:value="activeTab" class="status-tabs">
             <TabList>
-                <Tab value="unprocessed">未处理</Tab>
-                <Tab value="processed">已处理</Tab>
-                <Tab value="all">全部</Tab>
+                <Tab value="all">全部申请</Tab>
+                <Tab value="reviewed">已审核</Tab>
             </TabList>
         </Tabs>
 
-        <div v-if="loading" class="empty">
-            <i class="pi pi-spin pi-spinner icon"></i>
-            <p>正在加载信息......</p>
-        </div>
+        <!-- 已审核 -->
+        <DataTable
+            v-if="activeTab === 'reviewed'"
+            :value="results"
+            :loading="resultsLoading"
+            data-key="id"
+            striped-rows
+            paginator
+            :rows="20"
+        >
+            <template #empty>
+                <div class="e-table-empty">暂无审批记录</div>
+            </template>
+            <Column field="name" header="姓名" />
+            <Column field="decision" header="结果" />
+            <Column header="录取情况">
+                <template #body="{ data }">
+                    {{
+                        resultOrgText(
+                            (data as InterviewResultItem).result_department_id,
+                            (data as InterviewResultItem).result_role_id
+                        )
+                    }}
+                </template>
+            </Column>
+            <Column field="operator_name" header="审核员" />
+            <Column header="审核时间">
+                <template #body="{ data }">
+                    {{ fromIso((data as InterviewResultItem).created_at) }}
+                </template>
+            </Column>
+            <Column field="remark" header="备注">
+                <template #body="{ data }">
+                    {{ data.remark || '—' }}
+                </template>
+            </Column>
+            <Column header="">
+                <template #body="{ data }">
+                    <Button
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        text
+                        @click="openResultEdit(data as InterviewResultItem)"
+                    />
+                </template>
+            </Column>
+        </DataTable>
 
-        <div v-else-if="!filteredApplications.length" class="empty">
-            <i class="pi pi-times-circle icon"></i>
-            <p>暂无符合条件的申请</p>
-        </div>
-
+        <!-- 全部申请 -->
         <template v-else>
-            <ApplicationCard
-                v-for="a in filteredApplications"
-                :key="a.id"
-                :application="a"
-                review-mode
-                @preview="previewAvatar"
-                @review="openReview"
-            />
+            <div v-if="loading" class="empty">
+                <i class="pi pi-spin pi-spinner icon"></i>
+                <p>正在加载信息......</p>
+            </div>
+
+            <div v-else-if="!applications.length" class="empty">
+                <i class="pi pi-times-circle icon"></i>
+                <p>暂无符合条件的申请</p>
+            </div>
+
+            <template v-else>
+                <ApplicationCard
+                    v-for="a in applications"
+                    :key="a.id"
+                    :application="a"
+                    review-mode
+                    @preview="previewAvatar"
+                    @review="openReview"
+                />
+            </template>
         </template>
 
         <!-- 头像灯箱预览 -->
         <Lightbox v-model="previewVisible" :src="previewUrl" alt="用户头像" />
 
         <!-- 审批申请 -->
-        <Dialog v-model:visible="reviewVisible" modal header="审批申请" :style="{ width: '24rem' }">
+        <Dialog v-model:visible="reviewVisible" modal :header="dialogTitle" :style="{ width: '24rem' }">
             <div class="dialog-fields">
                 <div>审批结果</div>
                 <Select v-model="reviewForm.decision" :options="decisionOptions" placeholder="请选择审批结果" fluid />
@@ -316,7 +432,6 @@ onMounted(() => {
     margin-bottom: 1.5em;
 }
 
-// 审批弹窗表单
 .dialog-fields {
     display: flex;
     flex-direction: column;
@@ -324,7 +439,6 @@ onMounted(() => {
     gap: 12px;
 }
 
-// 未选择周期 / 加载中 / 无符合条件的申请状态
 .empty {
     text-align: center;
     font-size: 18px;
