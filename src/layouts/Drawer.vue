@@ -66,9 +66,9 @@ const links: MenuItem[] = [
                 to: '/apply/review',
             },
             {
-                label: '面试安排',
-                icon: 'pi pi-calendar',
-                to: '/apply/interview',
+                label: '面试管理',
+                icon: 'pi pi-lightbulb',
+                to: '/apply/staff',
             },
         ],
     },

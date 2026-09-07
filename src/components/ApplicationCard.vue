@@ -1,6 +1,6 @@
 <!-- 更新换届申请信息卡片 -->
 <script lang="ts" setup>
-import { Card, Tag } from 'primevue'
+import { Button, Card, Tag } from 'primevue'
 
 import { useOrgStore } from '@/stores/org'
 import type { ApplicationItem, OrgRef } from '@/types'
@@ -16,6 +16,8 @@ withDefaults(
 
 const emit = defineEmits<{
     preview: [url: string]
+    /** 点击审批申请按钮 */
+    review: [application: ApplicationItem]
 }>()
 
 const orgStore = useOrgStore()
@@ -51,8 +53,18 @@ function formatTime(iso: string) {
 <template>
     <Card :style="{ marginBottom: '18px' }">
         <!-- 申请人 -->
-        <template #header v-if="!reviewMode">
-            <div class="card-header">
+        <template #header>
+            <div class="card-header" v-if="reviewMode">
+                <div class="title">
+                    {{ application.name || '—' }}
+                </div>
+                <Tag
+                    v-if="reviewMode"
+                    :value="application.decision"
+                    :class="['apply-tag', getDecisionClass(application.decision)]"
+                />
+            </div>
+            <div class="card-header" v-if="!reviewMode">
                 <div class="title">
                     {{ application.term_title || '—' }}
                 </div>
@@ -69,10 +81,10 @@ function formatTime(iso: string) {
             <div class="card-table">
                 <div class="info">
                     <div class="card-grid">
-                        <div class="field">
+                        <div class="field" v-if="!reviewMode">
                             <label>姓名</label><span>{{ application.name || '—' }}</span>
                         </div>
-                        <div class="field">
+                        <div class="field" v-if="!reviewMode">
                             <label>状态</label>
                             <span :class="['status', getDecisionClass(application.decision)]">
                                 {{ application.decision || '—' }}
@@ -145,7 +157,11 @@ function formatTime(iso: string) {
         </template>
 
         <template #footer>
-            <span class="card-footer">提交时间：{{ formatTime(application.created_at) }}</span>
+            <!--  -->
+            <div :class="['card-footer', reviewMode ? 'review' : '']">
+                <div class="info">提交时间：{{ formatTime(application.created_at) }}</div>
+                <Button v-if="reviewMode" label="审批申请" @click="emit('review', application)" />
+            </div>
         </template>
     </Card>
 </template>
@@ -263,9 +279,18 @@ function formatTime(iso: string) {
 }
 
 .card-footer {
-    padding-top: 12px;
-    font-size: 13px;
-    color: var(--p-text-muted-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    &.review {
+        margin-top: -14px;
+    }
+
+    .info {
+        font-size: 14px;
+        color: var(--p-text-muted-color);
+    }
 }
 
 @media screen and (max-width: 800px) {
@@ -286,10 +311,27 @@ function formatTime(iso: string) {
     border-radius: 14px !important;
 }
 
-// tooltip 经 v-tooltip 挂载到 body，须为全局样式
+// tooltip 挂载到 body 须为全局样式
 .apply-tooltip {
     padding: 6px 8px;
     font-size: 14px;
     line-height: 1.6;
+}
+
+.apply-tag {
+    &.pending {
+        background-color: var(--p-amber-100);
+        color: var(--p-amber-600);
+    }
+
+    &.active {
+        background-color: var(--p-emerald-100);
+        color: var(--p-emerald-600);
+    }
+
+    &.rejected {
+        background-color: var(--p-red-100);
+        color: var(--p-red-600);
+    }
 }
 </style>

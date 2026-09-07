@@ -17,14 +17,12 @@ const router = createRouter({
         { path: '/manage/users', component: () => import('@/views/manage/users.vue') },
         { path: '/manage/org', component: () => import('@/views/manage/org.vue') },
         { path: '/manage/term', component: () => import('@/views/manage/term.vue') },
-        // 申请
+        // 招新换届申请
         { path: '/apply', component: () => import('@/views/apply/index.vue') },
         { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
         { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue') },
         { path: '/apply/review', component: () => import('@/views/apply/review.vue') },
-        // 面试
-        { path: '/apply/interview', redirect: '/apply/interview/staff' },
-        { path: '/apply/interview/staff', component: () => import('@/views/apply/interview/staff.vue') },
+        { path: '/apply/staff', component: () => import('@/views/apply/staff.vue') },
         // 设置
         { path: '/settings', component: () => import('@/views/settings/index.vue') },
     ],
