@@ -38,6 +38,15 @@ const route = useRoute()
     display: flex;
     width: 100%;
     min-height: 0;
+
+    footer {
+        display: none; // 工作页面不显示 footer
+    }
+
+    &.e-no-drawer footer {
+        padding-left: var(--e-content-h-padding);
+        padding-right: var(--e-content-h-padding);
+    }
 }
 
 .e-view-wrapper {
@@ -58,9 +67,5 @@ const route = useRoute()
 
 .e-view-content {
     flex: 1 0 auto;
-}
-
-.e-view > footer {
-    flex-shrink: 0;
 }
 </style>
