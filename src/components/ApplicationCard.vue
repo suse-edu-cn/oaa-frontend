@@ -3,6 +3,7 @@
 import { Button, Card, Tag } from 'primevue'
 
 import { useOrgStore } from '@/stores/org'
+import { fromIso } from '@/utils/date'
 import type { ApplicationItem, OrgRef } from '@/types'
 
 withDefaults(
@@ -43,10 +44,6 @@ function getDecisionClass(decision: string) {
         default:
             return 'pending'
     }
-}
-
-function formatTime(iso: string) {
-    return iso ? iso.replace('T', ' ').slice(0, 16) : '—'
 }
 </script>
 
@@ -159,7 +156,7 @@ function formatTime(iso: string) {
         <template #footer>
             <!--  -->
             <div :class="['card-footer', reviewMode ? 'review' : '']">
-                <div class="info">提交时间：{{ formatTime(application.created_at) }}</div>
+                <div class="info">提交时间：{{ fromIso(application.created_at) }}</div>
                 <Button v-if="reviewMode" label="审批申请" @click="emit('review', application)" />
             </div>
         </template>

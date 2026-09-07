@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, ToggleSwitch } from 'primevue'
 
 import { useOrgStore } from '@/stores/org'
-import { fromDate } from '@/utils/date'
+import { fromDate, toDate } from '@/utils/date'
 import request from '@/utils/request'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
@@ -76,7 +76,7 @@ const formData = ref({
     resume: p.resume ?? '',
     reason: p.reason ?? '',
 })
-const birthDate = ref<Date | null>(p.birth_date ? new Date(`${p.birth_date}T00:00:00`) : null)
+const birthDate = ref<Date | null>(toDate(p.birth_date))
 // 信息属实确认
 const confirmed = ref(false)
 const confirmId = useId()
