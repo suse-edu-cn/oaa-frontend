@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { version } from '../../../package.json'
+import { version, bugs } from '../../../package.json'
 const gitVersion: string = __GIT_VERSION__
 </script>
 
@@ -8,22 +8,25 @@ const gitVersion: string = __GIT_VERSION__
         <h1 class="e-title">设置</h1>
         <div class="settings-list">
             <div class="setting-catalog">关于工作台</div>
-            <div class="setting-card e-card">
-                <div class="card-left">
+            <div class="setting-card">
+                <a :href="bugs.url" class="section" target="_blank" rel="noopener noreferrer">
+                    <i class="pi pi-lightbulb"></i>
+                    <span class="key">使用反馈</span>
+                    <span class="value">
+                        <i class="pi pi-arrow-right"></i>
+                    </span>
+                </a>
+                <div class="divider"></div>
+                <div class="section">
                     <i class="pi pi-code"></i>
-                    <span>编译版本</span>
+                    <span class="key">工作台版本</span>
+                    <span class="value">v{{ version }}</span>
                 </div>
-                <div class="card-right">
-                    <span>{{ gitVersion }}</span>
-                </div>
-            </div>
-            <div class="setting-card e-card">
-                <div class="card-left">
+                <div class="divider"></div>
+                <div class="section">
                     <i class="pi pi-box"></i>
-                    <span>工作台版本</span>
-                </div>
-                <div class="card-right">
-                    <span>v{{ version }}</span>
+                    <span class="key">编译版本</span>
+                    <span class="value">{{ gitVersion }}</span>
                 </div>
             </div>
         </div>
@@ -40,37 +43,51 @@ const gitVersion: string = __GIT_VERSION__
 .setting-catalog {
     font-weight: 600;
     color: var(--p-menu-submenu-label-color);
-    padding: 12px;
+    padding: 12px 0;
 }
 
 .setting-card {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px !important;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--p-menu-separator-border-color);
+    border-radius: var(--e-border-radius);
 
-    .card-left {
+    .section {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex: 0 1 auto;
+        width: 100%;
+        padding: 16px 24px;
+        font-size: 15px;
+        border-radius: var(--e-border-radius);
 
         i {
-            font-size: 22px;
-            color: var(--e-color-theme);
+            font-size: 18px;
+            margin-right: 0.5em;
+            color: var(--p-menu-submenu-label-color);
+        }
+
+        .key {
+            color: var(--p-menu-submenu-label-color);
+        }
+
+        .value {
+            color: var(--p-menu-item-color);
+            margin-left: auto;
         }
     }
 
-    .card-right {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        flex: 0 1 auto;
+    a.section {
+        transition: all 0.3s;
 
-        span {
-            font-size: 15px;
-            color: var(--p-menu-submenu-label-color);
+        &:hover {
+            background-color: var(--p-menu-item-focus-background);
         }
+    }
+
+    .divider {
+        height: 1px;
+        margin: 0 24px;
+        background-color: var(--p-menu-separator-border-color);
     }
 }
 </style>

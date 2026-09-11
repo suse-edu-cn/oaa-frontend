@@ -7,8 +7,8 @@ import { execSync } from 'child_process'
 let gitVersion = 'unknown'
 try {
     const gitHash = execSync('git rev-parse --short=7 HEAD').toString().trim()
-    const gitBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim()
-    gitVersion = `${gitHash}@${gitBranch}`
+    const gitCommitCount = execSync('git rev-list --count HEAD').toString().trim()
+    gitVersion = `${gitHash} (build ${gitCommitCount})`
 } catch {
     console.warn('无法获取 git 版本信息')
 }
