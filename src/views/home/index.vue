@@ -83,7 +83,7 @@
         flex-direction: column;
 
         h1 {
-            font-family: 'FiraCode Nerd Font Mono', 'FiraCode Mono', monospace;
+            font-family: 'FiraCode Nerd Font Mono', 'Fira Code', monospace;
             margin: 0;
             font-size: var(--title-font-size);
             font-weight: 600;
