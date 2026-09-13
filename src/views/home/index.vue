@@ -15,6 +15,14 @@
                         关注 GitHub
                         <i class="pi pi-arrow-up-right"></i>
                     </a>
+                    <a
+                        href="https://github.com/suse-edu-cn/suse-oaa-app/releases"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        获取青蟹 App
+                        <i class="pi pi-arrow-up-right"></i>
+                    </a>
                 </div>
             </div>
             <div class="right">
@@ -39,7 +47,9 @@
     margin-top: 24px;
 
     a {
-        font-size: 18px;
+        display: block;
+        line-height: 2;
+        font-size: var(--link-font-size);
         transition: all 0.2s;
 
         i {
@@ -60,7 +70,7 @@
 
 .sec-first {
     display: flex;
-    height: 70vh;
+    height: var(--section-first-height);
     flex-direction: var(--section-display);
     justify-content: var(--section-justify);
     align-items: var(--section-align);
@@ -96,7 +106,7 @@
         flex-direction: column;
         font-size: 20px;
         font-weight: 500;
-        margin-top: 4em;
+        margin-top: 2em;
 
         p {
             color: var(--p-text-muted-color);
@@ -124,6 +134,8 @@ main {
     --section-display: row;
     --section-justify: flex-start;
     --section-align: center;
+    --section-first-height: 72vh;
+    --link-font-size: 17px;
     --title-font-size: 80px;
     --title-cursor-height: 10px;
     --title-min-width: 600px;
@@ -134,6 +146,8 @@ main {
         --section-display: column;
         --section-justify: center;
         --section-align: flex-start;
+        --section-first-height: 80vh;
+        --link-font-size: 16px;
         --title-font-size: 56px;
         --title-cursor-height: 7px;
         --title-min-width: 400px;

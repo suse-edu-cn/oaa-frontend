@@ -44,6 +44,7 @@ const route = useRoute()
     }
 
     &.e-no-drawer footer {
+        display: flex;
         padding-left: var(--e-content-h-padding);
         padding-right: var(--e-content-h-padding);
     }
