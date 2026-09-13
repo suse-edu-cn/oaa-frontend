@@ -207,10 +207,7 @@ onMounted(() => {
 
 <template>
     <main>
-        <div class="section-header">
-            <h1 class="e-title">招新/换届管理</h1>
-            <Button icon="pi pi-plus" label="新建活动周期" @click="openCreate" />
-        </div>
+        <h1 class="e-title">招新/换届管理</h1>
 
         <!-- 当前活动卡片 -->
         <div class="ongoing-card" :class="{ active: ongoingTerm }">
@@ -238,6 +235,7 @@ onMounted(() => {
                 <div class="filter-bar">
                     <Select v-model="filterYear" :options="filterYears" placeholder="全部年份" show-clear />
                     <Select v-model="filterType" :options="filterTypes" placeholder="全部类型" show-clear />
+                    <Button icon="pi pi-plus" label="新建活动周期" @click="openCreate" />
                 </div>
             </template>
             <template #empty>
@@ -396,21 +394,15 @@ onMounted(() => {
     }
 }
 
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    h1 {
-        font-size: 24px;
-    }
-}
-
 .filter-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
+
+    & > :last-child {
+        margin-left: auto;
+    }
 }
 
 // 表单样式
