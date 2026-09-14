@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import cookies from 'js-cookie'
 import { Toast } from 'primevue'
 import { useToast } from 'primevue/usetoast'
-import 'normalize.css'
+import 'modern-normalize/modern-normalize.css'
 
 import { useAuthStore } from '@/stores/auth'
 import { initToast } from '@/utils/setToast'
