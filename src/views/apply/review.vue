@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 
-import { Button, Column, DataTable, Dialog, Select, Tab, TabList, Tabs, Textarea } from 'primevue'
+import { Button, Column, DataTable, Dialog, Select, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
@@ -68,10 +68,10 @@ async function loadApplications() {
 watch([termId, deptId], loadApplications)
 
 // ================= 列表切换 =================
-// 已审核展示审批记录，全部申请展示申请卡片
+// 已审核展示审核记录，全部申请展示申请卡片
 const activeTab = ref('reviewed')
 
-// ================= 审批记录 =================
+// ================= 审核记录 =================
 const results = ref<InterviewResultItem[]>([])
 const resultsLoading = ref(false)
 // 请求序号，快速切换周期时丢弃旧响应
@@ -91,7 +91,7 @@ async function loadResults() {
         if (resp?.code == 200) {
             results.value = resp.data ?? []
         } else {
-            setToast('error', '获取审批记录失败', resp?.message || '未知错误，请联系负责后端的同学')
+            setToast('error', '获取审核记录失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } finally {
         if (seq === resultRequests) resultsLoading.value = false
@@ -102,14 +102,14 @@ watch([termId, activeTab], () => {
     if (activeTab.value === 'reviewed') loadResults()
 })
 
-// ================= 审批 =================
+// ================= 审核 =================
 const decisionOptions = ['录取第一志愿', '录取第二志愿', '已调剂', '未通过', '待定']
 
 const reviewVisible = ref(false)
 const dialogType = ref<'create' | 'edit'>('create')
 const reviewTarget = ref<ApplicationItem | null>(null)
 const editTarget = ref<InterviewResultItem | null>(null)
-const dialogTitle = computed(() => (dialogType.value === 'create' ? '审批申请' : '修改审批'))
+const dialogTitle = computed(() => (dialogType.value === 'create' ? '审核申请' : '修改审核'))
 const reviewForm = ref({
     decision: '',
     deptId: null as number | null,
@@ -219,15 +219,15 @@ async function onReviewConfirm() {
             data,
         })
         if (resp?.code == 200) {
-            setToast('success', isEdit ? '审批已更新' : '审批已提交')
+            setToast('success', isEdit ? '审核已更新' : '审核已提交')
             reviewVisible.value = false
-            // 刷新申请列表与审批记录
+            // 刷新申请列表与审核记录
             await loadApplications()
             loadResults()
         } else {
             setToast(
                 'error',
-                isEdit ? '更新审批失败' : '提交审批失败',
+                isEdit ? '更新审核失败' : '提交审核失败',
                 resp?.message || '未知错误，请联系负责后端的同学'
             )
         }
@@ -292,8 +292,14 @@ onMounted(() => {
 
         <Tabs v-model:value="activeTab" class="status-tabs">
             <TabList>
-                <Tab value="all">全部申请</Tab>
-                <Tab value="reviewed">已审核</Tab>
+                <Tab value="all">
+                    全部申请
+                    <Tag :value="applications.length" class="tab-count" severity="secondary" />
+                </Tab>
+                <Tab value="reviewed">
+                    已审核
+                    <Tag :value="results.length" class="tab-count" severity="secondary" />
+                </Tab>
             </TabList>
         </Tabs>
 
@@ -308,7 +314,7 @@ onMounted(() => {
             :rows="20"
         >
             <template #empty>
-                <div class="e-table-empty">暂无审批记录</div>
+                <div class="e-table-empty">暂无审核记录</div>
             </template>
             <Column field="name" header="姓名" />
             <Column field="decision" header="结果" />
@@ -372,11 +378,11 @@ onMounted(() => {
         <!-- 头像灯箱预览 -->
         <Lightbox v-model="previewVisible" :src="previewUrl" alt="用户头像" />
 
-        <!-- 审批申请 -->
+        <!-- 审核申请 -->
         <Dialog v-model:visible="reviewVisible" modal :header="dialogTitle" :style="{ width: '24rem' }">
             <div class="dialog-fields">
-                <div>审批结果</div>
-                <Select v-model="reviewForm.decision" :options="decisionOptions" placeholder="请选择审批结果" fluid />
+                <div>审核结果</div>
+                <Select v-model="reviewForm.decision" :options="decisionOptions" placeholder="请选择审核结果" fluid />
                 <template v-if="reviewForm.decision === '已调剂'">
                     <div>部门</div>
                     <Select
@@ -401,7 +407,7 @@ onMounted(() => {
                     />
                 </template>
                 <div>备注</div>
-                <Textarea v-model="reviewForm.remark" placeholder="请输入审批备注" fluid rows="3" auto-resize />
+                <Textarea v-model="reviewForm.remark" placeholder="请输入审核备注" fluid rows="3" auto-resize />
             </div>
             <template #footer>
                 <Button label="取消" severity="secondary" @click="reviewVisible = false" />
@@ -430,6 +436,10 @@ onMounted(() => {
 
 .status-tabs {
     margin-bottom: 1.5em;
+
+    .tab-count {
+        margin-left: 6px;
+    }
 }
 
 .dialog-fields {

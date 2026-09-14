@@ -25,7 +25,7 @@ export interface InterviewResultItem {
     decision: string
     result_department_id: number
     result_role_id: number
-    /** 审批前的原结果，0 表示无 */
+    /** 审核前的原结果，0 表示无 */
     old: OrgRef
     executed_at: string | null
     operator_user_id: number

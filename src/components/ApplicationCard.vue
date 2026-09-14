@@ -17,7 +17,7 @@ withDefaults(
 
 const emit = defineEmits<{
     preview: [url: string]
-    /** 点击审批申请按钮 */
+    /** 点击审核申请按钮 */
     review: [application: ApplicationItem]
 }>()
 
@@ -148,7 +148,7 @@ function getDecisionClass(decision: string) {
                 <p>{{ application.reason || '—' }}</p>
             </div>
             <div class="card-block" v-if="application.decision_remark">
-                <div class="title">审批备注</div>
+                <div class="title">审核备注</div>
                 <p>{{ application.decision_remark }}</p>
             </div>
         </template>
@@ -157,7 +157,7 @@ function getDecisionClass(decision: string) {
             <!--  -->
             <div :class="['card-footer', reviewMode ? 'review' : '']">
                 <div class="info">提交时间：{{ fromIso(application.created_at) }}</div>
-                <Button v-if="reviewMode" label="审批申请" @click="emit('review', application)" />
+                <Button v-if="reviewMode" label="审核申请" @click="emit('review', application)" />
             </div>
         </template>
     </Card>
