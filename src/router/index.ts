@@ -17,6 +17,8 @@ const router = createRouter({
         { path: '/manage/users', component: () => import('@/views/manage/users.vue') },
         { path: '/manage/org', component: () => import('@/views/manage/org.vue') },
         { path: '/manage/term', component: () => import('@/views/manage/term.vue') },
+        { path: '/manage/announcement', component: () => import('@/views/manage/announcement/index.vue') },
+        { path: '/manage/announcement/new', component: () => import('@/views/manage/announcement/new.vue') },
         // 招新换届申请
         { path: '/apply', component: () => import('@/views/apply/index.vue') },
         { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
