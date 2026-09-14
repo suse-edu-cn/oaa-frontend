@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Select } from 'primevue'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import { fromDate, toDate } from '@/utils/date'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
@@ -181,25 +182,6 @@ function formatPeriod(p: TermPeriod) {
     return p.start_at + ' ~ ' + p.end_at
 }
 
-// 判断现在是否在进行中的活动周期内
-const ongoingTerm = computed<TermInfo | null>(() => {
-    const term = terms.value[0]
-    if (!term) return null
-    const today = fromDate(new Date())
-    // 进行中条件：当前日期 >= 申请提交期开始 && 当前日期 <= 面试审核期结束
-    return today >= term.edit_period.start_at && today <= term.query_period.end_at ? term : null
-})
-
-// 获取当前活动阶段
-const ongoingPhase = computed(() => {
-    const term = ongoingTerm.value
-    if (!term) return ''
-    const today = fromDate(new Date())
-    if (today <= term.edit_period.end_at) return '申请提交期'
-    if (today >= term.query_period.start_at) return '面试审核期'
-    return '两期之间'
-})
-
 onMounted(() => {
     loadTerms()
 })
@@ -210,24 +192,7 @@ onMounted(() => {
         <h1 class="e-title">招新/换届管理</h1>
 
         <!-- 当前活动卡片 -->
-        <div class="ongoing-card" :class="{ active: ongoingTerm }">
-            <template v-if="ongoingTerm">
-                <div class="head">进行中的活动周期</div>
-                <div class="title">
-                    <span>{{ ongoingTerm.title }}</span>
-                    <span class="tag">{{ ongoingPhase }}</span>
-                </div>
-                <div class="detail">
-                    <div>类型：{{ ongoingTerm.type }} ({{ ongoingTerm.year }})</div>
-                    <div>申请提交日期：{{ formatPeriod(ongoingTerm.edit_period) }}</div>
-                    <div>面试审核日期：{{ formatPeriod(ongoingTerm.query_period) }}</div>
-                </div>
-            </template>
-            <template v-else>
-                <div class="head empty">进行中的活动周期</div>
-                <div class="title empty">当前暂无招新 / 换届活动</div>
-            </template>
-        </div>
+        <OngoingTermCard />
 
         <DataTable :value="filteredTerms" :loading="loading" data-key="id" striped-rows paginator :rows="10">
             <template #header>
@@ -348,52 +313,6 @@ onMounted(() => {
 </template>
 
 <style lang="less" scoped>
-// 进行中的活动周期卡片
-.ongoing-card {
-    margin-bottom: 20px;
-    background-color: var(--p-slate-100);
-    padding: 14px 20px;
-    border-radius: var(--p-button-border-radius);
-    line-height: 1.5;
-
-    &.active {
-        background-color: var(--p-emerald-50);
-    }
-
-    .head {
-        color: var(--p-emerald-600);
-    }
-
-    .title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 2.25;
-
-        .tag {
-            display: inline-block;
-            line-height: 2;
-            font-size: 13px;
-            color: #fff;
-            background-color: var(--p-emerald-500);
-            padding: 0 0.75em;
-            border-radius: 14px;
-        }
-    }
-
-    .detail {
-        font-size: 14px;
-        line-height: 1.8;
-        color: var(--p-text-muted-color);
-    }
-
-    .empty {
-        color: var(--p-text-muted-color);
-    }
-}
-
 .filter-bar {
     display: flex;
     flex-wrap: wrap;

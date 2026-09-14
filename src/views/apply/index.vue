@@ -5,6 +5,7 @@ import { onMounted, ref } from 'vue'
 import { Button } from 'primevue'
 
 import ApplicationCard from '@/components/ApplicationCard.vue'
+import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
@@ -51,6 +52,8 @@ onMounted(() => {
 <template>
     <main>
         <h1 class="e-title">我的申请</h1>
+
+        <OngoingTermCard />
 
         <div class="action-bar">
             <router-link to="/apply/new" class="link">
