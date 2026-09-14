@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 import { useRoute } from 'vue-router'
+import cookies from 'js-cookie'
 import { Toast } from 'primevue'
 import { useToast } from 'primevue/usetoast'
 import 'normalize.css'
 
+import { useAuthStore } from '@/stores/auth'
 import { initToast } from '@/utils/setToast'
 import Header from '@/layouts/Header.vue'
 import Footer from '@/layouts/Footer.vue'
@@ -14,13 +17,24 @@ import '@/styles/reset.less'
 initToast(useToast())
 
 const route = useRoute()
+const authStore = useAuthStore()
+
+// 抽屉展示条件
+const canShowDrawer = computed(() => {
+    if (route.path === '/' || route.path === '/auth') return false
+    return (
+        authStore.isReady &&
+        authStore.isAuthed &&
+        Boolean(cookies.get('token') && cookies.get('refresh_token') && cookies.get('user_id'))
+    )
+})
 </script>
 
 <template>
     <Toast position="top-center" />
     <Header />
-    <div class="e-body" :class="{ 'e-no-drawer': route.path === '/' || route.path === '/auth' }">
-        <Drawer v-if="!(route.path === '/' || route.path === '/auth')" />
+    <div class="e-body" :class="{ 'e-no-drawer': !canShowDrawer }">
+        <Drawer v-if="canShowDrawer" />
         <section class="e-view-wrapper">
             <div class="e-view">
                 <div class="e-view-content">
