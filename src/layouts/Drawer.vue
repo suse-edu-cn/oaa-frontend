@@ -50,7 +50,7 @@ const links: MenuItem[] = [
             {
                 label: '公告管理',
                 icon: 'pi pi-bell',
-                to: '/manage/announcement',
+                to: '/announcement/manage',
             },
         ],
     },

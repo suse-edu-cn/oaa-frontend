@@ -117,7 +117,7 @@ onMounted(() => {
 
 <template>
     <main>
-        <h1 class="e-title">发布公告</h1>
+        <h1 class="e-title">新建公告</h1>
 
         <div class="form-item">
             <label for="announcement-department">发布部门</label>

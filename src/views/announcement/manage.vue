@@ -16,17 +16,11 @@ import type { AnnouncementItem, ApiResponse } from '@/types'
 const orgStore = useOrgStore()
 const router = useRouter()
 
-// ================= 部门筛选 =================
-// 列表条目直接提供 department_name，故按名称过滤
 const deptName = ref<string | null>(null)
-
-// ================= 公告列表 =================
 const announcements = ref<AnnouncementItem[]>([])
-
 // 请求序号，快速切换 Tab 时丢弃旧响应
 let listRequests = 0
 
-// 各 Tab 对应的接口 status 参数
 const tabStatusMap: Record<string, string | undefined> = {
     published: 'active',
     all: undefined,
@@ -55,25 +49,18 @@ async function loadAnnouncements() {
 
 // ================= 状态筛选 =================
 const activeTab = ref('published')
-
-// 切换 Tab 时按对应 status 重新拉取
 watch(activeTab, loadAnnouncements)
-
-// 部门为前端过滤（接口只收 status 参数）
 const filteredAnnouncements = computed(() =>
     deptName.value ? announcements.value.filter((a) => a.department_name === deptName.value) : announcements.value
 )
 
 // ================= 操作 =================
-// 编辑暂复用发布页，通过 query 传 id（待 new 页面支持按 id 加载后生效）
-function openEdit(a: AnnouncementItem) {
-    router.push({ path: '/manage/announcement/edit/' + a.announcement_id })
-}
-
 const deleteTarget = ref<AnnouncementItem | null>(null)
 const deleteVisible = ref(false)
 const deleting = ref(false)
-
+function openEdit(a: AnnouncementItem) {
+    router.push({ path: '/manage/announcement/edit/' + a.announcement_id })
+}
 function openDelete(a: AnnouncementItem) {
     deleteTarget.value = a
     deleteVisible.value = true
@@ -94,7 +81,7 @@ async function onDelete() {
         if (resp?.code == 200) {
             deleteVisible.value = false
             setToast('success', '公告已删除')
-            // 重新拉取，保证与后端状态一致
+            // 需重新拉取，保证与后端状态一致
             loadAnnouncements()
         } else {
             setToast('error', '删除公告失败', resp?.message || '未知错误，请联系负责后端的同学')
@@ -112,7 +99,7 @@ onMounted(() => {
 
 <template>
     <main>
-        <h1 class="e-title">公告列表</h1>
+        <h1 class="e-title">公告管理</h1>
 
         <div class="filter-bar">
             <label for="announcement-dept">部门</label>
@@ -125,6 +112,9 @@ onMounted(() => {
                 placeholder="全部部门"
                 show-clear
             />
+            <router-link to="/announcement/new" :style="{ marginLeft: 'auto' }">
+                <Button label="新建公告" icon="pi pi-plus"
+            /></router-link>
         </div>
 
         <Tabs v-model:value="activeTab" class="status-tabs">
@@ -154,11 +144,11 @@ onMounted(() => {
             </template>
             <template #list="slotProps">
                 <div v-for="a in slotProps.items" :key="a.announcement_id" class="announcement-item">
-                    <div class="data">
-                        <router-link :to="`/announcement/${a.announcement_id}`" class="title">{{
-                            a.title
-                        }}</router-link>
-                        <div class="meta">
+                    <div :style="{ flex: 1 }">
+                        <router-link :to="`/announcement/${a.announcement_id}`" class="title">
+                            {{ a.title }}
+                        </router-link>
+                        <div class="data">
                             <span class="item">
                                 <Tag value="草稿" v-if="!a.is_active" severity="warn" />
                                 <span>{{ a.publisher_name }}</span>
@@ -214,29 +204,24 @@ onMounted(() => {
         border-top: 1px solid var(--p-content-border-color);
     }
 
+    .title {
+        display: block;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 2px 0 7px;
+    }
+
     .data {
-        flex: 1;
-        min-width: 0;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--p-text-muted-color);
 
-        .title {
-            display: block;
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 1.4;
-            margin: 2px 0 7px;
-        }
-
-        .meta {
+        .item {
             display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: var(--p-text-muted-color);
-
-            .item {
-                display: flex;
-                align-items: center;
-                gap: 1em;
-            }
+            align-items: center;
+            gap: 1em;
         }
     }
 
