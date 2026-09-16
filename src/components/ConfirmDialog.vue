@@ -9,9 +9,12 @@ withDefaults(
     defineProps<{
         /** 确认操作进行中 */
         loading?: boolean
+        /** 确认按钮的样式 */
+        confirmButton?: 'primary' | 'secondary' | 'success' | 'info' | 'warn' | 'help' | 'danger' | 'contrast'
     }>(),
     {
         loading: false,
+        confirmButton: 'danger',
     }
 )
 
@@ -37,7 +40,7 @@ watch(visible, (value) => {
             <Button label="取消" severity="secondary" text @click="visible = false" />
             <Button
                 label="确认"
-                severity="danger"
+                :severity="confirmButton"
                 :disabled="!acknowledged"
                 :loading="loading"
                 @click="emit('confirm')"

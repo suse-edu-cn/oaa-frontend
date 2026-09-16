@@ -2,10 +2,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Button, InputText, Select } from 'primevue'
+import { Button, Checkbox, InputText, Select } from 'primevue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
@@ -48,31 +49,76 @@ function getImageUri(text: string) {
     )
 }
 const publishing = ref(false)
+// 创建后立即公开发布
+const publishNow = ref(false)
+const pushConfirmVisible = ref(false)
+const pushConfirmLoading = ref(false)
 
-async function onPublish() {
-    if (!canPublish.value || departmentId.value === null) return
-
-    const payload = {
-        department_id: departmentId.value,
-        title: title.value.trim(),
-        content: getImageUri(content.value),
-    }
+async function createAnnouncement(): Promise<{ ok: boolean; id: number | null }> {
+    if (departmentId.value === null) return { ok: false, id: null }
 
     publishing.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
+        const resp = await request<ApiResponse<{ announcement_id: number }>>({
             url: '/announcement/create',
             method: 'POST',
-            data: payload,
+            data: {
+                department_id: departmentId.value,
+                title: title.value.trim(),
+                content: getImageUri(content.value),
+            },
+        })
+        if (resp?.code == 200) {
+            return { ok: true, id: resp.data?.announcement_id ?? null }
+        }
+        setToast('error', '公告创建失败', resp?.message || '未知错误，请联系负责后端的同学')
+        return { ok: false, id: null }
+    } finally {
+        publishing.value = false
+    }
+}
+
+async function onPublish() {
+    if (!canPublish.value || departmentId.value === null) return
+    if (publishNow.value) {
+        pushConfirmVisible.value = true
+        return
+    }
+
+    const { ok } = await createAnnouncement()
+    if (!ok) return
+    setToast('success', '公告创建成功')
+    router.push('/manage/announcement')
+}
+
+// 确认后创建并立即推送公开
+async function onPushConfirm() {
+    pushConfirmLoading.value = true
+    try {
+        const { ok, id } = await createAnnouncement()
+        if (!ok) return
+
+        if (id === null) {
+            setToast('error', '公告已创建，但发布失败', '未找到公告标识 ID')
+            pushConfirmVisible.value = false
+            router.push('/manage/announcement')
+            return
+        }
+
+        const resp = await request<ApiResponse<null>>({
+            url: '/announcement/push',
+            method: 'POST',
+            data: { announcement_id: id },
         })
         if (resp?.code == 200) {
             setToast('success', '公告发布成功')
-            router.push('/manage/announcement')
         } else {
-            setToast('error', '公告发布失败', resp?.message || '未知错误，请联系负责后端的同学')
+            setToast('error', '公告已创建，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
+        pushConfirmVisible.value = false
+        router.push('/manage/announcement')
     } finally {
-        publishing.value = false
+        pushConfirmLoading.value = false
     }
 }
 
@@ -111,9 +157,24 @@ onMounted(() => {
             @on-upload-img="onUploadImg"
         />
         <div class="form-actions">
+            <div class="push-option">
+                <Checkbox v-model="publishNow" input-id="publish-now" binary />
+                <label for="publish-now">创建后立即公开发布</label>
+            </div>
             <Button label="取消" severity="secondary" @click="router.back()" />
             <Button label="发布" :disabled="!canPublish" :loading="publishing" @click="onPublish" />
         </div>
+
+        <!-- 立即公开发布二次确认 -->
+        <ConfirmDialog
+            v-model="pushConfirmVisible"
+            confirm-button="primary"
+            :loading="pushConfirmLoading"
+            @confirm="onPushConfirm"
+        >
+            是否创建并立即公开发布公告 <b>{{ title.trim() }}</b
+            >？
+        </ConfirmDialog>
     </main>
 </template>
 
@@ -140,8 +201,22 @@ onMounted(() => {
 .form-actions {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 0.75rem;
     margin-top: 1.5rem;
+
+    .push-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-right: auto;
+
+        label {
+            font-size: 14px;
+            color: var(--p-text-muted-color);
+            cursor: pointer;
+        }
+    }
 }
 
 @media screen and (max-width: 800px) {
