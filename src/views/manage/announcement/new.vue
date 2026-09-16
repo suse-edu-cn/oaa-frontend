@@ -3,17 +3,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button, Checkbox, InputText, Select } from 'primevue'
-import { MdEditor } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import { useOrgStore } from '@/stores/org'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import { uploadImage } from '@/utils/uploader'
 
-import type { ApiResponse, UploadResponse } from '@/types'
-import type { UploadImgCallBack } from 'md-editor-v3'
+import type { ApiResponse } from '@/types'
 
 const router = useRouter()
 const orgStore = useOrgStore()
@@ -25,15 +22,6 @@ const content = ref('')
 const canPublish = computed(
     () => departmentId.value !== null && title.value.trim() !== '' && content.value.trim() !== ''
 )
-
-async function onUploadImg(files: File[], callback: UploadImgCallBack) {
-    const results = await Promise.all(files.map((file) => uploadImage(file, 'announcement')))
-    callback(
-        results
-            .filter((r): r is UploadResponse => r !== null)
-            .map((r) => ({ url: r.url, alt: 'image', title: 'image' }))
-    )
-}
 
 function getImageUri(text: string) {
     // url转uri
@@ -149,13 +137,7 @@ onMounted(() => {
             </span>
         </div>
         <br />
-        <MdEditor
-            id="announcement-content"
-            v-model="content"
-            placeholder="请输入公告内容，支持 Markdown"
-            :style="{ minHeight: '480px' }"
-            @on-upload-img="onUploadImg"
-        />
+        <MarkdownEditor v-model="content" placeholder="请输入公告内容，支持 Markdown" img-scene="announcement" />
         <div class="form-actions">
             <div class="push-option">
                 <Checkbox v-model="publishNow" input-id="publish-now" binary />
