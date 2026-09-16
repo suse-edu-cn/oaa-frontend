@@ -9,12 +9,14 @@ import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import AuthChangePass from '@/components/AuthChangePass.vue'
+import ImageCropper from '@/components/ImageCropper.vue'
 
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 import request from '@/utils/request'
-import { uploadImage } from '@/utils/uploader'
+
+import type { UploadResponse } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -63,26 +65,14 @@ async function onUpdateData() {
     }
 }
 
-const fileInput = ref<HTMLInputElement | null>(null)
+const imageCropper = ref<InstanceType<typeof ImageCropper> | null>(null)
 const avatar = ref(userInfo?.avatar?.url || '')
 
-async function uploadAvatar(event: Event) {
-    const target = event.target as HTMLInputElement
-    const file = target.files?.[0]
-
-    if (!file) return
-
-    const uploaded = await uploadImage(file, 'avatar')
-    if (!uploaded) {
-        target.value = ''
-        return
-    }
-
+// 头像上传成功后回填表单与预览
+function onAvatarUploaded(uploaded: UploadResponse) {
     updateData.value.avatar = uploaded.uri
     avatar.value = uploaded.url || avatar.value
     setToast('success', '头像更新成功', '')
-
-    target.value = ''
 }
 
 onMounted(() => {
@@ -99,27 +89,21 @@ onMounted(() => {
 
 <template>
     <main>
-        <h1 class="e-title">编辑个人信息</h1>
+        <h1 class="e-title">编辑个人资料</h1>
 
         <Form v-slot="$form" :resolver="resolver" :initial-values="userInfo ?? undefined" @submit="onUpdateData">
             <!-- 头像 -->
             <div class="avatar">
                 <div>设置头像</div>
                 <br />
-                <div class="wrapper" @click="fileInput?.click()">
+                <div class="wrapper" @click="imageCropper?.open()">
                     <img :src="avatar" alt="用户头像" />
                     <div class="overlay">
                         <span class="pi pi-upload"></span>
                     </div>
                 </div>
                 <div class="tip">头像支持 JPG、PNG、GIF、WEBP、AVIF 格式，大小不得超过 4MB</div>
-                <input
-                    ref="fileInput"
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.gif,.webp,.avif"
-                    style="display: none"
-                    @change="uploadAvatar"
-                />
+                <ImageCropper ref="imageCropper" img-scene="avatar" @uploaded="onAvatarUploaded" />
                 <InputText name="avatar" v-model="updateData.avatar" type="hidden" />
             </div>
 
@@ -287,7 +271,6 @@ form {
 </style>
 
 <style lang="less">
-// Dialog 默认 teleport 到 body，scoped 样式无法命中，用全局样式控制宽度
 .reset-dialog {
     width: 24rem;
     max-width: 90vw;
