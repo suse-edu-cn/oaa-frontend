@@ -20,6 +20,7 @@ const router = createRouter({
         // 公告
         { path: '/announcement/manage', component: () => import('@/views/announcement/manage.vue') },
         { path: '/announcement/new', component: () => import('@/views/announcement/new.vue') },
+        { path: '/announcement/:id', component: () => import('@/views/announcement/view.vue') },
         // 招新换届申请
         { path: '/apply', component: () => import('@/views/apply/index.vue') },
         { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
@@ -33,7 +34,6 @@ const router = createRouter({
 
 router.beforeEach((to) => {
     const isAuthed = Boolean(cookies.get('token'))
-    // requiresAuth 缺省视为需要登录，仅公开路由显式声明 false
     if (to.meta.requiresAuth !== false && !isAuthed) {
         setToast('error', '未登录', '请先登录以访问该页面')
         return '/auth'
