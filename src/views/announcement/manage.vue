@@ -59,7 +59,7 @@ const deleteTarget = ref<AnnouncementItem | null>(null)
 const deleteVisible = ref(false)
 const deleting = ref(false)
 function openEdit(a: AnnouncementItem) {
-    router.push({ path: '/manage/announcement/edit/' + a.announcement_id })
+    router.push({ path: '/announcement/edit/' + a.announcement_id })
 }
 function openDelete(a: AnnouncementItem) {
     deleteTarget.value = a

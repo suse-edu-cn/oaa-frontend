@@ -20,6 +20,7 @@ const router = createRouter({
         // 公告
         { path: '/announcement/manage', component: () => import('@/views/announcement/manage.vue') },
         { path: '/announcement/new', component: () => import('@/views/announcement/new.vue') },
+        { path: '/announcement/edit/:id', component: () => import('@/views/announcement/edit.vue') },
         { path: '/announcement/:id', component: () => import('@/views/announcement/view.vue') },
         // 招新换届申请
         { path: '/apply', component: () => import('@/views/apply/index.vue') },
