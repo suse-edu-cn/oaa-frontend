@@ -4,21 +4,16 @@
 // 使用本地依赖，避免从 unpkg 引入
 // 注：初始化只需要在组件被引入时执行一次，故不放 setup 中
 import { config } from 'md-editor-v3'
-import hljs from 'highlight.js/lib/common'
-import katex from 'katex'
 import Cropper from 'cropperjs'
 import screenfull from 'screenfull'
-
-import 'highlight.js/styles/github.css'
-import 'katex/dist/katex.min.css'
 import 'cropperjs/dist/cropper.css'
+
+import '@/utils/markdown'
 
 config({
     editorExtensions: {
-        highlight: { instance: hljs },
         cropper: { instance: Cropper },
         screenfull: { instance: screenfull },
-        katex: { instance: katex },
     },
 })
 </script>

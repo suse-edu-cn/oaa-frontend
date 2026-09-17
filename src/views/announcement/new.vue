@@ -104,7 +104,7 @@ async function onPushConfirm() {
             setToast('error', '公告已创建，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
         pushConfirmVisible.value = false
-        router.push('/manage/announcement')
+        router.push('/announcement/manage')
     } finally {
         pushConfirmLoading.value = false
     }
