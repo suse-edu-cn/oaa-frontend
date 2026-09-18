@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 import { execSync } from 'child_process'
 
 // 获取编译版本
@@ -18,7 +19,32 @@ export default defineConfig({
     define: {
         __GIT_VERSION__: JSON.stringify(gitVersion),
     },
-    plugins: [vue()],
+    plugins: [
+        vue(),
+        VitePWA({
+            registerType: 'autoUpdate',
+            includeAssets: ['oaa.svg'],
+            manifest: {
+                name: '四川轻化工大学 开放原子开源协会',
+                short_name: '青蟹',
+                description:
+                    '由本校大学生运营的计算机协会，专注于算法学习和项目实践，涉及前后端、嵌入式、操作系统等多个领域，让同学们敢于探索新技术',
+                lang: 'zh-CN',
+                theme_color: '#fefefe',
+                background_color: '#fefefe',
+                display: 'standalone',
+                start_url: '/',
+                icons: [
+                    { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+                    { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+                    { src: '/pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+                ],
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+            },
+        }),
+    ],
     server: {
         port: 3011,
         proxy: {
