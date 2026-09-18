@@ -42,6 +42,28 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+                // katex & primeicons 通过 CDN 加载
+                // 首次在线加载后缓存，离线可用
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/registry\.npmmirror\.com\/.*\.(woff2?|ttf)$/,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'cdn-fonts',
+                            expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                            cacheableResponse: { statuses: [200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/registry\.npmmirror\.com\/.*\.css$/,
+                        handler: 'StaleWhileRevalidate',
+                        options: {
+                            cacheName: 'cdn-styles',
+                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                            cacheableResponse: { statuses: [200] },
+                        },
+                    },
+                ],
             },
         }),
     ],
