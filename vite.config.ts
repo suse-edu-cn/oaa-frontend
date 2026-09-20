@@ -14,16 +14,27 @@ try {
     console.warn('无法获取 git 版本信息')
 }
 
+// 静态资源 OSS
+const OSS_BASE = 'https://obj.in.suseoaa.com/oaa-fe/v0.3.0/'
+
 // https://vite.dev/config/
 export default defineConfig({
     define: {
         __GIT_VERSION__: JSON.stringify(gitVersion),
     },
+    base: OSS_BASE,
     plugins: [
         vue(),
         VitePWA({
+            // 页面在 fe.in，资源 base 在 OSS：
+            // - sw.js / registerSW.js / manifest / PWA 图标 → 必须同源（fe.in），不要传 OSS
+            // - _oaa 构建资源 → 传 OSS；预缓存只收同源外壳，OSS 走 runtimeCaching
+            base: '/',
+            buildBase: '/',
+            scope: '/',
             registerType: 'autoUpdate',
-            includeAssets: ['oaa.svg'],
+            // oaa.svg / apple-touch-icon 在 HTML 里已是 OSS 绝对地址，不参与同源预缓存
+            includeAssets: [],
             manifest: {
                 name: '四川轻化工大学 开放原子开源协会',
                 short_name: '青蟹',
@@ -41,10 +52,31 @@ export default defineConfig({
                 ],
             },
             workbox: {
-                globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+                globPatterns: ['**/*.{html,js}'],
+                globIgnores: ['_oaa/**', 'oaa.svg', 'apple-touch-icon.png', 'workbox-*.js', 'pwa-*.png'],
                 // katex & primeicons 通过 CDN 加载
                 // 首次在线加载后缓存，离线可用
                 runtimeCaching: [
+                    {
+                        // OSS 构建资源，内容不可变
+                        urlPattern: ({ url }) =>
+                            url.origin === 'https://obj.in.suseoaa.com' && url.pathname.includes('/_oaa/'),
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'oss-assets',
+                            expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                            cacheableResponse: { statuses: [200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/obj\.in\.suseoaa\.com\/oaa-fe\/.*\.(svg|png|ico)$/,
+                        handler: 'StaleWhileRevalidate',
+                        options: {
+                            cacheName: 'oss-assets-icons',
+                            expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                            cacheableResponse: { statuses: [200] },
+                        },
+                    },
                     {
                         urlPattern: /^https:\/\/registry\.npmmirror\.com\/.*\.(woff2?|ttf)$/,
                         handler: 'CacheFirst',
