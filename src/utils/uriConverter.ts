@@ -3,6 +3,8 @@
 const OSS_URL_RE = /!\[([^\]]*)\]\((https:\/\/obj(?:\.in)?\.suseoaa\.com\/[^)\s]+)(?:\s+['"][^'"]*['"])?\)/g
 const OSS_URI_RE = /!\[([^\]]*)\]\(oss:\/\/([^)\s]+)(?:\s+['"][^'"]*['"])?\)/g
 
+const OSS_ORIGIN = import.meta.env.VITE_OSS_ORIGIN
+
 export function urlToUri(text: string): string {
     return text.replace(OSS_URL_RE, (match, alt: string, link: string) => {
         try {
@@ -15,6 +17,6 @@ export function urlToUri(text: string): string {
 
 export function uriToUrl(text: string): string {
     return text.replace(OSS_URI_RE, (_match, alt: string, path: string) => {
-        return `![${alt}](https://obj.in.suseoaa.com/${path})`
+        return `![${alt}](${OSS_ORIGIN}/${path})`
     })
 }
