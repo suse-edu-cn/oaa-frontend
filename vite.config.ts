@@ -2,7 +2,7 @@ import { resolve } from 'path'
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
-import { execSync } from 'child_process'
+import { execSync, spawnSync } from 'child_process'
 
 import pkgInfo from './package.json' with { type: 'json' }
 
@@ -17,7 +17,7 @@ try {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command, mode, isSsrBuild }) => {
     const env = loadEnv(mode, import.meta.dirname, '')
     const ossOrigin = env.VITE_OSS_ORIGIN || 'https://obj.suseoaa.com'
     const ossBase = command === 'serve' ? '/' : `${ossOrigin}/oaa-fe/v${pkgInfo.version}/`
@@ -31,6 +31,18 @@ export default defineConfig(({ command, mode }) => {
         base: ossBase,
         plugins: [
             vue(),
+            // SSG 需要生成 sw.js 之前注入 dist/index.html
+            {
+                name: 'ssg-prerender-home',
+                apply: 'build',
+                writeBundle() {
+                    if (isSsrBuild) return
+                    spawnSync('node', ['scripts/prerender.mjs', '--mode', mode], {
+                        cwd: import.meta.dirname,
+                        stdio: 'inherit',
+                    })
+                },
+            },
             VitePWA({
                 base: '/',
                 buildBase: '/',
