@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import cookies from 'js-cookie'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
@@ -10,7 +10,8 @@ import HomeView from '@/views/home/index.vue'
 NProgress.configure({ showSpinner: false })
 
 const router = createRouter({
-    history: createWebHistory(),
+    // 注：SSG 需要使用内存路由
+    history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
     routes: [
         { path: '/', component: HomeView, meta: { requiresAuth: false } },
 
@@ -39,6 +40,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+    // 预渲染环境无 document，且首页为公开页面，跳过鉴权与进度条
+    if (import.meta.env.SSR) return true
+
     NProgress.start()
 
     const isAuthed = Boolean(cookies.get('token'))
@@ -51,6 +55,8 @@ router.beforeEach((to) => {
 })
 
 router.afterEach(() => {
+    if (import.meta.env.SSR) return
+
     NProgress.done()
 })
 

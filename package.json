@@ -5,7 +5,7 @@
     "bugs": {
         "url": "https://github.com/suse-edu-cn/oaa-frontend/issues"
     },
-    "license": "GPL-3.0-only",
+    "license": "GPL-3.0",
     "author": {
         "name": "crrashh1542",
         "email": "1542@crrashh.com"
@@ -18,8 +18,8 @@
     "scripts": {
         "dev": "vite",
         "dev:public": "vite --mode development-public",
-        "build": "vite build",
-        "build:internal": "vite build --mode internal",
+        "build": "vite build && node scripts/prerender.mjs",
+        "build:internal": "vite build --mode internal && node scripts/prerender.mjs --mode internal",
         "preview": "vite preview",
         "lint": "oxlint && eslint",
         "lint:fix": "oxlint --fix && eslint --fix",
@@ -56,6 +56,7 @@
         "@vitejs/plugin-vue": "^6.0.9",
         "@vue/eslint-config-prettier": "^10.2.0",
         "@vue/eslint-config-typescript": "^14.9.0",
+        "@vue/server-renderer": "3.5.43",
         "eslint": "^10.12.0",
         "eslint-plugin-vue": "~10.11.1",
         "globals": "^17.13.0",
