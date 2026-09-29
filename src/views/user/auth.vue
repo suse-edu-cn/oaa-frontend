@@ -31,7 +31,6 @@ onMounted(async () => {
     if (authStore.isAuthed) {
         setToast('success', '用户已登录', '欢迎回来，正在跳转至主页')
         router.push('/user')
-        initAuthStore()
     }
 })
 </script>

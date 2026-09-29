@@ -4,7 +4,20 @@ import request from './request'
 import { useAuthStore } from '@/stores/auth'
 import type { ApiResponse, UserInfo } from '@/types'
 
-export async function initAuthStore() {
+// 共享同一次初始化
+let initPromise: Promise<void> | null = null
+
+export function initAuthStore(): Promise<void> {
+    // 初始化完成后清空
+    if (!initPromise) {
+        initPromise = doInitAuthStore().finally(() => {
+            initPromise = null
+        })
+    }
+    return initPromise
+}
+
+async function doInitAuthStore() {
     const authStore = useAuthStore()
     const token = cookies.get('token')
 
