@@ -33,6 +33,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            - name: Prebuild Checks
+              run: |
+                pnpm lint
+                pnpm type-check
+
             - name: Build public
               run: pnpm build
 
