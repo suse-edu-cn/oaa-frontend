@@ -21,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
     const env = loadEnv(mode, import.meta.dirname, '')
     const ossOrigin = env.VITE_OSS_ORIGIN || 'https://obj.suseoaa.com'
     const ossBase = command === 'serve' ? '/' : `${ossOrigin}/oaa-fe/v${pkgInfo.version}/`
-    // 注：sw 的 urlPattern 会被序列化进 sw.js，不能闭包引用 ossOrigin，这里在构建期写成正则字面量
+    // 注：sw 的 urlPattern 会被序列化进 sw.js，此处在构建期写成正则字面量
     const ossOriginRe = ossOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
     return {
@@ -54,7 +54,6 @@ export default defineConfig(({ command, mode }) => {
                     ],
                 },
                 workbox: {
-                    // 只预缓存同源外壳；_oaa / public 图标走 runtimeCaching
                     globPatterns: ['**/*.{html,js}'],
                     globIgnores: ['_oaa/**', 'oaa.svg', 'apple-touch-icon.png', 'workbox-*.js', 'pwa-*.png'],
                     runtimeCaching: [
@@ -103,7 +102,7 @@ export default defineConfig(({ command, mode }) => {
             port: 3011,
             proxy: {
                 '/v2': {
-                    target: env.VITE_PROXY_API_TARGET || 'https://api.in.suseoaa.com',
+                    target: env.VITE_PROXY_API_TARGET,
                     changeOrigin: true,
                     secure: false,
                 },
