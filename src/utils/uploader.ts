@@ -35,6 +35,7 @@ async function upload(
             url,
             method: 'POST',
             data: formData,
+            timeout: 120 * 1000,
         })
         if (resp.code == 200) {
             return { uri: resp.data.uri || '', url: resp.data.url || '' }

@@ -113,6 +113,7 @@ const request = async function <T = any>(config: {
     data?: any
     params?: any
     token?: string
+    timeout?: number
 }): Promise<T> {
     try {
         // 优先使用调用时提供的 token
@@ -131,6 +132,7 @@ const request = async function <T = any>(config: {
             data: config.data || {},
             params: config.params || {},
             headers: token ? { Authorization: `Bearer ${token}` } : {},
+            timeout: config.timeout,
         })
         return response.data
     } catch (error: any) {
