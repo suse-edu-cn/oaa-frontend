@@ -77,7 +77,7 @@ async function onPushConfirm() {
         if (id === null) {
             setToast('error', '公告已创建，但发布失败', '未找到公告标识 ID')
             pushConfirmVisible.value = false
-            router.push('/manage/announcement')
+            router.push('/announcement/manage')
             return
         }
 
