@@ -1,6 +1,6 @@
 <!-- 编辑个人信息页 /user/edit -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
 
@@ -20,7 +20,6 @@ import type { UploadResponse } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const userInfo = authStore.userInfo
 
 const infoSchema = z.object({
     username: z.string().min(1, { message: '请填写用户名' }),
@@ -28,15 +27,14 @@ const infoSchema = z.object({
     avatar: z.string().min(1, { message: '请上传有效的头像' }),
 })
 const resolver = zodResolver(infoSchema)
-// updateData 仅承载表单字段：avatar 保存相对路径 uri，供更新接口使用
 const updateData = ref({
-    student_id: userInfo?.student_id ?? '',
-    name: userInfo?.name ?? '',
-    username: userInfo?.username ?? '',
-    email: userInfo?.email ?? '',
-    avatar: userInfo?.avatar?.uri ?? '',
+    student_id: '',
+    name: '',
+    username: '',
+    email: '',
+    avatar: '',
 })
-const showChangePass = ref(false) // 修改密码弹窗
+const showChangePass = ref(false)
 
 async function onUpdateData() {
     if (!infoSchema.safeParse(updateData.value).success) {
@@ -66,7 +64,24 @@ async function onUpdateData() {
 }
 
 const imageCropper = ref<InstanceType<typeof ImageCropper> | null>(null)
-const avatar = ref(userInfo?.avatar?.url || '')
+const avatar = ref('')
+
+// 软导航进入时 userInfo 已就绪，硬刷新时其初始化晚于本组件 setup，故用 watch 响应式回填
+watch(
+    () => authStore.userInfo,
+    (info) => {
+        if (!info) return
+        updateData.value = {
+            student_id: info.student_id ?? '',
+            name: info.name ?? '',
+            username: info.username ?? '',
+            email: info.email ?? '',
+            avatar: info.avatar?.uri ?? '',
+        }
+        avatar.value = info.avatar?.url || ''
+    },
+    { immediate: true }
+)
 
 // 头像上传成功后回填表单与预览
 function onAvatarUploaded(uploaded: UploadResponse) {
@@ -75,11 +90,12 @@ function onAvatarUploaded(uploaded: UploadResponse) {
     setToast('success', '头像更新成功', '')
 }
 
-onMounted(() => {
+onMounted(async () => {
     // 如果因刷新等原因导致 authStore 未初始化，则先 init
     if (!authStore.isReady) {
-        initAuthStore()
+        await initAuthStore()
     }
+
     if (!authStore.isAuthed) {
         setToast('error', '获取用户信息失败', '当前尚未登录！')
         router.push('/auth')
@@ -91,7 +107,12 @@ onMounted(() => {
     <main>
         <h1 class="e-title">编辑个人资料</h1>
 
-        <Form v-slot="$form" :resolver="resolver" :initial-values="userInfo ?? undefined" @submit="onUpdateData">
+        <Form
+            v-slot="$form"
+            :resolver="resolver"
+            :initial-values="authStore.userInfo ?? undefined"
+            @submit="onUpdateData"
+        >
             <!-- 头像 -->
             <div class="avatar">
                 <div>设置头像</div>
