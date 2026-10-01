@@ -1,6 +1,6 @@
 {
     "name": "oaa-frontend",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "private": true,
     "bugs": {
         "url": "https://github.com/suse-edu-cn/oaa-frontend/issues"
@@ -18,8 +18,8 @@
     "scripts": {
         "dev": "vite",
         "dev:public": "vite --mode development-public",
-        "build": "vite build && node scripts/prerender.mjs",
-        "build:internal": "vite build --mode internal && node scripts/prerender.mjs --mode internal",
+        "build": "vite build",
+        "build:internal": "vite build --mode internal",
         "preview": "vite preview",
         "lint": "oxlint && eslint",
         "lint:fix": "oxlint --fix && eslint --fix",
