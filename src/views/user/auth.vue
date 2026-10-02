@@ -12,13 +12,6 @@ import setToast from '@/utils/setToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const imgSet = [
-    'https://img.alicdn.com/O1CN01IBboqk1ILG3pdXfvg_!!2212930340876-0-ampmedia.jpg',
-    'https://img.alicdn.com/O1CN01zvyC7r1ILG3pymwEb_!!2212930340876-2-ampmedia.png',
-    'https://img.alicdn.com/O1CN01MviGBa1ILG3pHXMoq_!!2212930340876-2-ampmedia.png',
-    'https://img.alicdn.com/O1CN01s8aLFO1ILG3qF6k0V_!!2212930340876-2-ampmedia.png',
-    'https://img.alicdn.com/O1CN01vxZ1KT1ILG3juISKN_!!2212930340876-0-ampmedia.jpg',
-]
 
 // portal 模式 -> login / register / reset
 const mode = ref('login')
@@ -37,10 +30,6 @@ onMounted(async () => {
 
 <template>
     <main>
-        <div class="left">
-            <img v-once :src="imgSet[Math.floor(Math.random() * imgSet.length)]" alt="" srcset="" />
-        </div>
-
         <div class="right">
             <h2>欢迎使用青蟹</h2>
             <Tabs v-model:value="mode" class="tab-container">
@@ -69,21 +58,6 @@ main {
     display: flex;
     justify-content: center;
     min-height: 100%;
-
-    .left {
-        display: var(--e-display);
-        flex: 4;
-        justify-content: center;
-        align-items: center;
-        padding: 3rem;
-
-        img {
-            width: max(240px, 70%);
-            max-width: 300px;
-            max-height: 400px;
-            height: auto;
-        }
-    }
 
     .right {
         display: flex;
