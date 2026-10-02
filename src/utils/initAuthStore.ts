@@ -29,7 +29,6 @@ async function doInitAuthStore() {
             const stateResp = await request<ApiResponse<UserInfo>>({
                 url: '/user/me',
                 method: 'GET',
-                token,
             })
             if (stateResp.code == 200) {
                 const info: UserInfo = { ...stateResp.data }

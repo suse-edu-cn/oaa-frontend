@@ -1,23 +1,39 @@
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import cookies from 'js-cookie'
-import router from '@/router'
 
+import router from '@/router'
+import setToast from './setToast'
 import { useAuthStore } from '@/stores/auth'
 import type { ApiResponse } from '@/types'
-import setToast from './setToast'
 
 const instance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 5000,
 })
 
-function isAuth(url?: string) {
-    return Boolean(url?.startsWith('/auth/'))
+// 校验 token 是否过期
+function isTokenExpired(token: string): boolean {
+    let exp: number | null
+    try {
+        const b64 = token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')
+        const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))))
+        exp = typeof payload.exp === 'number' ? payload.exp : null
+    } catch {
+        exp = null
+    }
+    return exp !== null && Date.now() / 1000 >= exp
 }
 
-// 并发的 401 共享同一次刷新，避免竞态
+// 并发的 401 共享刷新避免竞态
 let refreshing: Promise<boolean> | null = null
 const retried = new WeakSet()
+// 刷新入口
+function ensureFreshToken(): Promise<boolean> {
+    refreshing = refreshing || doRefresh()
+    return refreshing.finally(() => {
+        refreshing = null
+    })
+}
 
 async function doRefresh(): Promise<boolean> {
     const authStore = useAuthStore()
@@ -44,6 +60,7 @@ async function doRefresh(): Promise<boolean> {
             cookies.set('refresh_token', refresh_token, { expires: 20, secure: true, sameSite: 'Lax', path: '/' })
             authStore.token = token
             authStore.refreshToken = refresh_token
+            console.log('[request] 已刷新 token')
             return true
         }
         return false
@@ -70,10 +87,7 @@ function clearAuth() {
 async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<AxiosResponse | null> {
     // 刷新成功
     retried.add(config)
-    refreshing = refreshing || doRefresh()
-    const ok = await refreshing.finally(() => {
-        refreshing = null
-    })
+    const ok = await ensureFreshToken()
     // 刷新失败，清理登录态跳转登录页
     if (!ok) {
         clearAuth()
@@ -91,7 +105,11 @@ async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<Axio
 instance.interceptors.response.use(
     // 以下是检测 401 的业务代码
     async (response) => {
-        if (response.data?.code === 401 && !isAuth(response.config?.url) && !retried.has(response.config)) {
+        if (
+            response.data?.code === 401 &&
+            !response.config?.url?.startsWith('/auth/') &&
+            !retried.has(response.config)
+        ) {
             return (await refreshAndRetry(response.config)) ?? response
         }
         return response
@@ -99,7 +117,7 @@ instance.interceptors.response.use(
     async (error) => {
         const { config, response } = error
         const expired = response?.status === 401 || response?.data?.code === 401
-        if (!expired || !config || retried.has(config) || isAuth(config.url)) {
+        if (!expired || !config || retried.has(config) || config.url?.startsWith('/auth/')) {
             return Promise.reject(error)
         }
 
@@ -122,6 +140,11 @@ const request = async function <T = any>(config: {
             try {
                 const authStore = useAuthStore()
                 token = authStore.token || ''
+                // token 过期时静默刷新
+                if (token && isTokenExpired(token)) {
+                    const ok = await ensureFreshToken()
+                    if (ok) token = useAuthStore().token
+                }
             } catch (e) {
                 console.warn(e)
             }
