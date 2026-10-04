@@ -68,11 +68,11 @@ onMounted(() => {
             </div>
         </template>
         <template v-else-if="!loading">
-            <div class="head empty">进行中的活动周期</div>
+            <div class="empty">进行中的活动周期</div>
             <div class="title empty">当前暂无招新 / 换届活动</div>
         </template>
-        <!-- 加载中仅展示标题，避免空态闪现 -->
-        <div v-else class="head">进行中的活动周期</div>
+        <!-- 加载中展示标题 -->
+        <div v-else class="empty">进行中的活动周期</div>
     </div>
 </template>
 
