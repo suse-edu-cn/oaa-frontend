@@ -10,4 +10,9 @@ interface ImportMeta {
     readonly env: ImportMetaEnv
 }
 
-declare const __GIT_VERSION__: string
+declare const __BUILD_INFO__: {
+    hash: string
+    build: string
+    date: string
+    env: string
+}

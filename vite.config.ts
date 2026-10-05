@@ -7,11 +7,15 @@ import { execSync, spawnSync } from 'child_process'
 import pkgInfo from './package.json' with { type: 'json' }
 
 // 获取编译版本
-let gitVersion = 'unknown'
+const buildInfo = {
+    hash: 'unknown',
+    build: 'unknown',
+    date: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+}
 try {
-    const gitHash = execSync('git rev-parse --short=7 HEAD').toString().trim()
-    const gitCommitCount = execSync('git rev-list --count HEAD').toString().trim()
-    gitVersion = `${gitHash} (build ${gitCommitCount})`
+    buildInfo.hash = execSync('git rev-parse --short=7 HEAD').toString().trim()
+    buildInfo.build = execSync('git rev-list --count HEAD').toString().trim()
 } catch {
     console.warn('无法获取 git 版本信息')
 }
@@ -27,7 +31,7 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
 
     return {
         define: {
-            __GIT_VERSION__: JSON.stringify(gitVersion),
+            __BUILD_INFO__: JSON.stringify(buildInfo),
         },
         base: ossBase,
         plugins: [

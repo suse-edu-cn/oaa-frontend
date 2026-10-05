@@ -1,6 +1,14 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { Dialog } from 'primevue'
+
 import { version, bugs } from '../../../package.json'
-const gitVersion: string = __GIT_VERSION__
+
+const showBuildDialog = ref(false)
+
+// vite 注入的版本信息
+const buildInfo = __BUILD_INFO__
+const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12: false })
 </script>
 
 <template>
@@ -9,7 +17,7 @@ const gitVersion: string = __GIT_VERSION__
         <div class="settings-list">
             <div class="setting-catalog">关于工作台</div>
             <div class="setting-card">
-                <a :href="bugs.url" class="section" target="_blank" rel="noopener noreferrer">
+                <a :href="bugs.url" class="section clickable" target="_blank" rel="noopener noreferrer">
                     <i class="pi pi-lightbulb"></i>
                     <span class="key">使用反馈</span>
                     <span class="value">
@@ -17,19 +25,33 @@ const gitVersion: string = __GIT_VERSION__
                     </span>
                 </a>
                 <div class="divider"></div>
-                <div class="section">
+                <div class="section clickable" @click="showBuildDialog = true">
                     <i class="pi pi-code"></i>
                     <span class="key">工作台版本</span>
-                    <span class="value">v{{ version }}</span>
-                </div>
-                <div class="divider"></div>
-                <div class="section">
-                    <i class="pi pi-box"></i>
-                    <span class="key">编译版本</span>
-                    <span class="value">{{ gitVersion }}</span>
+                    <span class="value"> v{{ version }} </span>
                 </div>
             </div>
         </div>
+        <Dialog v-model:visible="showBuildDialog" modal header="版本信息" :style="{ minWidth: '24rem' }">
+            <div class="build-info">
+                <div class="item">
+                    <span>版本号</span>
+                    <span>v{{ version }}</span>
+                </div>
+                <div class="item">
+                    <span>构建版本</span>
+                    <span>{{ buildInfo.hash }} (build {{ buildInfo.build }})</span>
+                </div>
+                <div class="item">
+                    <span>构建时间</span>
+                    <span>{{ buildDate }}</span>
+                </div>
+                <div class="item">
+                    <span>构建环境</span>
+                    <span>{{ buildInfo.env }}</span>
+                </div>
+            </div>
+        </Dialog>
     </main>
 </template>
 
@@ -76,8 +98,9 @@ const gitVersion: string = __GIT_VERSION__
         }
     }
 
-    a.section {
+    .section.clickable {
         transition: all 0.3s;
+        cursor: pointer;
 
         &:hover {
             background-color: var(--p-menu-item-focus-background);
@@ -88,6 +111,24 @@ const gitVersion: string = __GIT_VERSION__
         height: 1px;
         margin: 0 24px;
         background-color: var(--p-menu-separator-border-color);
+    }
+}
+
+.build-info {
+    font-size: 15px;
+    line-height: 2.4;
+
+    .item {
+        display: flex;
+        justify-content: space-between;
+
+        span:first-child {
+            color: var(--p-menu-submenu-label-color);
+        }
+
+        span:last-child {
+            color: var(--p-menu-item-color);
+        }
     }
 }
 </style>
