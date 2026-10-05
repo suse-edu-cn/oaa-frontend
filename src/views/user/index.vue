@@ -33,10 +33,15 @@ onMounted(async () => {
             <div class="title">{{ authStore.userInfo.username }}</div>
             <div class="subtitle">
                 <span class="left">
-                    <div>
-                        {{ authStore.userInfo.name }}&nbsp;·&nbsp;{{ authStore.userInfo.role }}&nbsp;·&nbsp;{{
-                            authStore.userInfo.department
-                        }}
+                    <div class="identity">
+                        <span>
+                            <i class="pi pi-building"></i>
+                            {{ authStore.userInfo.department }}
+                        </span>
+                        <span>
+                            <i class="pi pi-user"></i>
+                            {{ authStore.userInfo.role }}
+                        </span>
                     </div>
                     <div class="pi pi-users">&nbsp;{{ authStore.userInfo.student_id }}</div>
                 </span>
@@ -74,7 +79,7 @@ onMounted(async () => {
         width: 8rem;
         height: 8rem;
         border-radius: 50%;
-        padding: 2px;
+        padding: 1px;
         border: 1px solid #ddd;
         background-color: #fff;
     }
@@ -84,17 +89,16 @@ onMounted(async () => {
         text-align: var(--banner-info-align);
 
         .title {
-            font-size: 2.25rem;
+            font-size: 32px;
             font-weight: bold;
-            margin: 0.5rem var(--banner-h-margin) 1rem;
+            margin: 8px var(--banner-h-margin) 16px;
         }
 
         .subtitle {
             display: flex;
             flex-direction: var(--banner-direction);
-            gap: 0.5rem;
+            gap: 8px;
             align-items: center;
-            font-size: 1rem;
             line-height: 2;
             color: #555;
 
@@ -111,10 +115,15 @@ onMounted(async () => {
             }
         }
 
+        .identity {
+            display: flex;
+            gap: 24px;
+        }
+
         .subtitle.skeleton {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 8px;
             align-items: start;
         }
     }
