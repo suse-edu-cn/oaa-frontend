@@ -5,7 +5,7 @@ import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, 
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
-import { fromDate, toDate } from '@/utils/date'
+import { fromDate, toDate, fromIso } from '@/utils/date'
 import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import type { ApiResponse, TermCreateData, TermInfo, TermPeriod, TermUpdateData } from '@/types'
@@ -228,7 +228,7 @@ onMounted(() => {
             </Column>
             <Column header="身份更新时间">
                 <template #body="{ data }">
-                    {{ data.executed_at ?? '—' }}
+                    {{ fromIso(data.executed_at) ?? '—' }}
                 </template>
             </Column>
             <Column>
