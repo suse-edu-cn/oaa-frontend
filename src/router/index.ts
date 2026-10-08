@@ -3,6 +3,8 @@ import cookies from 'js-cookie'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
+import { useAuthStore } from '@/stores/auth'
+import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 import HomeView from '@/views/home/index.vue'
 
@@ -56,10 +58,24 @@ const router = createRouter({
         { path: '/apply/staff', component: () => import('@/views/apply/staff.vue'), meta: { title: '面试官管理' } },
         // 设置
         { path: '/settings', component: () => import('@/views/settings/index.vue'), meta: { title: '设置' } },
+
+        // 403
+        {
+            path: '/403',
+            component: () => import('@/views/error/403.vue'),
+            meta: { requiresAuth: false, title: '403' },
+        },
+
+        // 404
+        {
+            path: '/:pathMatch(.*)*',
+            component: () => import('@/views/error/404.vue'),
+            meta: { requiresAuth: false, title: '404' },
+        },
     ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
     // 预渲染环境无 document，且首页为公开页面，跳过鉴权与进度条
     if (import.meta.env.SSR) return true
 
@@ -69,6 +85,18 @@ router.beforeEach((to) => {
     if (to.meta.requiresAuth !== false && !isAuthed) {
         setToast('error', '未登录', '请先登录以访问该页面')
         return '/auth'
+    }
+
+    // 权限等级校验
+    if (to.meta.level && isAuthed) {
+        const authStore = useAuthStore()
+        if (!authStore.isReady) {
+            await initAuthStore()
+        }
+        if ((authStore.userInfo?.level ?? 0) < to.meta.level) {
+            setToast('warn', '无访问权限', '你当前的权限等级不足以访问该页面')
+            return '/403'
+        }
     }
 
     return true
