@@ -10,7 +10,7 @@ export interface UserInfo {
     email: string
     department: string
     role: string
-    level?: number
+    role_level: number
 }
 
 /** 用户列表 /user/list */

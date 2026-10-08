@@ -25,10 +25,24 @@ const router = createRouter({
         },
         { path: '/user', component: () => import('@/views/user/index.vue'), meta: { title: '个人中心' } },
         { path: '/user/edit', component: () => import('@/views/user/edit.vue'), meta: { title: '编辑个人资料' } },
+
         // 管理
-        { path: '/manage/users', component: () => import('@/views/manage/users.vue'), meta: { title: '用户管理' } },
-        { path: '/manage/org', component: () => import('@/views/manage/org.vue'), meta: { title: '组织管理' } },
-        { path: '/manage/term', component: () => import('@/views/manage/term.vue'), meta: { title: '招新/换届管理' } },
+        {
+            path: '/manage/users',
+            component: () => import('@/views/manage/users.vue'),
+            meta: { title: '用户管理', level: 20 },
+        },
+        {
+            path: '/manage/org',
+            component: () => import('@/views/manage/org.vue'),
+            meta: { title: '组织管理', level: 80 },
+        },
+        {
+            path: '/manage/term',
+            component: () => import('@/views/manage/term.vue'),
+            meta: { title: '招新/换届管理', level: 80 },
+        },
+
         // 公告
         {
             path: '/announcement/manage',
@@ -38,24 +52,46 @@ const router = createRouter({
         {
             path: '/announcement/new',
             component: () => import('@/views/announcement/new.vue'),
-            meta: { title: '新建公告' },
+            meta: { title: '新建公告', level: 50 },
         },
         {
             path: '/announcement/edit/:id',
             component: () => import('@/views/announcement/edit.vue'),
-            meta: { title: '编辑公告' },
+            meta: { title: '编辑公告', level: 50 },
         },
         {
             path: '/announcement/:id',
             component: () => import('@/views/announcement/view.vue'),
             meta: { title: '公告详情' },
         },
+
         // 招新换届申请
-        { path: '/apply', component: () => import('@/views/apply/index.vue'), meta: { title: '我的申请' } },
-        { path: '/apply/new', component: () => import('@/views/apply/new.vue'), meta: { title: '添加新申请' } },
-        { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue'), meta: { title: '编辑申请' } },
-        { path: '/apply/review', component: () => import('@/views/apply/review.vue'), meta: { title: '审核申请' } },
-        { path: '/apply/staff', component: () => import('@/views/apply/staff.vue'), meta: { title: '面试官管理' } },
+        {
+            path: '/apply',
+            component: () => import('@/views/apply/index.vue'),
+            meta: { title: '我的申请' },
+        },
+        {
+            path: '/apply/new',
+            component: () => import('@/views/apply/new.vue'),
+            meta: { title: '添加新申请' },
+        },
+        {
+            path: '/apply/edit/:id',
+            component: () => import('@/views/apply/edit.vue'),
+            meta: { title: '编辑申请' },
+        },
+        {
+            path: '/apply/review',
+            component: () => import('@/views/apply/review.vue'),
+            meta: { title: '审核申请', level: 50 },
+        },
+        {
+            path: '/apply/staff',
+            component: () => import('@/views/apply/staff.vue'),
+            meta: { title: '面试官管理', level: 80 },
+        },
+
         // 设置
         { path: '/settings', component: () => import('@/views/settings/index.vue'), meta: { title: '设置' } },
 
@@ -65,7 +101,6 @@ const router = createRouter({
             component: () => import('@/views/error/403.vue'),
             meta: { requiresAuth: false, title: '403' },
         },
-
         // 404
         {
             path: '/:pathMatch(.*)*',
@@ -93,7 +128,7 @@ router.beforeEach(async (to) => {
         if (!authStore.isReady) {
             await initAuthStore()
         }
-        if ((authStore.userInfo?.level ?? 0) < to.meta.level) {
+        if ((authStore.userInfo?.role_level ?? 0) < to.meta.level) {
             setToast('warn', '无访问权限', '你当前的权限等级不足以访问该页面')
             return '/403'
         }
