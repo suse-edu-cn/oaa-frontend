@@ -33,7 +33,7 @@ const canShowDrawer = computed(() => {
 <template>
     <Toast position="top-center" />
     <Header />
-    <div class="e-body" :class="{ 'e-no-drawer': !canShowDrawer }">
+    <div class="e-body" :class="{ 'e-no-drawer': !canShowDrawer, 'e-home': route.path === '/' }">
         <Drawer v-if="canShowDrawer" />
         <section class="e-view-wrapper">
             <div class="e-view">
@@ -61,6 +61,14 @@ const canShowDrawer = computed(() => {
         display: flex;
         padding-left: var(--e-content-h-padding);
         padding-right: var(--e-content-h-padding);
+    }
+
+    &.e-home {
+        min-height: fit-content;
+
+        .e-view {
+            overflow-y: visible;
+        }
     }
 }
 
