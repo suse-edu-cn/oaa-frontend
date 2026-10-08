@@ -27,6 +27,7 @@ async function loadAnnouncement() {
         })
         if (resp?.code == 200) {
             announcement.value = resp.data ?? null
+            document.title = announcement.value?.title + ' - 公告详情 - 青蟹' || '公告详情 - 青蟹'
         } else {
             setToast('error', '获取公告详情失败', resp?.message || '未知错误，请联系负责后端的同学')
         }

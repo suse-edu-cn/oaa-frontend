@@ -16,26 +16,46 @@ const router = createRouter({
         { path: '/', component: HomeView, meta: { requiresAuth: false } },
 
         // 个人
-        { path: '/auth', component: () => import('@/views/user/auth.vue'), meta: { requiresAuth: false } },
-        { path: '/user', component: () => import('@/views/user/index.vue') },
-        { path: '/user/edit', component: () => import('@/views/user/edit.vue') },
+        {
+            path: '/auth',
+            component: () => import('@/views/user/auth.vue'),
+            meta: { requiresAuth: false, title: '登录' },
+        },
+        { path: '/user', component: () => import('@/views/user/index.vue'), meta: { title: '个人中心' } },
+        { path: '/user/edit', component: () => import('@/views/user/edit.vue'), meta: { title: '编辑个人资料' } },
         // 管理
-        { path: '/manage/users', component: () => import('@/views/manage/users.vue') },
-        { path: '/manage/org', component: () => import('@/views/manage/org.vue') },
-        { path: '/manage/term', component: () => import('@/views/manage/term.vue') },
+        { path: '/manage/users', component: () => import('@/views/manage/users.vue'), meta: { title: '用户管理' } },
+        { path: '/manage/org', component: () => import('@/views/manage/org.vue'), meta: { title: '组织管理' } },
+        { path: '/manage/term', component: () => import('@/views/manage/term.vue'), meta: { title: '招新/换届管理' } },
         // 公告
-        { path: '/announcement/manage', component: () => import('@/views/announcement/manage.vue') },
-        { path: '/announcement/new', component: () => import('@/views/announcement/new.vue') },
-        { path: '/announcement/edit/:id', component: () => import('@/views/announcement/edit.vue') },
-        { path: '/announcement/:id', component: () => import('@/views/announcement/view.vue') },
+        {
+            path: '/announcement/manage',
+            component: () => import('@/views/announcement/manage.vue'),
+            meta: { title: '公告管理' },
+        },
+        {
+            path: '/announcement/new',
+            component: () => import('@/views/announcement/new.vue'),
+            meta: { title: '新建公告' },
+        },
+        {
+            path: '/announcement/edit/:id',
+            component: () => import('@/views/announcement/edit.vue'),
+            meta: { title: '编辑公告' },
+        },
+        {
+            path: '/announcement/:id',
+            component: () => import('@/views/announcement/view.vue'),
+            meta: { title: '公告详情' },
+        },
         // 招新换届申请
-        { path: '/apply', component: () => import('@/views/apply/index.vue') },
-        { path: '/apply/new', component: () => import('@/views/apply/new.vue') },
-        { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue') },
-        { path: '/apply/review', component: () => import('@/views/apply/review.vue') },
-        { path: '/apply/staff', component: () => import('@/views/apply/staff.vue') },
+        { path: '/apply', component: () => import('@/views/apply/index.vue'), meta: { title: '我的申请' } },
+        { path: '/apply/new', component: () => import('@/views/apply/new.vue'), meta: { title: '添加新申请' } },
+        { path: '/apply/edit/:id', component: () => import('@/views/apply/edit.vue'), meta: { title: '编辑申请' } },
+        { path: '/apply/review', component: () => import('@/views/apply/review.vue'), meta: { title: '审核申请' } },
+        { path: '/apply/staff', component: () => import('@/views/apply/staff.vue'), meta: { title: '面试官管理' } },
         // 设置
-        { path: '/settings', component: () => import('@/views/settings/index.vue') },
+        { path: '/settings', component: () => import('@/views/settings/index.vue'), meta: { title: '设置' } },
     ],
 })
 
@@ -54,10 +74,13 @@ router.beforeEach((to) => {
     return true
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
     if (import.meta.env.SSR) return
 
     NProgress.done()
+
+    // 标签页标题跟随路由，未配置标题的页面回退为站点名
+    document.title = to.meta.title ? `${to.meta.title} - 青蟹` : '青蟹'
 })
 
 // chunk 加载失败（如发版后旧 hash 失效）时收起，避免进度条卡住
