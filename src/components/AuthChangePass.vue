@@ -38,11 +38,15 @@ const changeSchema = z
     })
 const changeResolver = zodResolver(changeSchema)
 
+const isSubmitting = ref(false)
+
 async function onChangePass() {
+    if (isSubmitting.value) return
     if (!changeSchema.safeParse(changeData.value).success) {
         return
     }
 
+    isSubmitting.value = true
     try {
         const resp = await request({
             url: '/auth/password/update',
@@ -61,6 +65,8 @@ async function onChangePass() {
         }
     } catch (err: any) {
         setToast('error', '修改失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -138,7 +144,7 @@ async function onChangePass() {
         </div>
 
         <br />
-        <Button type="submit" label="修改密码" class="input-box" />
+        <Button type="submit" label="修改密码" class="input-box" :loading="isSubmitting" />
 
         <p class="link" @click="mode = 'reset'">忘记原密码？重置密码</p>
     </Form>

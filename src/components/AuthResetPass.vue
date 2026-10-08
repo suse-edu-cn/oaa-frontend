@@ -50,8 +50,10 @@ const resetResolver = zodResolver(resetSchema)
 const countdown = ref(0)
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 
+const isSending = ref(false)
+
 async function sendCode() {
-    if (countdown.value > 0) {
+    if (isSending.value || countdown.value > 0) {
         return
     }
 
@@ -60,6 +62,7 @@ async function sendCode() {
         return
     }
 
+    isSending.value = true
     try {
         const resp = await request({
             url: '/auth/send',
@@ -85,6 +88,8 @@ async function sendCode() {
         }
     } catch (err: any) {
         setToast('error', '发送失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    } finally {
+        isSending.value = false
     }
 }
 
@@ -94,11 +99,15 @@ onUnmounted(() => {
     }
 })
 
+const isSubmitting = ref(false)
+
 async function onReset() {
+    if (isSubmitting.value) return
     if (!resetSchema.safeParse(resetData.value).success) {
         return
     }
 
+    isSubmitting.value = true
     try {
         const resp = await request({
             url: '/auth/password/reset',
@@ -118,6 +127,8 @@ async function onReset() {
         }
     } catch (err: any) {
         setToast('error', '重置失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -152,6 +163,7 @@ async function onReset() {
                     class="send-btn"
                     :label="countdown > 0 ? `${countdown}s 后重发` : '发送验证码'"
                     :disabled="countdown > 0"
+                    :loading="isSending"
                     @click="sendCode"
                 />
             </div>
@@ -202,7 +214,7 @@ async function onReset() {
         </div>
 
         <br />
-        <Button type="submit" label="重置密码" class="input-box" />
+        <Button type="submit" label="重置密码" class="input-box" :loading="isSubmitting" />
 
         <p class="link" @click="emit('switchMode')">{{ scene === 0 ? '返回登录' : '返回修改密码' }}</p>
     </Form>

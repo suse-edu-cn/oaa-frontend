@@ -35,11 +35,15 @@ const loginSchema = z.object({
 })
 const loginResolver = zodResolver(loginSchema)
 
+const isSubmitting = ref(false)
+
 async function onLogin() {
+    if (isSubmitting.value) return
     if (!loginSchema.safeParse(loginData.value).success) {
         return
     }
 
+    isSubmitting.value = true
     try {
         const resp = await request({
             url: '/auth/login',
@@ -68,6 +72,8 @@ async function onLogin() {
         }
     } catch (err: any) {
         setToast('error', '登录失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -114,7 +120,7 @@ async function onLogin() {
         </div>
 
         <br />
-        <Button type="submit" label="登录" class="input-box" />
+        <Button type="submit" label="登录" class="input-box" :loading="isSubmitting" />
 
         <p class="link" @click="emit('forgot')">忘记密码？</p>
     </Form>

@@ -39,7 +39,10 @@ const registerSchema = z.object({
 })
 const registerResolver = zodResolver(registerSchema)
 
+const isSubmitting = ref(false)
+
 async function onRegister() {
+    if (isSubmitting.value) return
     if (!isAccepted.value) {
         setToast('warn', '无法注册', '请先阅读并同意《用户协议》')
         return
@@ -49,6 +52,7 @@ async function onRegister() {
         return
     }
 
+    isSubmitting.value = true
     try {
         const resp = await request({
             url: '/auth/register',
@@ -64,6 +68,8 @@ async function onRegister() {
         }
     } catch (err: any) {
         setToast('error', '注册失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -156,7 +162,7 @@ async function onRegister() {
             <label for="isAccepted">&nbsp;&nbsp;我已阅读并同意<a href="#" target="_blank">《用户协议》</a></label>
         </div>
         <br />
-        <Button type="submit" label="注册" class="input-box" />
+        <Button type="submit" label="注册" class="input-box" :loading="isSubmitting" />
     </Form>
 </template>
 
