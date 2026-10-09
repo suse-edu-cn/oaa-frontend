@@ -2,8 +2,6 @@
 import { ref } from 'vue'
 import { Dialog } from 'primevue'
 
-import { version, bugs } from '../../../package.json'
-
 const showBuildDialog = ref(false)
 
 // vite 注入的版本信息
@@ -17,7 +15,12 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
         <div class="settings-list">
             <div class="setting-catalog">关于工作台</div>
             <div class="setting-card">
-                <a :href="bugs.url" class="section clickable" target="_blank" rel="noopener noreferrer">
+                <a
+                    :href="buildInfo.repo + '/issues'"
+                    class="section clickable"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     <i class="pi pi-lightbulb"></i>
                     <span class="key">使用反馈</span>
                     <span class="value">
@@ -28,7 +31,7 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
                 <div class="section clickable" @click="showBuildDialog = true">
                     <i class="pi pi-code"></i>
                     <span class="key">工作台版本</span>
-                    <span class="value"> v{{ version }} </span>
+                    <span class="value"> v{{ buildInfo.version }} </span>
                 </div>
             </div>
         </div>
@@ -36,7 +39,7 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
             <div class="build-info">
                 <div class="item">
                     <span>版本号</span>
-                    <span>v{{ version }}</span>
+                    <span>v{{ buildInfo.version }}</span>
                 </div>
                 <div class="item">
                     <span>构建版本</span>

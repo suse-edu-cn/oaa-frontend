@@ -11,6 +11,8 @@ interface ImportMeta {
 }
 
 declare const __BUILD_INFO__: {
+    version: string
+    repo: string
     hash: string
     build: string
     date: string

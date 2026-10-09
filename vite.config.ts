@@ -8,6 +8,8 @@ import pkgInfo from './package.json' with { type: 'json' }
 
 // 获取编译版本
 const buildInfo = {
+    version: pkgInfo.version,
+    repo: pkgInfo.repository.url,
     hash: 'unknown',
     build: 'unknown',
     date: new Date().toISOString(),
