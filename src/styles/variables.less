@@ -1,0 +1,37 @@
+/*
+ * 此样式表仅存储全局 CSS 变量
+ */
+
+// 变量设置
+// 注： -e 代表变量对全局生效
+//     -h → horizontal, -v → vertical
+:root,
+:host {
+    --e-display: flex;
+    --e-layout-breakpoint: 800px;
+    --e-content-h-padding: max(5%, 30px);
+    --e-content-h-max-width: 1400px;
+    --e-color-theme: var(--p-emerald-500);
+    --e-border-radius: 8px;
+    --e-banner-height: 220px;
+    --e-banner-padding: 0 var(--e-content-h-padding);
+
+    // 自定义主题
+    --p-inputtext-font: 15px;
+    --p-inputtext-padding-y: 7px !important;
+}
+// 针对移动端设备的变量
+@media screen and (max-width: 800px) {
+    :root {
+        --e-display: none;
+        --e-content-h-padding: 5%;
+        --e-banner-height: auto;
+        --e-banner-padding: 3.5rem var(--e-content-h-padding) 2.5rem;
+    }
+}
+// 针对大屏设备的变量
+@media screen and (min-width: 1300px) {
+    :root {
+        --e-content-h-padding: 12.5%;
+    }
+}
