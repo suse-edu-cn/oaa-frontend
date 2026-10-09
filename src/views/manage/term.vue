@@ -3,12 +3,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Select } from 'primevue'
 
+import { createTerm, deleteTerm, getTermList, updateTerm } from '@/api/term'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import { fromDate, toDate, fromIso } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse, TermCreateData, TermInfo, TermPeriod, TermUpdateData } from '@/types'
+import type { TermInfo, TermPeriod } from '@/types'
 
 // 周期类型
 const TERM_TYPES = ['招新', '换届'] as const
@@ -20,10 +20,7 @@ const loading = ref(true)
 // 加载周期列表
 async function loadTerms(silent = false) {
     if (!silent) loading.value = true
-    const resp = await request<ApiResponse<TermInfo[]>>({
-        url: '/term/list',
-        method: 'GET',
-    })
+    const resp = await getTermList()
     if (!silent) loading.value = false
 
     if (resp?.code == 200) {
@@ -113,26 +110,18 @@ async function onSave() {
     saving.value = true
     const resp =
         dialogMode.value === 'create'
-            ? await request<ApiResponse<null>>({
-                  url: '/term/create',
-                  method: 'POST',
-                  data: {
-                      year: formYear.value!,
-                      type: formType.value,
-                      title: formTitle.value.trim(),
-                      edit_period: editPeriod,
-                      query_period: queryPeriod,
-                  } satisfies TermCreateData,
+            ? await createTerm({
+                  year: formYear.value!,
+                  type: formType.value,
+                  title: formTitle.value.trim(),
+                  edit_period: editPeriod,
+                  query_period: queryPeriod,
               })
-            : await request<ApiResponse<null>>({
-                  url: '/term/update',
-                  method: 'POST',
-                  data: {
-                      term_id: dialogTargetId.value!,
-                      title: formTitle.value.trim(),
-                      edit_period: editPeriod,
-                      query_period: queryPeriod,
-                  } satisfies TermUpdateData,
+            : await updateTerm({
+                  term_id: dialogTargetId.value!,
+                  title: formTitle.value.trim(),
+                  edit_period: editPeriod,
+                  query_period: queryPeriod,
               })
     saving.value = false
 
@@ -162,11 +151,7 @@ async function onDeleteTerm() {
     if (!target) return
 
     deleting.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: '/term/delete',
-        method: 'POST',
-        data: { term_id: target.id },
-    })
+    const resp = await deleteTerm(target.id)
     deleting.value = false
 
     if (resp?.code == 200) {

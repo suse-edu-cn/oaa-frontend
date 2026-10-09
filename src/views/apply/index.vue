@@ -4,13 +4,13 @@ import { onMounted, ref } from 'vue'
 
 import { Button } from 'primevue'
 
+import { getMyApplications } from '@/api/application'
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse, ApplicationItem } from '@/types'
+import type { ApplicationItem } from '@/types'
 
 const orgStore = useOrgStore()
 
@@ -28,10 +28,7 @@ function previewAvatar(url: string) {
 // 加载当前用户的申请
 async function loadApplications() {
     loading.value = true
-    const resp = await request<ApiResponse<ApplicationItem[]>>({
-        url: '/application/me',
-        method: 'GET',
-    })
+    const resp = await getMyApplications()
     loading.value = false
 
     if (resp?.code == 200) {

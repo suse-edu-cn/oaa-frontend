@@ -4,14 +4,23 @@ import { computed, onMounted, ref, watch } from 'vue'
 
 import { Button, Column, DataTable, Dialog, Select, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
+import { getApplicationList, getRolesByDepartment } from '@/api/application'
+import { createInterviewResult, getInterviewResultList, updateInterviewResult } from '@/api/interview'
+import { getTermList } from '@/api/term'
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import { fromIso } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { ApiResponse, ApplicationItem, InterviewResultItem, RoleItem, TermInfo } from '@/types'
+import type {
+    ApplicationItem,
+    ApplicationListParams,
+    InterviewResultItem,
+    InterviewResultSubmitData,
+    RoleItem,
+    TermInfo,
+} from '@/types'
 
 const orgStore = useOrgStore()
 
@@ -21,10 +30,7 @@ const termId = ref<number | null>(null)
 
 // 加载可供选择的活动周期
 async function loadTerms() {
-    const resp = await request<ApiResponse<TermInfo[]>>({
-        url: '/term/list',
-        method: 'GET',
-    })
+    const resp = await getTermList()
     if (resp?.code == 200) {
         terms.value = resp.data ?? []
         // 打开页面时默认选中第一个活动周期
@@ -44,17 +50,13 @@ const deptId = ref<number | null>(null)
 async function loadApplications() {
     if (!termId.value) return
 
-    const params: Record<string, number> = { term_id: termId.value }
+    const params: ApplicationListParams = { term_id: termId.value }
     if (deptId.value) params.department_id = deptId.value
 
     const seq = ++listRequests
     loading.value = true
     try {
-        const resp = await request<ApiResponse<ApplicationItem[]>>({
-            url: '/application/list',
-            method: 'GET',
-            params,
-        })
+        const resp = await getApplicationList(params)
         if (seq !== listRequests) return
         if (resp?.code == 200) {
             applications.value = resp.data ?? []
@@ -82,11 +84,7 @@ async function loadResults() {
     const seq = ++resultRequests
     resultsLoading.value = true
     try {
-        const resp = await request<ApiResponse<InterviewResultItem[]>>({
-            url: '/interviewer/result/list',
-            method: 'GET',
-            params: { term_id: termId.value },
-        })
+        const resp = await getInterviewResultList({ term_id: termId.value })
         if (seq !== resultRequests) return
         if (resp?.code == 200) {
             results.value = resp.data ?? []
@@ -124,11 +122,7 @@ async function loadResultRoles(departmentId: number) {
     const seq = ++resultRoleRequests
     rolesLoading.value = true
     try {
-        const resp = await request<ApiResponse<RoleItem[]>>({
-            url: '/application/role',
-            method: 'GET',
-            params: { department_id: departmentId },
-        })
+        const resp = await getRolesByDepartment(departmentId)
         if (seq !== resultRoleRequests) return
         if (resp?.code == 200) {
             resultRoles.value = resp.data ?? []
@@ -195,7 +189,7 @@ async function onReviewConfirm() {
     if (!appId) return
     const app = isEdit ? applications.value.find((a) => a.id === appId) : reviewTarget.value
 
-    const data: Record<string, unknown> = {
+    const data: InterviewResultSubmitData = {
         application_id: appId,
         decision,
         remark: reviewForm.value.remark.trim(),
@@ -213,11 +207,7 @@ async function onReviewConfirm() {
 
     reviewSaving.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
-            url: isEdit ? '/interviewer/result/update' : '/interviewer/result/create',
-            method: 'POST',
-            data,
-        })
+        const resp = isEdit ? await updateInterviewResult(data) : await createInterviewResult(data)
         if (resp?.code == 200) {
             setToast('success', isEdit ? '审核已更新' : '审核已提交')
             reviewVisible.value = false

@@ -5,9 +5,9 @@ import { Menu } from 'primevue'
 import type { MenuItem } from 'primevue/menuitem'
 import cookies from 'js-cookie'
 
+import { logout } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
 const authStore = useAuthStore()
@@ -28,11 +28,7 @@ onMounted(async () => {
 })
 
 async function onLogout() {
-    await request({
-        url: '/auth/logout',
-        method: 'POST',
-        data: { device: 'web' },
-    })
+    await logout()
 
     cookies.remove('token', { path: '/' })
     cookies.remove('refresh_token', { path: '/' })

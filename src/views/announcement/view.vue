@@ -5,12 +5,12 @@ import { useRoute } from 'vue-router'
 
 import { Tag } from 'primevue'
 
+import { getAnnouncement } from '@/api/announcement'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
 import { fromIso } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { AnnouncementItem, ApiResponse } from '@/types'
+import type { AnnouncementItem } from '@/types'
 
 const route = useRoute()
 
@@ -20,11 +20,7 @@ const loading = ref(false)
 async function loadAnnouncement() {
     loading.value = true
     try {
-        const resp = await request<ApiResponse<AnnouncementItem>>({
-            url: '/announcement/get',
-            method: 'GET',
-            params: { announcement_id: String(route.params.id) },
-        })
+        const resp = await getAnnouncement(String(route.params.id))
         if (resp?.code == 200) {
             announcement.value = resp.data ?? null
             document.title = announcement.value?.title + ' - 公告详情 - 青蟹' || '公告详情 - 青蟹'

@@ -5,12 +5,12 @@ import { useRouter } from 'vue-router'
 
 import { Button } from 'primevue'
 
+import { createApplication } from '@/api/application'
 import ApplicationForm from '@/components/ApplicationForm.vue'
 import { useAuthStore } from '@/stores/auth'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { ApiResponse, ApplicationFormData } from '@/types'
+import type { ApplicationFormData } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -20,11 +20,7 @@ async function onSubmit(data: ApplicationFormData, termId: number | null) {
     if (!termId) return
 
     submitting.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: '/application/create',
-        method: 'POST',
-        data: { ...data, term_id: termId },
-    })
+    const resp = await createApplication({ ...data, term_id: termId })
     submitting.value = false
 
     if (resp?.code == 200) {

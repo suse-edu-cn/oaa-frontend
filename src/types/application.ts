@@ -91,3 +91,9 @@ export interface ApplicationUpdateData extends Omit<ApplicationCreateData, 'term
     /** 待修改的申请 id */
     application_id: number
 }
+
+/** 申请列表查询参数，/application/list */
+export interface ApplicationListParams {
+    term_id: number
+    department_id?: number
+}

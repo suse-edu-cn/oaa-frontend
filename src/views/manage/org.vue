@@ -3,11 +3,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, Dialog, InputNumber, InputText, ToggleSwitch } from 'primevue'
 
+import { createDepartment, createRole, updateDepartment, updateRole } from '@/api/org'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse, DepartmentItem, RoleItem } from '@/types'
+import type { DepartmentItem, RoleItem } from '@/types'
 
 const orgStore = useOrgStore()
 
@@ -64,14 +64,15 @@ async function onDeptConfirm() {
     }
 
     deptSaving.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: deptDialogMode.value === 'create' ? '/department/create' : '/department/update',
-        method: 'POST',
-        data:
-            deptDialogMode.value === 'create'
-                ? { name, type: '部门' }
-                : { department_id: deptTargetId.value, name, type: '部门', is_active: deptFormActive.value },
-    })
+    const resp =
+        deptDialogMode.value === 'create'
+            ? await createDepartment({ name, type: '部门' })
+            : await updateDepartment({
+                  department_id: deptTargetId.value!,
+                  name,
+                  type: '部门',
+                  is_active: deptFormActive.value,
+              })
     deptSaving.value = false
 
     if (resp?.code == 200) {
@@ -143,14 +144,16 @@ async function onRoleConfirm() {
     }
 
     roleSaving.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: roleDialogMode.value === 'create' ? '/role/create' : '/role/update',
-        method: 'POST',
-        data:
-            roleDialogMode.value === 'create'
-                ? { name, level, type: '部门' }
-                : { role_id: roleTargetId.value, name, level, type: '部门', is_active: roleFormActive.value },
-    })
+    const resp =
+        roleDialogMode.value === 'create'
+            ? await createRole({ name, level, type: '部门' })
+            : await updateRole({
+                  role_id: roleTargetId.value!,
+                  name,
+                  level,
+                  type: '部门',
+                  is_active: roleFormActive.value,
+              })
     roleSaving.value = false
 
     if (resp?.code == 200) {

@@ -1,8 +1,8 @@
 import cookies from 'js-cookie'
 
-import request from './request'
+import { getCurrentUser } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
-import type { ApiResponse, UserInfo } from '@/types'
+import type { UserInfo } from '@/types'
 
 // 共享同一次初始化
 let initPromise: Promise<void> | null = null
@@ -26,11 +26,8 @@ async function doInitAuthStore() {
         authStore.token = token
         authStore.refreshToken = cookies.get('refresh_token') || ''
         try {
-            const stateResp = await request<ApiResponse<UserInfo>>({
-                url: '/user/me',
-                method: 'GET',
-            })
-            if (stateResp.code == 200) {
+            const stateResp = await getCurrentUser()
+            if (stateResp?.code == 200) {
                 const info: UserInfo = { ...stateResp.data }
                 info.avatar = stateResp.data.avatar || { uri: '', url: '' }
                 info.department = stateResp.data.department || '未设置职位'
@@ -44,7 +41,8 @@ async function doInitAuthStore() {
                     sameSite: 'Lax',
                     path: '/',
                 })
-            } else {
+            } else if (stateResp) {
+                // 仅在后端明确拒绝时清空登录态，网络失败时保留 token 以便下次重试
                 authStore.token = ''
                 cookies.remove('token')
             }

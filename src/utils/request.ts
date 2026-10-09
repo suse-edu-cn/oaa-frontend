@@ -125,6 +125,9 @@ instance.interceptors.response.use(
     }
 )
 
+/**
+ * 统一请求入口：不抛异常，网络 / 超时失败时返回 undefined，调用方需判空
+ */
 const request = async function <T = any>(config: {
     url: string
     method?: 'GET' | 'POST'
@@ -132,7 +135,7 @@ const request = async function <T = any>(config: {
     params?: any
     token?: string
     timeout?: number
-}): Promise<T> {
+}): Promise<T | undefined> {
     try {
         // 优先使用调用时提供的 token
         let token = config.token || ''

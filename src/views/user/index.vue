@@ -5,13 +5,13 @@ import { useRouter, RouterLink } from 'vue-router'
 
 import { Button, Skeleton } from 'primevue'
 
+import { getAnnouncementList } from '@/api/announcement'
 import { fromIso } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { initAuthStore } from '@/utils/initAuthStore'
 import { useAuthStore } from '@/stores/auth'
 
-import type { AnnouncementItem, ApiResponse } from '@/types'
+import type { AnnouncementItem } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -20,11 +20,7 @@ const announcements = ref<AnnouncementItem[]>([])
 const loading = ref(true)
 
 async function loadAnnouncements() {
-    const resp = await request<ApiResponse<AnnouncementItem[]>>({
-        url: '/announcement/list',
-        method: 'GET',
-        params: { status: 'active' },
-    })
+    const resp = await getAnnouncementList({ status: 'active' })
     if (resp?.code == 200) {
         announcements.value = resp.data ?? []
     } else {

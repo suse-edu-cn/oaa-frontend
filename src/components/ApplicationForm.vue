@@ -5,20 +5,14 @@ import { z } from 'zod'
 
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, ToggleSwitch } from 'primevue'
 
+import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
+import { getTermList } from '@/api/term'
 import { useOrgStore } from '@/stores/org'
 import { fromDate, toDate } from '@/utils/date'
-import request from '@/utils/request'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 
-import type {
-    ApiResponse,
-    DepartmentItem,
-    ApplicationFormPrefill,
-    ApplicationFormData,
-    RoleItem,
-    TermInfo,
-} from '@/types'
+import type { DepartmentItem, ApplicationFormPrefill, ApplicationFormData, RoleItem, TermInfo } from '@/types'
 
 const props = withDefaults(
     defineProps<{
@@ -85,10 +79,7 @@ const confirmId = useId()
 const terms = ref<TermInfo[]>([])
 // 加载可供选择的活动周期
 async function loadTerms() {
-    const resp = await request<ApiResponse<TermInfo[]>>({
-        url: '/term/list',
-        method: 'GET',
-    })
+    const resp = await getTermList()
     if (resp?.code == 200) {
         terms.value = resp.data ?? []
     } else {
@@ -125,11 +116,7 @@ const secondRoles = ref<RoleItem[]>([])
 // 获取部门下可供申请的职位
 async function fetchRoles(departmentId: number | null) {
     if (!departmentId) return []
-    const resp = await request<ApiResponse<RoleItem[]>>({
-        url: '/application/role',
-        method: 'GET',
-        params: { department_id: departmentId },
-    })
+    const resp = await getRolesByDepartment(departmentId)
     if (resp?.code == 200) {
         return resp.data ?? []
     }
@@ -149,11 +136,7 @@ const secondRoleOptions = computed(() => (secondRoles.value.length ? secondRoles
 // 获取职位可供申请的部门
 async function fetchDepts(roleId: number | null) {
     if (!roleId) return []
-    const resp = await request<ApiResponse<DepartmentItem[]>>({
-        url: '/application/department',
-        method: 'GET',
-        params: { role_id: roleId },
-    })
+    const resp = await getDepartmentsByRole(roleId)
     if (resp?.code == 200) {
         return resp.data ?? []
     }

@@ -5,13 +5,13 @@ import { useRouter } from 'vue-router'
 
 import { Button, DataView, Select, Tab, TabList, Tabs, Tag } from 'primevue'
 
+import { deleteAnnouncement, getAnnouncementList } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
 import { fromIso } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { AnnouncementItem, ApiResponse } from '@/types'
+import type { AnnouncementItem, AnnouncementListParams } from '@/types'
 
 const orgStore = useOrgStore()
 const router = useRouter()
@@ -31,14 +31,10 @@ const tabStatusMap: Record<string, string | undefined> = {
 async function loadAnnouncements() {
     const seq = ++listRequests
     const status = tabStatusMap[activeTab.value]
-    const params: Record<string, string> = {}
+    const params: AnnouncementListParams = {}
     if (status) params.status = status
 
-    const resp = await request<ApiResponse<AnnouncementItem[]>>({
-        url: '/announcement/list',
-        method: 'GET',
-        params,
-    })
+    const resp = await getAnnouncementList(params)
     if (seq !== listRequests) return
     if (resp?.code == 200) {
         announcements.value = resp.data ?? []
@@ -73,11 +69,7 @@ async function onDelete() {
 
     deleting.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
-            url: '/announcement/delete',
-            method: 'POST',
-            data: { announcement_id: id },
-        })
+        const resp = await deleteAnnouncement(id)
         if (resp?.code == 200) {
             deleteVisible.value = false
             setToast('success', '公告已删除')

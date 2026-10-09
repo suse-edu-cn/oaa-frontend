@@ -8,13 +8,13 @@ import { Button, Dialog, IconField, InputIcon, InputText, Message } from 'primev
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
+import { updateCurrentUser } from '@/api/user'
 import AuthChangePass from '@/components/AuthChangePass.vue'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
-import request from '@/utils/request'
 
 import type { UploadResponse } from '@/types'
 
@@ -42,24 +42,20 @@ async function onUpdateData() {
     }
 
     try {
-        const resp = await request({
-            url: '/user/me/update',
-            method: 'POST',
-            data: {
-                username: updateData.value.username,
-                email: updateData.value.email,
-                avatar: updateData.value.avatar,
-            },
+        const resp = await updateCurrentUser({
+            username: updateData.value.username,
+            email: updateData.value.email,
+            avatar: updateData.value.avatar,
         })
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             setToast('success', '修改成功', '个人信息已更新！')
             await initAuthStore()
             router.push('/user')
         } else {
-            setToast('error', '修改失败', resp.message)
+            setToast('error', '修改失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
-        setToast('error', '修改失败', err.response.data.message || '未知错误，请联系负责后端的同学')
+        setToast('error', '修改失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     }
 }
 

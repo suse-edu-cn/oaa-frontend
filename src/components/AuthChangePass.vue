@@ -5,8 +5,8 @@ import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'pr
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
+import { changePassword } from '@/api/auth'
 import AuthResetPass from '@/components/AuthResetPass.vue'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
@@ -48,20 +48,16 @@ async function onChangePass() {
 
     isSubmitting.value = true
     try {
-        const resp = await request({
-            url: '/auth/password/update',
-            method: 'POST',
-            data: {
-                old_password: changeData.value.oldPassword,
-                new_password: changeData.value.newPassword,
-            },
+        const resp = await changePassword({
+            old_password: changeData.value.oldPassword,
+            new_password: changeData.value.newPassword,
         })
 
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             setToast('success', '密码修改成功', '请使用新密码重新登录')
             emit('switchMode')
         } else {
-            setToast('error', '修改失败', resp.message)
+            setToast('error', '修改失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
         setToast('error', '修改失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')

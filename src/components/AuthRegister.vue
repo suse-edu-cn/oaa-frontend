@@ -6,7 +6,7 @@ import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message 
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
-import request from '@/utils/request'
+import { register } from '@/api/auth'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
@@ -54,17 +54,13 @@ async function onRegister() {
 
     isSubmitting.value = true
     try {
-        const resp = await request({
-            url: '/auth/register',
-            method: 'POST',
-            data: registerData.value,
-        })
+        const resp = await register(registerData.value)
 
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             setToast('success', '注册成功', '使用你的通行证登录吧！')
             emit('switchMode')
         } else {
-            setToast('error', '注册失败', resp.message)
+            setToast('error', '注册失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
         setToast('error', '注册失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')

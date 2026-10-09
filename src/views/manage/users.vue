@@ -3,11 +3,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, IconField, InputIcon, InputText, Select } from 'primevue'
 
+import { batchUpdateUsers, deleteUser, getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import request from '@/utils/request'
-import setToast from '@/utils/setToast'
 import { useOrgStore } from '@/stores/org'
-import type { ApiResponse, UserBatchErrorItem, UserListData, UserInfo } from '@/types'
+import setToast from '@/utils/setToast'
+import type { UserBatchUpdateItem, UserInfo } from '@/types'
 
 // 部门和职位的下拉菜单
 const orgStore = useOrgStore()
@@ -47,11 +47,7 @@ async function onDelete() {
     if (!target) return
 
     deleting.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: '/user/delete',
-        method: 'POST',
-        data: { user_id: target.user_id },
-    })
+    const resp = await deleteUser(target.user_id)
     deleting.value = false
 
     if (resp?.code == 200) {
@@ -84,7 +80,7 @@ function resetDrafts() {
 }
 
 async function onSaveBatch() {
-    const payload: { user_id: number; department_id: number; role_id: number }[] = []
+    const payload: UserBatchUpdateItem[] = []
     for (const u of changedUsers.value) {
         const d = drafts.value[u.user_id]
         if (!d) continue
@@ -101,11 +97,7 @@ async function onSaveBatch() {
     }
 
     savingBatch.value = true
-    const resp = await request<ApiResponse<UserBatchErrorItem[] | null>>({
-        url: '/user/batch',
-        method: 'POST',
-        data: payload,
-    })
+    const resp = await batchUpdateUsers(payload)
     savingBatch.value = false
 
     if (resp?.code == 200) {
@@ -128,14 +120,7 @@ async function onSaveBatch() {
 }
 
 onMounted(async () => {
-    const [userResp] = await Promise.all([
-        request<ApiResponse<UserListData>>({
-            url: '/user/list',
-            method: 'GET',
-            params: { is_all: true },
-        }),
-        orgStore.ensureLoaded(),
-    ])
+    const [userResp] = await Promise.all([getUserList({ is_all: true }), orgStore.ensureLoaded()])
 
     if (userResp?.code == 200) {
         users.value = userResp.data.list

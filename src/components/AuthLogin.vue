@@ -8,8 +8,8 @@ import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message 
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
+import { login } from '@/api/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
 const router = useRouter()
@@ -45,13 +45,9 @@ async function onLogin() {
 
     isSubmitting.value = true
     try {
-        const resp = await request({
-            url: '/auth/login',
-            method: 'POST',
-            data: loginData.value,
-        })
+        const resp = await login(loginData.value)
 
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             cookies.set('token', resp.data.token, {
                 expires: 20,
                 secure: true,
@@ -68,7 +64,7 @@ async function onLogin() {
             await initAuthStore()
             router.push('/user')
         } else {
-            setToast('error', '登录失败', resp.message)
+            setToast('error', '登录失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
         setToast('error', '登录失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')

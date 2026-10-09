@@ -5,12 +5,12 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { Button } from 'primevue'
 
+import { deleteApplication, getMyApplications, updateApplication } from '@/api/application'
 import ApplicationForm from '@/components/ApplicationForm.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { ApiResponse, ApplicationFormPrefill, ApplicationFormData, ApplicationItem } from '@/types'
+import type { ApplicationFormPrefill, ApplicationFormData } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,10 +30,7 @@ async function loadApplication() {
     loading.value = true
     notFound.value = false
 
-    const resp = await request<ApiResponse<ApplicationItem[]>>({
-        url: '/application/me',
-        method: 'GET',
-    })
+    const resp = await getMyApplications()
     loading.value = false
 
     if (resp?.code != 200) {
@@ -75,11 +72,7 @@ async function loadApplication() {
 async function onSave(data: ApplicationFormData) {
     // 周期仅展示不可编辑，data 中不含周期
     submitting.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: '/application/update',
-        method: 'POST',
-        data: { ...data, application_id: routeId },
-    })
+    const resp = await updateApplication({ ...data, application_id: routeId })
     submitting.value = false
 
     if (resp?.code == 200) {
@@ -95,11 +88,7 @@ const deleteVisible = ref(false)
 const deleting = ref(false)
 async function onDelete() {
     deleting.value = true
-    const resp = await request<ApiResponse<null>>({
-        url: '/application/delete',
-        method: 'POST',
-        data: { application_id: routeId },
-    })
+    const resp = await deleteApplication(routeId)
     deleting.value = false
 
     if (resp?.code == 200) {

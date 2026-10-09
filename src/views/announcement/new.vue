@@ -4,14 +4,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button, Checkbox, InputText, Select } from 'primevue'
 
+import { createAnnouncement, publishAnnouncement } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import { useOrgStore } from '@/stores/org'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { urlToUri } from '@/utils/uriConverter'
-
-import type { ApiResponse } from '@/types'
 
 const router = useRouter()
 const orgStore = useOrgStore()
@@ -30,19 +28,15 @@ const publishNow = ref(false)
 const pushConfirmVisible = ref(false)
 const pushConfirmLoading = ref(false)
 
-async function createAnnouncement(): Promise<{ ok: boolean; id: number | null }> {
+async function submitAnnouncement(): Promise<{ ok: boolean; id: number | null }> {
     if (departmentId.value === null) return { ok: false, id: null }
 
     publishing.value = true
     try {
-        const resp = await request<ApiResponse<{ announcement_id: number }>>({
-            url: '/announcement/create',
-            method: 'POST',
-            data: {
-                department_id: departmentId.value,
-                title: title.value.trim(),
-                content: urlToUri(content.value),
-            },
+        const resp = await createAnnouncement({
+            department_id: departmentId.value,
+            title: title.value.trim(),
+            content: urlToUri(content.value),
         })
         if (resp?.code == 200) {
             return { ok: true, id: resp.data?.announcement_id ?? null }
@@ -61,7 +55,7 @@ async function onPublish() {
         return
     }
 
-    const { ok } = await createAnnouncement()
+    const { ok } = await submitAnnouncement()
     if (!ok) return
     setToast('success', '公告创建成功')
     router.push('/announcement/manage')
@@ -71,7 +65,7 @@ async function onPublish() {
 async function onPushConfirm() {
     pushConfirmLoading.value = true
     try {
-        const { ok, id } = await createAnnouncement()
+        const { ok, id } = await submitAnnouncement()
         if (!ok) return
 
         if (id === null) {
@@ -81,11 +75,7 @@ async function onPushConfirm() {
             return
         }
 
-        const resp = await request<ApiResponse<null>>({
-            url: '/announcement/push',
-            method: 'POST',
-            data: { announcement_id: id },
-        })
+        const resp = await publishAnnouncement(id)
         if (resp?.code == 200) {
             setToast('success', '公告发布成功')
         } else {

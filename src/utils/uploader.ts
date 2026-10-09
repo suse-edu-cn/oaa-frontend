@@ -37,10 +37,10 @@ async function upload(
             data: formData,
             timeout: 120 * 1000,
         })
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             return { uri: resp.data.uri || '', url: resp.data.url || '' }
         }
-        setToast('error', '上传失败', resp.message)
+        setToast('error', '上传失败', resp?.message || '未知错误，请联系负责后端的同学')
         return null
     } catch (err: any) {
         setToast('error', '上传失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')

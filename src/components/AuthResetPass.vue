@@ -5,7 +5,7 @@ import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'pr
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
-import request from '@/utils/request'
+import { resetPassword, sendVerificationCode } from '@/api/auth'
 import setToast from '@/utils/setToast'
 
 withDefaults(
@@ -64,16 +64,12 @@ async function sendCode() {
 
     isSending.value = true
     try {
-        const resp = await request({
-            url: '/auth/send',
-            method: 'POST',
-            data: {
-                account: resetData.value.account,
-                scene: 'reset_password',
-            },
+        const resp = await sendVerificationCode({
+            account: resetData.value.account,
+            scene: 'reset_password',
         })
 
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             setToast('success', '验证码已发送', '请前往账号绑定的邮箱查收')
             countdown.value = 60
             countdownTimer = setInterval(() => {
@@ -84,7 +80,7 @@ async function sendCode() {
                 }
             }, 1000)
         } else {
-            setToast('error', '发送失败', resp.message)
+            setToast('error', '发送失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
         setToast('error', '发送失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
@@ -109,21 +105,17 @@ async function onReset() {
 
     isSubmitting.value = true
     try {
-        const resp = await request({
-            url: '/auth/password/reset',
-            method: 'POST',
-            data: {
-                account: resetData.value.account,
-                code: resetData.value.code,
-                password: resetData.value.password,
-            },
+        const resp = await resetPassword({
+            account: resetData.value.account,
+            code: resetData.value.code,
+            password: resetData.value.password,
         })
 
-        if (resp.code == 200) {
+        if (resp?.code == 200) {
             setToast('success', '重置成功', '请使用新密码登录')
             emit('switchMode')
         } else {
-            setToast('error', '重置失败', resp.message)
+            setToast('error', '重置失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
     } catch (err: any) {
         setToast('error', '重置失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')

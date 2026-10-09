@@ -2,20 +2,17 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 
+import { getTermList } from '@/api/term'
 import { fromDate } from '@/utils/date'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
-import type { ApiResponse, TermInfo, TermPeriod } from '@/types'
+import type { TermInfo, TermPeriod } from '@/types'
 
 const terms = ref<TermInfo[]>([])
 const loading = ref(true)
 
 // 加载周期列表
 async function loadTerms() {
-    const resp = await request<ApiResponse<TermInfo[]>>({
-        url: '/term/list',
-        method: 'GET',
-    })
+    const resp = await getTermList()
     loading.value = false
 
     if (resp?.code == 200) {

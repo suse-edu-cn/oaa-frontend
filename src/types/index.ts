@@ -1,6 +1,7 @@
 export * from './announcement'
 export * from './api'
 export * from './application'
+export * from './auth'
 export * from './department'
 export * from './interview'
 export * from './role'

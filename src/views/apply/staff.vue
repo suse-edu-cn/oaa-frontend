@@ -3,12 +3,19 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { AutoComplete, Button, Column, DataTable, Dialog, Select, Textarea } from 'primevue'
 
+import {
+    createInterviewStaff,
+    deleteInterviewStaff,
+    getInterviewStaffList,
+    updateInterviewStaff,
+} from '@/api/interview'
+import { getTermList } from '@/api/term'
+import { getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 
-import type { ApiResponse, InterviewStaffItem, TermInfo, UserListData, UserInfo } from '@/types'
+import type { InterviewStaffItem, TermInfo, UserInfo } from '@/types'
 import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
 
 const orgStore = useOrgStore()
@@ -21,10 +28,7 @@ let staffRequests = 0
 const terms = ref<TermInfo[]>([])
 const filterTermId = ref<number | null>(null)
 async function loadTerms() {
-    const resp = await request<ApiResponse<TermInfo[]>>({
-        url: '/term/list',
-        method: 'GET',
-    })
+    const resp = await getTermList()
     if (resp?.code == 200) {
         terms.value = resp.data ?? []
         // 打开页面时默认选中第一个活动周期
@@ -41,11 +45,7 @@ async function loadStaff() {
     const seq = ++staffRequests
     staffLoading.value = true
     try {
-        const resp = await request<ApiResponse<InterviewStaffItem[]>>({
-            url: '/interviewer/list',
-            method: 'GET',
-            params: { term_id: filterTermId.value },
-        })
+        const resp = await getInterviewStaffList({ term_id: filterTermId.value })
         if (seq !== staffRequests) return
         if (resp?.code == 200) {
             staff.value = resp.data ?? []
@@ -77,11 +77,9 @@ async function loadUsers() {
     const seq = ++userRequests
     usersLoading.value = true
     try {
-        const resp = await request<ApiResponse<UserListData>>({
-            url: '/user/list',
-            method: 'GET',
-            params: dialogFormDeptId.value ? { department_id: dialogFormDeptId.value } : { is_all: true },
-        })
+        const resp = await getUserList(
+            dialogFormDeptId.value ? { department_id: dialogFormDeptId.value } : { is_all: true }
+        )
         if (seq !== userRequests) return
         if (resp?.code == 200) {
             users.value = resp.data.list
@@ -147,13 +145,9 @@ async function onDialogConfirm() {
 
         dialogSaving.value = true
         try {
-            const resp = await request<ApiResponse<null>>({
-                url: '/interviewer/create',
-                method: 'POST',
-                data: {
-                    term_id: termId,
-                    interviewers: [{ user_id: userId, remark: dialogFormRemark.value.trim() }],
-                },
+            const resp = await createInterviewStaff({
+                term_id: termId,
+                interviewers: [{ user_id: userId, remark: dialogFormRemark.value.trim() }],
             })
             if (resp?.code == 200) {
                 setToast('success', '添加面试官成功')
@@ -173,13 +167,9 @@ async function onDialogConfirm() {
 
     dialogSaving.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
-            url: '/interviewer/update',
-            method: 'POST',
-            data: {
-                interviewer_id: target.id,
-                remark: dialogFormRemark.value.trim(),
-            },
+        const resp = await updateInterviewStaff({
+            interviewer_id: target.id,
+            remark: dialogFormRemark.value.trim(),
         })
         if (resp?.code == 200) {
             target.remark = dialogFormRemark.value.trim()
@@ -209,11 +199,7 @@ async function onDelete() {
 
     deleting.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
-            url: '/interviewer/delete',
-            method: 'POST',
-            data: { interviewer_id: target.id },
-        })
+        const resp = await deleteInterviewStaff(target.id)
         if (resp?.code == 200) {
             staff.value = staff.value.filter((s) => s.id !== target.id)
             setToast('success', `已移除面试官 ${target.name}`)

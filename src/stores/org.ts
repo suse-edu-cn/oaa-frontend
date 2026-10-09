@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import request from '@/utils/request'
+import { getDepartmentList, getRoleList } from '@/api/org'
 import setToast from '@/utils/setToast'
-import type { ApiResponse, DepartmentItem, RoleItem } from '@/types'
+import type { DepartmentItem, RoleItem } from '@/types'
 
 /** 部门 & 职位架构引用数据 */
 export const useOrgStore = defineStore('org', () => {
@@ -12,16 +12,7 @@ export const useOrgStore = defineStore('org', () => {
     const loaded = ref(false)
 
     async function fetchAll(): Promise<boolean> {
-        const [deptResp, roleResp] = await Promise.all([
-            request<ApiResponse<DepartmentItem[]>>({
-                url: '/department/list',
-                method: 'GET',
-            }),
-            request<ApiResponse<RoleItem[]>>({
-                url: '/role/list',
-                method: 'GET',
-            }),
-        ])
+        const [deptResp, roleResp] = await Promise.all([getDepartmentList(), getRoleList()])
 
         if (deptResp?.code == 200) {
             departments.value = deptResp.data

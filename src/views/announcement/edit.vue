@@ -4,13 +4,13 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Button, Checkbox, InputText } from 'primevue'
 
+import { getAnnouncement, publishAnnouncement, updateAnnouncement } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { urlToUri, uriToUrl } from '@/utils/uriConverter'
 
-import type { AnnouncementItem, ApiResponse } from '@/types'
+import type { AnnouncementItem } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,11 +20,7 @@ const content = ref('')
 const canSave = computed(() => title.value.trim() !== '' && content.value.trim() !== '')
 
 async function loadAnnouncement() {
-    const resp = await request<ApiResponse<AnnouncementItem>>({
-        url: '/announcement/get',
-        method: 'GET',
-        params: { announcement_id: String(route.params.id) },
-    })
+    const resp = await getAnnouncement(String(route.params.id))
     if (resp?.code == 200 && resp.data) {
         announcement.value = resp.data
         title.value = resp.data.title
@@ -45,14 +41,10 @@ async function saveAnnouncement(): Promise<boolean> {
 
     saving.value = true
     try {
-        const resp = await request<ApiResponse<null>>({
-            url: '/announcement/update',
-            method: 'POST',
-            data: {
-                announcement_id: announcement.value.announcement_id,
-                title: title.value.trim(),
-                content: urlToUri(content.value),
-            },
+        const resp = await updateAnnouncement({
+            announcement_id: announcement.value.announcement_id,
+            title: title.value.trim(),
+            content: urlToUri(content.value),
         })
         if (resp?.code == 200) {
             return true
@@ -82,11 +74,7 @@ async function onPushConfirm() {
     try {
         if (!(await saveAnnouncement())) return
 
-        const resp = await request<ApiResponse<null>>({
-            url: '/announcement/push',
-            method: 'POST',
-            data: { announcement_id: announcement.value?.announcement_id },
-        })
+        const resp = await publishAnnouncement(announcement.value!.announcement_id)
         if (resp?.code == 200) {
             setToast('success', '公告已保存并发布')
         } else {
