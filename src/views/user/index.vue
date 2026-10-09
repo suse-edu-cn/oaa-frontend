@@ -1,16 +1,37 @@
 <!-- 个人信息页 /user -->
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 
 import { Button, Skeleton } from 'primevue'
 
+import { fromIso } from '@/utils/date'
+import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { initAuthStore } from '@/utils/initAuthStore'
 import { useAuthStore } from '@/stores/auth'
 
+import type { AnnouncementItem, ApiResponse } from '@/types'
+
 const router = useRouter()
 const authStore = useAuthStore()
+
+const announcements = ref<AnnouncementItem[]>([])
+const loading = ref(true)
+
+async function loadAnnouncements() {
+    const resp = await request<ApiResponse<AnnouncementItem[]>>({
+        url: '/announcement/list',
+        method: 'GET',
+        params: { status: 'active' },
+    })
+    if (resp?.code == 200) {
+        announcements.value = resp.data ?? []
+    } else {
+        setToast('error', '获取公告失败', resp?.message || '未知错误，请联系负责后端的同学')
+    }
+    loading.value = false
+}
 
 onMounted(async () => {
     // 如果因刷新等原因导致 authStore 未初始化，则先 init
@@ -21,7 +42,10 @@ onMounted(async () => {
     if (!authStore.isAuthed) {
         setToast('error', '获取用户信息失败', '当前尚未登录！')
         router.push('/auth')
+        return
     }
+
+    loadAnnouncements()
 })
 </script>
 
@@ -66,7 +90,29 @@ onMounted(async () => {
     </div>
 
     <main>
-        <div class="list">测试信息</div>
+        <h1 class="e-title">公告</h1>
+
+        <!-- 加载骨架屏 -->
+        <div class="list" v-if="loading">
+            <Skeleton v-for="i in 3" :key="i" class="skeleton-item" height="3.75rem" />
+        </div>
+
+        <div class="list" v-else-if="announcements.length">
+            <div v-for="a in announcements" :key="a.announcement_id" class="announcement-item">
+                <router-link :to="`/announcement/${a.announcement_id}`" class="title">{{ a.title }}</router-link>
+                <div class="data">
+                    <span class="item">
+                        <span>{{ a.publisher_name }}</span>
+                        <span>{{ a.department_name }}</span>
+                    </span>
+                    <span v-if="a.published_at">发布于 {{ fromIso(a.published_at) || '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="list" v-else>
+            <div class="e-table-empty">暂无个人公告，享受美好的一天吧^^</div>
+        </div>
     </main>
 </template>
 
@@ -136,7 +182,45 @@ onMounted(async () => {
 main {
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .skeleton-item {
+        border-radius: var(--e-border-radius);
+    }
+
+    .announcement-item {
+        padding: 12px 6px;
+
+        &:not(:first-child) {
+            border-top: 1px solid var(--p-content-border-color);
+        }
+
+        .title {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin: 2px 0 7px;
+        }
+
+        .data {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--p-text-muted-color);
+
+            .item {
+                display: flex;
+                align-items: center;
+                gap: 1em;
+            }
+        }
+    }
 }
 
 @media screen and (max-width: 800px) {
