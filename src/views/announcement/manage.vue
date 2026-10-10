@@ -1,4 +1,4 @@
-<!-- 公告列表 /announcement -->
+<!-- 公告列表 /announcement/list -->
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -7,14 +7,20 @@ import { Button, DataView, Select, Tab, TabList, Tabs, Tag } from 'primevue'
 
 import { deleteAnnouncement, getAnnouncementList } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useOrgStore } from '@/stores/org'
 import { fromIso } from '@/utils/date'
+import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 
 import type { AnnouncementItem, AnnouncementListParams } from '@/types'
 
+const authStore = useAuthStore()
 const orgStore = useOrgStore()
 const router = useRouter()
+
+// 权限低于 30 不显示 Tab 和管理功能
+const canManage = computed(() => (authStore.userInfo?.role_level ?? 0) >= 30)
 
 const deptName = ref<string | null>(null)
 const announcements = ref<AnnouncementItem[]>([])
@@ -30,14 +36,16 @@ const tabStatusMap: Record<string, string | undefined> = {
 
 async function loadAnnouncements() {
     const seq = ++listRequests
-    const status = tabStatusMap[activeTab.value]
+    // 无管理权限时固定为已发布，忽略可能残留的 Tab 状态
+    const status = canManage.value ? tabStatusMap[activeTab.value] : 'active'
     const params: AnnouncementListParams = {}
     if (status) params.status = status
 
     const resp = await getAnnouncementList(params)
     if (seq !== listRequests) return
     if (resp?.code == 200) {
-        announcements.value = resp.data ?? []
+        const list = resp.data ?? []
+        announcements.value = canManage.value ? list : list.filter((a) => a.is_active)
     } else {
         setToast('error', '获取公告列表失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
@@ -85,13 +93,15 @@ async function onDelete() {
 
 onMounted(() => {
     orgStore.ensureLoaded()
+    // 管理功能依赖用户信息，初始化完成后 canManage 会自动更新
+    if (!authStore.isReady) initAuthStore()
     loadAnnouncements()
 })
 </script>
 
 <template>
     <main>
-        <h1 class="e-title">公告管理</h1>
+        <h1 class="e-title">公告列表</h1>
 
         <div class="filter-bar">
             <label for="announcement-dept">部门</label>
@@ -104,12 +114,12 @@ onMounted(() => {
                 placeholder="全部部门"
                 show-clear
             />
-            <router-link to="/announcement/new" :style="{ marginLeft: 'auto' }">
-                <Button label="新建公告" icon="pi pi-plus"
-            /></router-link>
+            <router-link v-if="canManage" to="/announcement/new" :style="{ marginLeft: 'auto' }">
+                <Button label="新建公告" icon="pi pi-plus" />
+            </router-link>
         </div>
 
-        <Tabs v-model:value="activeTab" class="status-tabs">
+        <Tabs v-if="canManage" v-model:value="activeTab" class="status-tabs">
             <TabList>
                 <Tab value="published" class="tab-item">
                     <i class="pi pi-check"></i>
@@ -150,7 +160,7 @@ onMounted(() => {
                             <span v-if="a.published_at">发布于 {{ fromIso(a.published_at) || '—' }}</span>
                         </div>
                     </div>
-                    <div class="actions">
+                    <div v-if="canManage" class="actions">
                         <Button icon="pi pi-pencil" severity="secondary" text @click="openEdit(a)" />
                         <Button icon="pi pi-trash" severity="danger" text @click="openDelete(a)" />
                     </div>

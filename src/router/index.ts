@@ -45,19 +45,19 @@ const router = createRouter({
 
         // 公告
         {
-            path: '/announcement/manage',
+            path: '/announcement/list',
             component: () => import('@/views/announcement/manage.vue'),
-            meta: { title: '公告管理' },
+            meta: { title: '公告列表' },
         },
         {
             path: '/announcement/new',
             component: () => import('@/views/announcement/new.vue'),
-            meta: { title: '新建公告', level: 50 },
+            meta: { title: '新建公告', level: 30 },
         },
         {
             path: '/announcement/edit/:id',
             component: () => import('@/views/announcement/edit.vue'),
-            meta: { title: '编辑公告', level: 50 },
+            meta: { title: '编辑公告', level: 30 },
         },
         {
             path: '/announcement/:id',

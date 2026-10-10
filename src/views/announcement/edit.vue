@@ -65,7 +65,7 @@ async function onSave() {
 
     if (await saveAnnouncement()) {
         setToast('success', '公告保存成功')
-        router.push('/announcement/manage')
+        router.push('/announcement/list')
     }
 }
 
@@ -81,7 +81,7 @@ async function onPushConfirm() {
             setToast('error', '公告已保存，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
         pushConfirmVisible.value = false
-        router.push('/announcement/manage')
+        router.push('/announcement/list')
     } finally {
         pushConfirmLoading.value = false
     }

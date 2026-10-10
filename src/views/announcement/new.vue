@@ -58,7 +58,7 @@ async function onPublish() {
     const { ok } = await submitAnnouncement()
     if (!ok) return
     setToast('success', '公告创建成功')
-    router.push('/announcement/manage')
+    router.push('/announcement/list')
 }
 
 // 确认后创建并立即推送公开
@@ -71,7 +71,7 @@ async function onPushConfirm() {
         if (id === null) {
             setToast('error', '公告已创建，但发布失败', '未找到公告标识 ID')
             pushConfirmVisible.value = false
-            router.push('/announcement/manage')
+            router.push('/announcement/list')
             return
         }
 
@@ -82,7 +82,7 @@ async function onPushConfirm() {
             setToast('error', '公告已创建，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
         pushConfirmVisible.value = false
-        router.push('/announcement/manage')
+        router.push('/announcement/list')
     } finally {
         pushConfirmLoading.value = false
     }

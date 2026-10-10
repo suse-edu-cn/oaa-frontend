@@ -48,9 +48,9 @@ const links: MenuItem[] = [
                 to: '/manage/term',
             },
             {
-                label: '公告管理',
+                label: '公告列表',
                 icon: 'pi pi-bell',
-                to: '/announcement/manage',
+                to: '/announcement/list',
             },
         ],
     },
