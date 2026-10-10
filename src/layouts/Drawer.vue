@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Menu } from 'primevue'
 import type { MenuItem } from 'primevue/menuitem'
 
+import { useAuthStore } from '@/stores/auth'
+
 defineOptions({ name: 'PageDrawer' })
 
-const route = useRoute()
+interface DrawerItem extends MenuItem {
+    to?: string
+    /** 可见所需最低等级，默认取目标路由的 meta.level */
+    level?: number
+    items?: DrawerItem[]
+}
 
-const links: MenuItem[] = [
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+const roleLevel = computed(() => authStore.userInfo?.role_level ?? 0)
+
+const menuGroups: DrawerItem[] = [
     {
         separator: true,
     },
@@ -88,6 +101,41 @@ const links: MenuItem[] = [
         ],
     },
 ]
+
+function requiredLevel(item: DrawerItem): number {
+    if (item.level !== undefined) return item.level
+    if (!item.to) return 0
+    return router.resolve(item.to).meta.level ?? 0
+}
+
+function filterByLevel(items: DrawerItem[]): DrawerItem[] {
+    const visible: DrawerItem[] = []
+
+    for (const item of items) {
+        if (item.separator) {
+            // 整组被隐藏后避免出现相邻分隔线；首条保留，作为菜单顶部分隔
+            const last = visible[visible.length - 1]
+            if (!last || !last.separator) visible.push(item)
+            continue
+        }
+
+        if (item.items) {
+            if (item.level !== undefined && roleLevel.value < item.level) continue
+            const children = filterByLevel(item.items)
+            if (children.length) visible.push({ ...item, items: children })
+            continue
+        }
+
+        if (roleLevel.value >= requiredLevel(item)) visible.push(item)
+    }
+
+    // 最后一组被隐藏时不要留下悬空分隔线
+    while (visible[visible.length - 1]?.separator) visible.pop()
+
+    return visible
+}
+
+const links = computed(() => filterByLevel(menuGroups))
 </script>
 
 <template>
