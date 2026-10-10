@@ -25,7 +25,10 @@
 | `pnpm preview` | 预览构建产物 |
 | `pnpm lint` | oxlint + eslint |
 | `pnpm lint:fix` | 自动修复 lint 问题 |
-| `pnpm type-check` | `vue-tsc --noEmit` |
+| `pnpm test` | Vitest 单元 / 集成 / 组件测试（单次运行） |
+| `pnpm test:watch` | Vitest 监听模式 |
+| `pnpm test:coverage` | 运行测试并生成覆盖率报告 |
+| `pnpm type-check` | `vue-tsc --noEmit`（含测试配置） |
 | `pnpm format` | oxfmt 检查格式（不改文件） |
 | `pnpm format:write` | oxfmt 写入格式修复 |
 
@@ -38,6 +41,7 @@
 ## 目录结构
 
 ```
+tests/                 # Vitest 用例（unit / integration / component，*.spec.ts）
 src/
 ├── main.ts            # 浏览器入口
 ├── entry-ssg.ts       # 预渲染入口（createSSRApp）
@@ -117,11 +121,12 @@ src/
 ```bash
 pnpm lint
 pnpm type-check
+pnpm test
 ```
 
 涉及构建配置、SSG、PWA、路由或请求层（`src/utils/request.ts`、`src/api`）时，再执行 `pnpm build`，并确认 `dist/index.html` 中已注入首页 HTML。UI 改动需用 `pnpm dev` 实际过一遍：桌面与移动端布局、加载与空状态、Toast、权限跳转。
 
-本仓库**暂时没有引入测试框架**，不要凭空新增 `*.test.ts`；新增功能依靠手动验证。
+测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。E2E（Playwright）尚未引入。
 
 ## 硬性约束
 

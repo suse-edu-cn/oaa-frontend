@@ -32,6 +32,16 @@ export default defineConfigWithVueTs([
         },
     },
 
+    {
+        name: 'app/test-globals',
+        files: ['vitest.config.ts', 'tests/**/*.ts'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
+
     js.configs.recommended,
     ...pluginVue.configs['flat/essential'],
     vueTsConfigs.recommended,
