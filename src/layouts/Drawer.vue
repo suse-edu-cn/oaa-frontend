@@ -37,6 +37,11 @@ const menuGroups: DrawerItem[] = [
                 icon: 'pi pi-pencil',
                 to: '/user/edit',
             },
+            {
+                label: '公告',
+                icon: 'pi pi-bell',
+                to: '/announcement/list',
+            },
         ],
     },
     {
@@ -59,11 +64,6 @@ const menuGroups: DrawerItem[] = [
                 label: '招新/换届管理',
                 icon: 'pi pi-calendar',
                 to: '/manage/term',
-            },
-            {
-                label: '公告列表',
-                icon: 'pi pi-bell',
-                to: '/announcement/list',
             },
         ],
     },
