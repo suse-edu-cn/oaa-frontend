@@ -1,13 +1,13 @@
 <!-- 申请表单：创建（/apply/new）与编辑（/apply/edit/:id）共用 -->
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, useId, watch } from 'vue'
-import { z } from 'zod'
 
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, ToggleSwitch } from 'primevue'
 
 import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
 import { getTermList } from '@/api/term'
 import { useOrgStore } from '@/stores/org'
+import { getApplicationFormErrors } from '@/utils/applicationFormValidation'
 import { fromDate, toDate } from '@/utils/date'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
@@ -37,19 +37,6 @@ const props = withDefaults(
 const emit = defineEmits<{ submit: [data: ApplicationFormData, termId: number | null] }>()
 
 const orgStore = useOrgStore()
-
-const applicationSchema = z.object({
-    college: z.string().min(1, { message: '请填写学院' }),
-    major_class: z.string().min(1, { message: '请填写班级' }),
-    gender: z.string().min(1, { message: '请选择性别' }),
-    phone: z.string().regex(/^1\d{10}$/, { message: '请填写有效的手机号' }),
-    qq: z.string().regex(/^\d{5,10}$/, { message: '请填写有效的 QQ 号' }),
-    political_status: z.string().min(1, { message: '请填写政治面貌' }),
-    birth_date: z.string().min(10, { message: '请选择出生日期' }),
-    avatar: z.string().min(1, { message: '请上传头像' }),
-    resume: z.string().min(1, { message: '请填写简历' }),
-    reason: z.string().min(1, { message: '请填写申请理由' }),
-})
 
 // 预填即为基线，此后的改动才视为已交互
 const p = props.initial
@@ -220,27 +207,12 @@ watch(
 )
 
 // 校验各字段
-const allErrors = computed<Record<string, string>>(() => {
-    const result: Record<string, string> = {}
-
-    // 申请周期必须选择（仅展示时不校验，避免后端数据缺失导致无法提交）
-    if (!props.termDisabled && !formData.value.termId) result.termId = '请选择申请周期'
-    // 志愿的部门与职位需成对填写
-    if (!formData.value.firstDept) result.firstDept = '请选择第一志愿的部门'
-    if (!formData.value.firstRole) result.firstRole = '请选择第一志愿的职位'
-    if (!formData.value.secondDept) result.secondDept = '请选择第二志愿的部门'
-    if (!formData.value.secondRole) result.secondRole = '请选择第二志愿的职位'
-    // 其余字段与申请请求体一一对应
-    const parsed = applicationSchema.safeParse({ ...formData.value, birth_date: fromDate(birthDate.value) })
-    if (!parsed.success) {
-        for (const issue of parsed.error.issues) {
-            const field = String(issue.path[0])
-            if (!result[field]) result[field] = issue.message
-        }
-    }
-
-    return result
-})
+const allErrors = computed<Record<string, string>>(() =>
+    getApplicationFormErrors(
+        { ...formData.value, birth_date: fromDate(birthDate.value) },
+        { termDisabled: props.termDisabled }
+    )
+)
 
 // 页面显示格式错误
 const errors = computed(() =>

@@ -59,5 +59,13 @@ export default defineConfigWithVueTs([
             'vue/multi-word-component-names': 'off',
         },
     },
+    {
+        name: 'app/test-stubs',
+        files: ['tests/helpers/primevueStubs.ts'],
+        rules: {
+            'vue/multi-word-component-names': 'off',
+            'vue/no-reserved-component-names': 'off',
+        },
+    },
     skipFormatting,
 ])
