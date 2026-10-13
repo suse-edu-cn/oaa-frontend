@@ -26,7 +26,6 @@ function isTokenExpired(token: string): boolean {
 
 // 并发的 401 共享刷新避免竞态
 let refreshing: Promise<boolean> | null = null
-const retried = new WeakSet()
 // 刷新入口
 function ensureFreshToken(): Promise<boolean> {
     refreshing = refreshing || doRefresh()
@@ -85,8 +84,6 @@ function clearAuth() {
 }
 
 async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<AxiosResponse | null> {
-    // 刷新成功
-    retried.add(config)
     const ok = await ensureFreshToken()
     // 刷新失败，清理登录态跳转登录页
     if (!ok) {
@@ -99,17 +96,14 @@ async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<Axio
     }
 
     config.headers.Authorization = `Bearer ${useAuthStore().token}`
-    return instance.request(config)
+    // 仍 401 会再次进入响应拦截器，造成递归刷新
+    return axios.request({ ...config, baseURL: import.meta.env.VITE_API_URL })
 }
 
 instance.interceptors.response.use(
-    // 以下是检测 401 的业务代码
+    // 检测 401
     async (response) => {
-        if (
-            response.data?.code === 401 &&
-            !response.config?.url?.startsWith('/auth/') &&
-            !retried.has(response.config)
-        ) {
+        if (response.data?.code === 401 && !response.config?.url?.startsWith('/auth/')) {
             return (await refreshAndRetry(response.config)) ?? response
         }
         return response
@@ -117,7 +111,7 @@ instance.interceptors.response.use(
     async (error) => {
         const { config, response } = error
         const expired = response?.status === 401 || response?.data?.code === 401
-        if (!expired || !config || retried.has(config) || config.url?.startsWith('/auth/')) {
+        if (!expired || !config || config.url?.startsWith('/auth/')) {
             return Promise.reject(error)
         }
 
