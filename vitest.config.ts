@@ -13,7 +13,7 @@ export default defineConfig({
         },
     },
     define: {
-        // placeholder
+        // 变量 placeholder
         __BUILD_INFO__: JSON.stringify({
             version: 'test',
             repo: '',
@@ -26,6 +26,7 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         environmentOptions: {
+            // secure cookie
             jsdom: { url: 'https://localhost/' },
         },
         setupFiles: ['./tests/setup.ts'],
@@ -35,7 +36,13 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html', 'lcov'],
-            include: ['src/utils/date.ts'],
+            include: [
+                'src/utils/date.ts',
+                'src/utils/uriConverter.ts',
+                'src/utils/setToast.ts',
+                'src/utils/uploader.ts',
+                'src/api/**/*.ts',
+            ],
             // thresholds: { lines: 70, functions: 70, branches: 65, statements: 70 },
         },
     },
