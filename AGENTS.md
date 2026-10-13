@@ -126,7 +126,7 @@ pnpm test
 
 涉及构建配置、SSG、PWA、路由或请求层（`src/utils/request.ts`、`src/api`）时，再执行 `pnpm build`，并确认 `dist/index.html` 中已注入首页 HTML。UI 改动需用 `pnpm dev` 实际过一遍：桌面与移动端布局、加载与空状态、Toast、权限跳转。
 
-测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。E2E（Playwright）尚未引入。
+测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。集成测试用 MSW 在网络层 mock，未匹配请求会直接失败；`tests/setup.ts` 负责 cookie 等测试间清理。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。覆盖率门槛已启用（70 / 70 / 65 / 70），E2E（Playwright）尚未引入。
 
 ## 硬性约束
 
