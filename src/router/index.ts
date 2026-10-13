@@ -1,12 +1,9 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
-import cookies from 'js-cookie'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
-import { useAuthStore } from '@/stores/auth'
-import { initAuthStore } from '@/utils/initAuthStore'
-import setToast from '@/utils/setToast'
 import HomeView from '@/views/home/index.vue'
+import { authGuard } from './guard'
 
 // 路由切换顶部加载条
 NProgress.configure({ showSpinner: false })
@@ -115,38 +112,16 @@ router.beforeEach(async (to) => {
     if (import.meta.env.SSR) return true
 
     NProgress.start()
-
-    const isAuthed = Boolean(cookies.get('token'))
-    if (to.meta.requiresAuth !== false && !isAuthed) {
-        setToast('error', '未登录', '请先登录以访问该页面')
-        return '/auth'
-    }
-
-    // 权限等级校验
-    if (to.meta.level && isAuthed) {
-        const authStore = useAuthStore()
-        if (!authStore.isReady) {
-            await initAuthStore()
-        }
-        if ((authStore.userInfo?.role_level ?? 0) < to.meta.level) {
-            setToast('warn', '无访问权限', '你当前的权限等级不足以访问该页面')
-            return '/403'
-        }
-    }
-
-    return true
+    return authGuard(to)
 })
 
 router.afterEach((to) => {
     if (import.meta.env.SSR) return
-
     NProgress.done()
-
-    // 标签页标题跟随路由，未配置标题的页面回退为站点名
     document.title = to.meta.title ? `${to.meta.title} - 青蟹` : '青蟹'
 })
 
-// chunk 加载失败（如发版后旧 hash 失效）时收起，避免进度条卡住
+// chunk 加载失败时收起进度条
 router.onError(() => {
     NProgress.done()
 })
