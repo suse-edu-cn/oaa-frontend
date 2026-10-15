@@ -166,6 +166,27 @@ describe('components/ApplicationForm', () => {
         expect(emitted![0][1]).toBeNull()
     })
 
+    it('下拉选项加载完成前显示骨架，完成后渲染下拉', async () => {
+        let resolveTerms!: (value: unknown) => void
+        termMock.mockReturnValue(
+            new Promise((resolve) => {
+                resolveTerms = resolve
+            }) as never
+        )
+
+        const wrapper = mountWithPrimeVue(ApplicationForm, { props: { initial: makeInitial() } })
+        await flushPromises()
+
+        expect(wrapper.findAll('[data-testid="skeleton"]')).toHaveLength(5)
+        expect(wrapper.findAllComponents(SelectStub)).toHaveLength(1)
+
+        resolveTerms({ code: 200, message: 'ok', data: [] })
+        await flushPromises()
+
+        expect(wrapper.findAll('[data-testid="skeleton"]')).toHaveLength(0)
+        expect(wrapper.findAllComponents(SelectStub)).toHaveLength(6)
+    })
+
     it('切换第一志愿部门会清空职位并重新请求职位列表', async () => {
         const wrapper = await mountForm()
         rolesMock.mockClear()

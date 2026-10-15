@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 
-import { Button } from 'primevue'
+import { Button, Skeleton } from 'primevue'
 
 import { getMyApplications } from '@/api/application'
 import ApplicationCard from '@/components/ApplicationCard.vue'
@@ -61,9 +61,18 @@ onMounted(() => {
             </router-link>
         </div>
 
-        <div v-if="loading" class="empty">
-            <i class="pi pi-spin pi-spinner icon"></i>
-            <p>正在加载信息......</p>
+        <div v-if="loading" class="skeleton-list">
+            <div v-for="i in 3" :key="i" class="skeleton-card">
+                <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
+                <div class="s-fields">
+                    <Skeleton
+                        v-for="j in 4"
+                        :key="j"
+                        height="15px"
+                        :width="j === 4 ? '40%' : `${50 + ((i + j) % 3) * 14}%`"
+                    />
+                </div>
+            </div>
         </div>
 
         <div v-else-if="!applications.length" class="empty">
@@ -95,6 +104,25 @@ onMounted(() => {
         font-size: 48px;
         display: block;
         color: var(--p-text-muted-color);
+    }
+}
+
+// 加载中骨架屏，卡片间距与 ApplicationCard 保持一致
+.skeleton-card {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--e-border-radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+
+    .s-head {
+        display: block;
+        margin-bottom: 14px;
+    }
+
+    .s-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
     }
 }
 </style>

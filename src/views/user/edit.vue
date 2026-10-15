@@ -4,7 +4,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
 
-import { Button, Dialog, IconField, InputIcon, InputText, Message } from 'primevue'
+import { Button, Dialog, IconField, InputIcon, InputText, Message, Skeleton } from 'primevue'
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
@@ -35,6 +35,8 @@ const updateData = ref({
     avatar: '',
 })
 const showChangePass = ref(false)
+// 用户信息就绪前不渲染表单，避免空白表单被回填覆盖
+const loading = ref(true)
 
 async function onUpdateData() {
     if (!infoSchema.safeParse(updateData.value).success) {
@@ -87,14 +89,18 @@ function onAvatarUploaded(uploaded: UploadResponse) {
 }
 
 onMounted(async () => {
-    // 如果因刷新等原因导致 authStore 未初始化，则先 init
-    if (!authStore.isReady) {
-        await initAuthStore()
-    }
+    try {
+        // 如果因刷新等原因导致 authStore 未初始化，则先 init
+        if (!authStore.isReady) {
+            await initAuthStore()
+        }
 
-    if (!authStore.isAuthed) {
-        setToast('error', '获取用户信息失败', '当前尚未登录！')
-        router.push('/auth')
+        if (!authStore.isAuthed) {
+            setToast('error', '获取用户信息失败', '当前尚未登录！')
+            router.push('/auth')
+        }
+    } finally {
+        loading.value = false
     }
 })
 </script>
@@ -103,7 +109,26 @@ onMounted(async () => {
     <main>
         <h1 class="e-title">编辑个人资料</h1>
 
+        <!-- 加载中骨架屏，结构与编辑表单一致 -->
+        <div v-if="loading" class="skeleton-form">
+            <div class="s-avatar">
+                <Skeleton shape="circle" size="8rem" />
+                <div class="tip">头像支持 JPG、PNG、GIF、WEBP、AVIF 格式，大小不得超过 4MB</div>
+            </div>
+            <div class="s-info">
+                <div v-for="i in 4" :key="i" class="s-row">
+                    <Skeleton class="s-label" width="3rem" height="14px" />
+                    <Skeleton class="s-input" height="38px" />
+                </div>
+                <div class="s-actions">
+                    <Skeleton width="8rem" height="38px" />
+                    <Skeleton width="8rem" height="38px" />
+                </div>
+            </div>
+        </div>
+
         <Form
+            v-else
             v-slot="$form"
             :resolver="resolver"
             :initial-values="authStore.userInfo ?? undefined"
@@ -114,7 +139,8 @@ onMounted(async () => {
                 <div>设置头像</div>
                 <br />
                 <div class="wrapper" @click="imageCropper?.open()">
-                    <img :src="avatar" alt="用户头像" />
+                    <img v-if="avatar" :src="avatar" alt="用户头像" />
+                    <div v-else class="avatar-placeholder"><i class="pi pi-user"></i></div>
                     <div class="overlay">
                         <span class="pi pi-upload"></span>
                     </div>
@@ -203,10 +229,25 @@ form {
             margin-bottom: 0.5rem;
 
             img {
+                display: inline-block;
                 width: 8rem;
                 height: 8rem;
                 border-radius: 50%;
                 border: 1px solid #ddd;
+            }
+
+            // 未设置头像时的占位，避免空 src 出现破图
+            .avatar-placeholder {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                border: 1px solid #ddd;
+                background-color: var(--p-slate-100);
+                color: var(--p-text-muted-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3rem;
             }
 
             .overlay {
@@ -234,7 +275,7 @@ form {
         .tip {
             margin-top: 1rem;
             font-size: 14px;
-            color: #666;
+            color: var(--p-text-muted-color);
         }
     }
 
@@ -275,6 +316,55 @@ form {
     --button-margin: 4rem;
 }
 
+.skeleton-form {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 5vw;
+    width: 100%;
+
+    .s-avatar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .tip {
+        margin-top: 1rem;
+        font-size: 14px;
+        color: var(--p-text-muted-color);
+    }
+
+    .s-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .s-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .s-label {
+            flex-shrink: 0;
+        }
+
+        .s-input {
+            flex: 1;
+            min-width: 15rem;
+            max-width: 30rem;
+        }
+    }
+
+    .s-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+}
+
 @media screen and (max-width: 800px) {
     form {
         --container-direction: column;
@@ -283,6 +373,23 @@ form {
         --label-display: block;
         --label-width: 90%;
         --button-margin: 0;
+    }
+
+    .skeleton-form {
+        flex-direction: column-reverse;
+        gap: 2rem;
+
+        .s-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            .s-input {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+            }
+        }
     }
 }
 </style>

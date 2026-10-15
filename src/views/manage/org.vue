@@ -11,6 +11,9 @@ import type { DepartmentItem, RoleItem } from '@/types'
 
 const orgStore = useOrgStore()
 
+// 首次进入时部门 / 职位列表尚未加载，表格显示加载 spinner
+const loading = ref(true)
+
 /** =========== 部门管理 BEGIN =========== */
 const deptDialogVisible = ref(false)
 const deptDialogMode = ref<'create' | 'edit'>('create')
@@ -167,8 +170,9 @@ async function onRoleConfirm() {
 }
 /** ============ 职位管理 END ============ */
 
-onMounted(() => {
-    orgStore.ensureLoaded()
+onMounted(async () => {
+    await orgStore.ensureLoaded()
+    loading.value = false
 })
 </script>
 
@@ -180,7 +184,7 @@ onMounted(() => {
             <h2>部门管理</h2>
             <Button icon="pi pi-plus" label="新建" @click="openDeptCreate" />
         </div>
-        <DataTable :value="orgStore.departments" data-key="id" striped-rows>
+        <DataTable :value="orgStore.departments" :loading="loading" data-key="id" striped-rows>
             <template #empty>
                 <div class="e-table-empty">暂无数据</div>
             </template>
@@ -206,7 +210,7 @@ onMounted(() => {
             <h2>职位管理</h2>
             <Button icon="pi pi-plus" label="新建" @click="openRoleCreate" />
         </div>
-        <DataTable :value="orgStore.roles" data-key="id" striped-rows>
+        <DataTable :value="orgStore.roles" :loading="loading" data-key="id" striped-rows>
             <template #empty>
                 <div class="e-table-empty">暂无数据</div>
             </template>

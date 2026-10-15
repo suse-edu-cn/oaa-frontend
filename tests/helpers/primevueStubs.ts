@@ -183,6 +183,21 @@ export const DialogStub = defineComponent({
     },
 })
 
+export const SkeletonStub = defineComponent({
+    name: 'Skeleton',
+    props: {
+        shape: String,
+        size: String,
+        width: { type: [String, Number], default: '100%' },
+        height: { type: [String, Number], default: '1rem' },
+        borderRadius: String,
+        animation: String,
+    },
+    setup() {
+        return () => h('div', { 'data-testid': 'skeleton' })
+    },
+})
+
 export const primevueStubs = {
     InputText: InputTextStub,
     Textarea: TextareaStub,
@@ -193,4 +208,5 @@ export const primevueStubs = {
     Button: ButtonStub,
     Message: MessageStub,
     Dialog: DialogStub,
+    Skeleton: SkeletonStub,
 }

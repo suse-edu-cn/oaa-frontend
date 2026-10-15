@@ -2,6 +2,8 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 
+import { Skeleton } from 'primevue'
+
 import { getTermList } from '@/api/term'
 import { fromDate } from '@/utils/date'
 import setToast from '@/utils/setToast'
@@ -68,8 +70,13 @@ onMounted(() => {
             <div class="empty">进行中的活动周期</div>
             <div class="title empty">当前暂无招新 / 换届活动</div>
         </template>
-        <!-- 加载中展示标题 -->
-        <div v-else class="empty">进行中的活动周期</div>
+        <!-- 加载中展示标题与骨架屏 -->
+        <template v-else>
+            <div class="empty">进行中的活动周期</div>
+            <div class="skeletons">
+                <Skeleton width="16rem" height="37px" />
+            </div>
+        </template>
     </div>
 </template>
 
@@ -116,6 +123,13 @@ onMounted(() => {
 
     .empty {
         color: var(--p-text-muted-color);
+    }
+
+    .skeletons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 8px;
     }
 }
 </style>

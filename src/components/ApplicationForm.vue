@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, useId, watch } from 'vue'
 
-import { Button, Checkbox, DatePicker, InputText, Message, Select, Textarea, ToggleSwitch } from 'primevue'
+import { Button, Checkbox, DatePicker, InputText, Message, Select, Skeleton, Textarea, ToggleSwitch } from 'primevue'
 
 import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
 import { getTermList } from '@/api/term'
@@ -249,10 +249,15 @@ function onSubmit() {
     )
 }
 
-onMounted(() => {
-    orgStore.ensureLoaded()
-    loadTerms()
-    loadPrefillOptions()
+// 下拉选项（周期 / 部门 / 职位）加载完成前用骨架占位
+const optionsLoading = ref(true)
+
+onMounted(async () => {
+    try {
+        await Promise.all([orgStore.ensureLoaded(), loadTerms(), loadPrefillOptions()])
+    } finally {
+        optionsLoading.value = false
+    }
 })
 </script>
 
@@ -266,7 +271,9 @@ onMounted(() => {
                     <div class="form-grid">
                         <div class="form-item">
                             <label>活动周期</label>
+                            <Skeleton v-if="optionsLoading" height="32px" width="100%" />
                             <Select
+                                v-else
                                 v-model="formData.termId"
                                 :options="terms"
                                 option-label="title"
@@ -364,7 +371,9 @@ onMounted(() => {
                     <div class="form-grid">
                         <div class="form-item">
                             <label>部门</label>
+                            <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                v-else
                                 v-model="formData.firstDept"
                                 :options="firstDeptOptions"
                                 option-label="name"
@@ -378,7 +387,9 @@ onMounted(() => {
                         </div>
                         <div class="form-item">
                             <label>职位</label>
+                            <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                v-else
                                 v-model="formData.firstRole"
                                 :options="firstRoleOptions"
                                 option-label="name"
@@ -396,7 +407,9 @@ onMounted(() => {
                     <div class="form-grid">
                         <div class="form-item">
                             <label>部门</label>
+                            <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                v-else
                                 v-model="formData.secondDept"
                                 :options="secondDeptOptions"
                                 option-label="name"
@@ -410,7 +423,9 @@ onMounted(() => {
                         </div>
                         <div class="form-item">
                             <label>职位</label>
+                            <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                v-else
                                 v-model="formData.secondRole"
                                 :options="secondRoleOptions"
                                 option-label="name"

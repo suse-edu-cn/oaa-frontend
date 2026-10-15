@@ -111,7 +111,6 @@ async function onSaveBatch() {
         }
         setToast('success', '保存成功', `已更新 ${payload.length} 个用户的部门 / 职位`)
     } else if (resp?.code == 400 && Array.isArray(resp.data)) {
-        // 部分失败：单条 toast，detail 中每个失败条目占一行，草稿保留以便修正后重试
         const detail = resp.data.map((item) => `${item.name}：${item.error_message}`).join('\n')
         setToast('error', '部分用户更新失败', detail)
     } else {
@@ -142,8 +141,8 @@ onMounted(async () => {
             data-key="user_id"
             striped-rows
             paginator
-            :rows="10"
-            :rows-per-page-options="[10, 20, 40]"
+            :rows="20"
+            :rows-per-page-options="[20, 50]"
             class="user-manage-table"
         >
             <template #header>

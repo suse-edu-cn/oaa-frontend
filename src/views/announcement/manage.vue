@@ -3,7 +3,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { Button, DataView, Select, Tab, TabList, Tabs, Tag } from 'primevue'
+import { Button, DataView, Select, Skeleton, Tab, TabList, Tabs, Tag } from 'primevue'
 
 import { deleteAnnouncement, getAnnouncementList } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -24,6 +24,8 @@ const canManage = computed(() => (authStore.userInfo?.role_level ?? 0) >= 30)
 
 const deptName = ref<string | null>(null)
 const announcements = ref<AnnouncementItem[]>([])
+// 初次进入或切换 Tab 时显示骨架屏
+const loading = ref(true)
 // 请求序号，快速切换 Tab 时丢弃旧响应
 let listRequests = 0
 
@@ -36,18 +38,24 @@ const tabStatusMap: Record<string, string | undefined> = {
 
 async function loadAnnouncements() {
     const seq = ++listRequests
+    loading.value = true
     // 无管理权限时固定为已发布，忽略可能残留的 Tab 状态
     const status = canManage.value ? tabStatusMap[activeTab.value] : 'active'
     const params: AnnouncementListParams = {}
     if (status) params.status = status
 
-    const resp = await getAnnouncementList(params)
-    if (seq !== listRequests) return
-    if (resp?.code == 200) {
-        const list = resp.data ?? []
-        announcements.value = canManage.value ? list : list.filter((a) => a.is_active)
-    } else {
-        setToast('error', '获取公告列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    try {
+        const resp = await getAnnouncementList(params)
+        if (seq !== listRequests) return
+        if (resp?.code == 200) {
+            const list = resp.data ?? []
+            announcements.value = canManage.value ? list : list.filter((a) => a.is_active)
+        } else {
+            setToast('error', '获取公告列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+        }
+    } finally {
+        // 仅最新一次请求可以解除 loading，避免被旧响应提前打断
+        if (seq === listRequests) loading.value = false
     }
 }
 
@@ -140,7 +148,14 @@ onMounted(() => {
             </TabList>
         </Tabs>
 
-        <DataView :value="filteredAnnouncements" paginator :rows="10">
+        <!-- 加载中骨架屏，结构与公告条目一致 -->
+        <div v-if="loading" class="skeleton-list">
+            <div v-for="i in 5" :key="i" class="skeleton-item">
+                <Skeleton class="s-title" :width="`${40 + (i % 3) * 8}%`" height="25px" />
+                <Skeleton :width="i % 2 ? '55%' : '68%'" height="20px" />
+            </div>
+        </div>
+        <DataView v-else :value="filteredAnnouncements" paginator :rows="10">
             <template #empty>
                 <div class="e-table-empty">暂无公告</div>
             </template>
@@ -194,6 +209,20 @@ onMounted(() => {
 
 .tab-item {
     width: 16%;
+}
+
+// 加载中骨架屏，间距与 .announcement-item 保持一致
+.skeleton-item {
+    padding: 12px 6px;
+
+    &:not(:first-child) {
+        border-top: 1px solid var(--p-content-border-color);
+    }
+
+    .s-title {
+        display: block;
+        margin-bottom: 7px;
+    }
 }
 
 .announcement-item {

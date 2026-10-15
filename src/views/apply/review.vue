@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 
-import { Button, Column, DataTable, Dialog, Select, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
+import { Button, Column, DataTable, Dialog, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
 import { createInterviewResult, getInterviewResultList, updateInterviewResult } from '@/api/interview'
@@ -343,9 +343,19 @@ onMounted(() => {
 
         <!-- 全部申请 -->
         <template v-else>
-            <div v-if="loading" class="empty">
-                <i class="pi pi-spin pi-spinner icon"></i>
-                <p>正在加载信息......</p>
+            <!-- 加载中骨架屏，结构与申请卡片一致 -->
+            <div v-if="loading" class="skeleton-list">
+                <div v-for="i in 3" :key="i" class="skeleton-card">
+                    <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
+                    <div class="s-fields">
+                        <Skeleton
+                            v-for="j in 4"
+                            :key="j"
+                            height="15px"
+                            :width="j === 4 ? '40%' : `${50 + ((i + j) % 3) * 14}%`"
+                        />
+                    </div>
+                </div>
             </div>
 
             <div v-else-if="!applications.length" class="empty">
@@ -449,6 +459,25 @@ onMounted(() => {
         font-size: 48px;
         display: block;
         color: var(--p-text-muted-color);
+    }
+}
+
+// 加载中骨架屏，卡片间距与 ApplicationCard 保持一致
+.skeleton-card {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--e-border-radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+
+    .s-head {
+        display: block;
+        margin-bottom: 14px;
+    }
+
+    .s-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
     }
 }
 </style>

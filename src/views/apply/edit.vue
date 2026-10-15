@@ -3,7 +3,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { Button } from 'primevue'
+import { Button, Skeleton } from 'primevue'
 
 import { deleteApplication, getMyApplications, updateApplication } from '@/api/application'
 import ApplicationForm from '@/components/ApplicationForm.vue'
@@ -108,10 +108,13 @@ onMounted(() => {
     <main>
         <h1 class="e-title">编辑申请</h1>
 
-        <!-- 加载中 -->
-        <div v-if="loading" class="empty">
-            <i class="pi pi-spin pi-spinner icon"></i>
-            <p>正在加载申请信息......</p>
+        <!-- 加载中骨架屏，模拟表单布局 -->
+        <div v-if="loading" class="skeleton-form">
+            <div v-for="i in 3" :key="i" class="s-row">
+                <Skeleton height="14px" :width="`${14 + (i % 2) * 6}%`" />
+                <Skeleton height="34px" :width="i === 3 ? '45%' : '100%'" />
+            </div>
+            <Skeleton height="220px" width="100%" />
         </div>
 
         <!-- 未找到 -->
@@ -141,7 +144,20 @@ onMounted(() => {
 </template>
 
 <style lang="less" scoped>
-// 加载中 / 未找到状态
+// 加载中骨架屏
+.skeleton-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .s-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+// 未找到状态
 .empty {
     text-align: center;
     font-size: 18px;
