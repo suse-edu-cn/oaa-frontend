@@ -1,7 +1,7 @@
 <!-- 公告详情 /announcement/:id -->
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { Tag } from 'primevue'
 
@@ -13,6 +13,7 @@ import setToast from '@/utils/setToast'
 import type { AnnouncementItem } from '@/types'
 
 const route = useRoute()
+const router = useRouter()
 
 const announcement = ref<AnnouncementItem | null>(null)
 const loading = ref(false)
@@ -24,6 +25,8 @@ async function loadAnnouncement() {
         if (resp?.code == 200) {
             announcement.value = resp.data ?? null
             document.title = announcement.value?.title + ' - 公告详情 - 青蟹' || '公告详情 - 青蟹'
+        } else if (resp?.code == 404) {
+            router.replace('/404')
         } else {
             setToast('error', '获取公告详情失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
