@@ -7,5 +7,5 @@
     "semi": false,
     "singleAttributePerLine": false,
     "printWidth": 120,
-    "ignorePatterns": [".claude/*", ".github/*", ".vscode/*", "scripts/*", "*.md"]
+    "ignorePatterns": [".claude/*", ".github/*", ".vscode/*", "scripts/*", "*.md", "index.html"]
 }
