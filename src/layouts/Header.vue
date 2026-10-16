@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { Menu } from 'primevue'
+import { Menu, Skeleton } from 'primevue'
 import type { MenuItem } from 'primevue/menuitem'
 import cookies from 'js-cookie'
 
@@ -18,6 +18,10 @@ const router = useRouter()
 const isIndex = computed(() => route.path == '/')
 // 登录状态点击用户头像的下拉菜单
 const userMenu = ref<{ toggle: (event: Event) => void } | null>(null)
+
+// 只有带 cookie 时才需要 skeleton
+const hasAuthToken = !import.meta.env.SSR && Boolean(cookies.get('token'))
+const showAuthSkeleton = computed(() => hasAuthToken && !authStore.isReady)
 
 defineOptions({ name: 'PageHeader' })
 
@@ -60,12 +64,19 @@ const userItems: MenuItem[] = [
         </div>
         <div class="right">
             <router-link to="#">比赛中心</router-link>
-            <div v-if="authStore.userInfo" class="user" @click="userMenu?.toggle($event)">
-                <img :src="authStore.userInfo.avatar?.url" alt="用户头像" />
-                {{ authStore.userInfo.username }}
+            <div v-if="showAuthSkeleton" class="user-skeleton" aria-hidden="true">
+                <Skeleton shape="circle" size="2.25rem" />
+                <Skeleton width="4rem" height="1rem" />
             </div>
+            <template v-else>
+                <div v-if="authStore.userInfo" class="user" @click="userMenu?.toggle($event)">
+                    <img v-if="authStore.userInfo.avatar?.url" :src="authStore.userInfo.avatar.url" alt="用户头像" />
+                    <i v-else class="pi pi-user avatar-placeholder"></i>
+                    {{ authStore.userInfo.username }}
+                </div>
+                <router-link to="/auth" v-if="!authStore.isAuthed">登录</router-link>
+            </template>
             <Menu ref="userMenu" :model="userItems" class="header-menu" popup />
-            <router-link to="/auth" v-if="!authStore.isAuthed">登录</router-link>
         </div>
     </header>
 </template>
@@ -105,11 +116,28 @@ header {
             border-radius: 50%;
         }
 
+        .avatar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25em;
+            height: 2.25em;
+            border-radius: 50%;
+            background-color: var(--p-slate-100);
+            color: var(--p-text-muted-color);
+        }
+
         .user {
             display: flex;
             align-items: center;
             gap: 0.4em;
             cursor: pointer;
+        }
+
+        .user-skeleton {
+            display: flex;
+            align-items: center;
+            gap: 0.4em;
         }
     }
 }
