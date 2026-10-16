@@ -37,7 +37,7 @@ const props = withDefaults(
     }>(),
     {
         placeholder: '请输入内容，支持 Markdown',
-        minHeight: '480px',
+        minHeight: '66vh',
     }
 )
 
