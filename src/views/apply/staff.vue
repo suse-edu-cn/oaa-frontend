@@ -21,20 +21,27 @@ import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
 const orgStore = useOrgStore()
 
 const staff = ref<InterviewStaffItem[]>([])
-const staffLoading = ref(false)
+const staffLoading = ref(true)
 let staffRequests = 0
 
 // ================= 活动周期 =================
 const terms = ref<TermInfo[]>([])
+const termsLoading = ref(true)
 const filterTermId = ref<number | null>(null)
+const tableLoading = computed(() => termsLoading.value || staffLoading.value)
 async function loadTerms() {
-    const resp = await getTermList()
-    if (resp?.code == 200) {
-        terms.value = resp.data ?? []
-        // 打开页面时默认选中第一个活动周期
-        filterTermId.value = terms.value[0]?.id ?? null
-    } else {
-        setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    termsLoading.value = true
+    try {
+        const resp = await getTermList()
+        if (resp?.code == 200) {
+            terms.value = resp.data ?? []
+            // 打开页面时默认选中第一个活动周期
+            filterTermId.value = terms.value[0]?.id ?? null
+        } else {
+            setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+        }
+    } finally {
+        termsLoading.value = false
     }
 }
 
@@ -212,9 +219,11 @@ async function onDelete() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     orgStore.ensureLoaded()
-    loadTerms()
+    await loadTerms()
+    // 没有可选周期时不会触发面试官列表请求，直接结束加载
+    if (!filterTermId.value) staffLoading.value = false
 })
 </script>
 
@@ -222,7 +231,7 @@ onMounted(() => {
     <main>
         <h1 class="e-title">面试官管理</h1>
 
-        <DataTable :value="staff" :loading="staffLoading" data-key="id" striped-rows paginator :rows="20">
+        <DataTable :value="staff" :loading="tableLoading" data-key="id" striped-rows paginator :rows="20">
             <template #header>
                 <div class="filter-bar">
                     <label for="staff-term-filter">活动周期</label>
@@ -233,12 +242,13 @@ onMounted(() => {
                         option-label="title"
                         option-value="id"
                         placeholder="请选择活动周期"
+                        :loading="termsLoading"
                     />
                     <Button class="add" icon="pi pi-plus" label="添加面试官" @click="openCreate" />
                 </div>
             </template>
             <template #empty>
-                <div class="e-table-empty">暂无面试官数据</div>
+                <div v-if="!tableLoading" class="e-table-empty">暂无面试官数据</div>
             </template>
             <Column field="id" header="序号" />
             <Column field="name" header="姓名" />

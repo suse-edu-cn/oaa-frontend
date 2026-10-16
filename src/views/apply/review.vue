@@ -27,23 +27,29 @@ const orgStore = useOrgStore()
 // ================= 周期 =================
 const terms = ref<TermInfo[]>([])
 const termId = ref<number | null>(null)
+const termsLoading = ref(true)
 
 // 加载可供选择的活动周期
 async function loadTerms() {
-    const resp = await getTermList()
-    if (resp?.code == 200) {
-        terms.value = resp.data ?? []
-        // 打开页面时默认选中第一个活动周期
-        // 由 watch 触发申请列表加载
-        termId.value = terms.value[0]?.id ?? null
-    } else {
-        setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    termsLoading.value = true
+    try {
+        const resp = await getTermList()
+        if (resp?.code == 200) {
+            terms.value = resp.data ?? []
+            // 打开页面时默认选中第一个活动周期
+            // 由 watch 触发申请列表加载
+            termId.value = terms.value[0]?.id ?? null
+        } else {
+            setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+        }
+    } finally {
+        termsLoading.value = false
     }
 }
 
 // ================= 申请列表 =================
 const applications = ref<ApplicationItem[]>([])
-const loading = ref(false)
+const loading = ref(true)
 // 请求序号，快速切换过滤项时丢弃旧响应
 let listRequests = 0
 const deptId = ref<number | null>(null)
@@ -75,7 +81,10 @@ const activeTab = ref('reviewed')
 
 // ================= 审核记录 =================
 const results = ref<InterviewResultItem[]>([])
-const resultsLoading = ref(false)
+const resultsLoading = ref(true)
+// 表格与卡片列表的加载态：周期未就绪时也算加载中，避免先闪空状态
+const applicationsLoading = computed(() => termsLoading.value || loading.value)
+const resultsTableLoading = computed(() => termsLoading.value || resultsLoading.value)
 // 请求序号，快速切换周期时丢弃旧响应
 let resultRequests = 0
 async function loadResults() {
@@ -247,10 +256,14 @@ function previewAvatar(url: string) {
     previewVisible.value = true
 }
 
-onMounted(() => {
+onMounted(async () => {
     // 用于把志愿里的部门 / 职位 id 显示为名称
     orgStore.ensureLoaded()
-    loadTerms()
+    await loadTerms()
+    if (!termId.value) {
+        loading.value = false
+        resultsLoading.value = false
+    }
 })
 </script>
 
@@ -267,6 +280,7 @@ onMounted(() => {
                 option-label="title"
                 option-value="id"
                 placeholder="请选择活动周期"
+                :loading="termsLoading"
             />
             <label for="review-dept">部门</label>
             <Select
@@ -297,14 +311,14 @@ onMounted(() => {
         <DataTable
             v-if="activeTab === 'reviewed'"
             :value="results"
-            :loading="resultsLoading"
+            :loading="resultsTableLoading"
             data-key="id"
             striped-rows
             paginator
             :rows="20"
         >
             <template #empty>
-                <div class="e-table-empty">暂无审核记录</div>
+                <div v-if="!resultsTableLoading" class="e-table-empty">暂无审核记录</div>
             </template>
             <Column field="name" header="姓名" />
             <Column field="decision" header="结果" />
@@ -344,7 +358,7 @@ onMounted(() => {
         <!-- 全部申请 -->
         <template v-else>
             <!-- 加载中骨架屏，结构与申请卡片一致 -->
-            <div v-if="loading" class="skeleton-list">
+            <div v-if="applicationsLoading" class="skeleton-list">
                 <div v-for="i in 3" :key="i" class="skeleton-card">
                     <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
                     <div class="s-fields">
