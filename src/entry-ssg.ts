@@ -1,6 +1,6 @@
 // SSG Prerender 入口
 import { createSSRApp } from 'vue'
-import { renderToString } from '@vue/server-renderer'
+import { renderToString } from 'vue/server-renderer'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import { Tooltip } from 'primevue'
