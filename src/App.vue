@@ -54,11 +54,12 @@ const canShowDrawer = computed(() => {
     min-height: 0;
 
     footer {
+        display: flex;
         visibility: hidden; // 工作页面不显示 footer，但是保留空间
     }
 
     &.e-no-drawer footer {
-        display: flex;
+        visibility: visible;
         padding-left: var(--e-content-h-padding);
         padding-right: var(--e-content-h-padding);
     }
