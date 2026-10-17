@@ -8,7 +8,7 @@ import { authGuard } from '@/router/guard'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
-import { setAuthCookies } from '../helpers/auth'
+import { setAuthCookies, clearAuthCookies } from '../helpers/auth'
 import { makeUser } from '../helpers/factories'
 
 const initMock = vi.mocked(initAuthStore)
@@ -73,6 +73,24 @@ describe('router/guard', () => {
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
 
         expect(initMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('初始化期间登录态失效时跳转登录页而不是 403', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.isReady = false
+        initMock.mockImplementation(async () => {
+            // 模拟刷新 token 失败：cookie 与 store 都被清理
+            clearAuthCookies()
+            const current = useAuthStore()
+            current.isReady = true
+            current.isAuthed = false
+            current.userInfo = null
+        })
+
+        await expect(authGuard({ meta: { level: 50 } })).resolves.toBe('/auth')
+
+        expect(toastMock).not.toHaveBeenCalled()
     })
 
     it('无等级要求的页面不触发用户信息初始化', async () => {

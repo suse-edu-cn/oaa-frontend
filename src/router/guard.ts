@@ -21,6 +21,9 @@ export async function authGuard(to: GuardRoute): Promise<true | string> {
     if (requiredLevel && isAuthed) {
         const authStore = useAuthStore()
         if (!authStore.isReady) await initAuthStore()
+        if (!cookies.get('token')) {
+            return '/auth'
+        }
         if ((authStore.userInfo?.role_level ?? 0) < requiredLevel) {
             setToast('warn', '无访问权限', '你当前的权限等级不足以访问该页面')
             return '/403'
