@@ -4,8 +4,15 @@ import { createPinia, setActivePinia } from 'pinia'
 import Cookies from 'js-cookie'
 
 const routerPush = vi.hoisted(() => vi.fn())
+const currentRoute = vi.hoisted(() => ({
+    value: {
+        path: '/user',
+        meta: {} as { requiresAuth?: boolean },
+        matched: [{ meta: {} }] as { meta: { requiresAuth?: boolean } }[],
+    },
+}))
 vi.mock('@/router', () => ({
-    default: { currentRoute: { value: { path: '/user' } }, push: routerPush },
+    default: { currentRoute, push: routerPush },
 }))
 vi.mock('@/utils/setToast', () => ({ default: vi.fn() }))
 
@@ -27,6 +34,8 @@ useMsw()
 beforeEach(() => {
     setActivePinia(createPinia())
     setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh', userId: '1' })
+    // 默认当前处于受保护页
+    currentRoute.value = { path: '/user', meta: {}, matched: [{ meta: {} }] }
 })
 
 function authStoreWithToken(token = 'old-token') {
@@ -287,6 +296,46 @@ describe('utils/request', () => {
         expect(toastMock).toHaveBeenCalledWith('error', '登录已过期', '请重新登录')
         expect(routerPush).toHaveBeenCalledTimes(1)
         expect(routerPush).toHaveBeenCalledWith('/auth')
+    })
+
+    it('公开页刷新失败时只清理登录态，不强制跳转', async () => {
+        currentRoute.value = {
+            path: '/',
+            meta: { requiresAuth: false },
+            matched: [{ meta: { requiresAuth: false } }],
+        }
+        server.use(
+            http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
+            http.post('*/v2/auth/refresh', () =>
+                HttpResponse.json({ code: 401, message: 'refresh expired', data: null })
+            )
+        )
+        const store = authStoreWithToken()
+
+        const resp = await request<ApiResponse<null>>({ url: '/user/me' })
+
+        expect(resp?.code).toBe(401)
+        expect(store.token).toBe('')
+        expect(Cookies.get('token')).toBeUndefined()
+        expect(routerPush).not.toHaveBeenCalled()
+        expect(toastMock).not.toHaveBeenCalled()
+    })
+
+    it('首次导航尚未完成时不抢跳登录页', async () => {
+        currentRoute.value = { path: '/', meta: {}, matched: [] }
+        server.use(
+            http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
+            http.post('*/v2/auth/refresh', () =>
+                HttpResponse.json({ code: 401, message: 'refresh expired', data: null })
+            )
+        )
+        const store = authStoreWithToken()
+
+        await request<ApiResponse<null>>({ url: '/user/me' })
+
+        expect(store.token).toBe('')
+        expect(routerPush).not.toHaveBeenCalled()
+        expect(toastMock).not.toHaveBeenCalled()
     })
 
     it('刷新网络失败时同样清理登录态', async () => {

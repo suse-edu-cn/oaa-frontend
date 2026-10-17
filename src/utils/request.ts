@@ -83,13 +83,20 @@ function clearAuth() {
     }
 }
 
+// 只在需要登录且刷新 token 失败才跳转 /auth
+function shouldRedirectToAuth(): boolean {
+    const current = router.currentRoute.value
+    if (!current.matched.length) return false
+    if (current.meta.requiresAuth === false) return false
+    return current.path !== '/auth'
+}
+
 async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<AxiosResponse | null> {
     const ok = await ensureFreshToken()
-    // 刷新失败，清理登录态跳转登录页
     if (!ok) {
         clearAuth()
-        setToast('error', '登录已过期', '请重新登录')
-        if (router.currentRoute.value.path !== '/auth') {
+        if (shouldRedirectToAuth()) {
+            setToast('error', '登录已过期', '请重新登录')
             router.push('/auth')
         }
         return null
