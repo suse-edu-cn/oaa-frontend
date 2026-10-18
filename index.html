@@ -5,7 +5,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/oaa.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#fefefe" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="四川轻化工大学开放原子开源协会" />
     <meta name="description" content="四川轻化工大学开放原子开源协会是由本校大学生运营的计算机协会，专注于算法学习和项目实践，涉及前后端、嵌入式、操作系统等多个领域，让同学们敢于探索新技术" />
@@ -40,6 +41,25 @@
     <link rel="preconnect" href="https://registry.npmmirror.com" crossorigin>
     <link rel="stylesheet" href="https://registry.npmmirror.com/katex/0.19.0/files/dist/katex.min.css" />
     <link rel="stylesheet" href="https://registry.npmmirror.com/primeicons/8.0.1/files/primeicons.css" />
+    <!-- 在样式生效前先确定主题，避免深色模式下先闪一帧白屏 -->
+    <script>
+        ;(function () {
+            var mode = 'system'
+            try {
+                mode = localStorage.getItem('e-theme-mode') || 'system'
+            } catch (e) {
+                /* localStorage 不可用时按跟随系统处理 */
+            }
+            var dark =
+                mode === 'dark' ||
+                (mode !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+            var root = document.documentElement
+            root.classList.toggle('p-dark', dark)
+            root.style.colorScheme = dark ? 'dark' : 'light'
+            var meta = document.querySelector('meta[name="theme-color"]')
+            if (meta) meta.setAttribute('content', dark ? '#09090b' : '#ffffff')
+        })()
+    </script>
 </head>
 
 <body>

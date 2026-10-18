@@ -97,6 +97,7 @@ src/
 - 单文件组件用 `<style lang="less" scoped>`；只有在覆写 PrimeVue 内部结构时才用非 scoped。
 - 全局类名以 `e-` 开头（`e-title`、`e-card`、`e-banner` 等），页面内容包在 `<main>` 里。
 - 颜色与尺寸优先用 CSS 变量：`--e-color-theme`（emerald-500）、`--e-border-radius`、`--e-content-h-padding`，以及 PrimeVue 的 `--p-*`；不要硬编码主题色。
+- 深色模式由 `html.p-dark` 切换（`src/utils/theme.ts`），自定义颜色统一引用 `variables.less` 中成对定义的 `--e-*` 语义变量（`--e-bg`、`--e-surface`、`--e-border-color`、`--e-accent-soft` 等），不要在组件里写死浅色值。
 - 响应式断点沿用 `variables.less` 中的 800px / 1300px。
 
 ## 编码规范

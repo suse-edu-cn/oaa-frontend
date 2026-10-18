@@ -14,7 +14,7 @@ export async function render(): Promise<string> {
     const app = createSSRApp(App)
 
     app.use(createPinia())
-    app.use(PrimeVue, { theme: { preset: Aura } })
+    app.use(PrimeVue, { theme: { preset: Aura, options: { darkModeSelector: '.p-dark' } } })
     app.directive('tooltip', Tooltip)
     app.use(ToastService)
     app.use(router)
