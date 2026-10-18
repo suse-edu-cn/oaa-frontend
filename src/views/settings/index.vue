@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Dialog } from 'primevue'
+import { Dialog, Select } from 'primevue'
+
+import { useSettingsStore } from '@/stores/settings'
+import { THEME_OPTIONS } from '@/utils/theme'
 
 const showBuildDialog = ref(false)
+const settingsStore = useSettingsStore()
 
 // vite 注入的版本信息
 const buildInfo = __BUILD_INFO__
@@ -13,6 +17,24 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
     <main>
         <h1 class="e-title">设置</h1>
         <div class="settings-list">
+            <div class="setting-catalog">外观</div>
+            <div class="setting-card">
+                <div class="section">
+                    <i class="pi pi-palette"></i>
+                    <span class="key">主题</span>
+                    <span class="value theme">
+                        <Select
+                            :model-value="settingsStore.themeMode"
+                            :options="THEME_OPTIONS"
+                            option-label="label"
+                            option-value="value"
+                            size="small"
+                            aria-label="主题模式"
+                            @update:model-value="settingsStore.setThemeMode"
+                        />
+                    </span>
+                </div>
+            </div>
             <div class="setting-catalog">关于工作台</div>
             <div class="setting-card">
                 <a
@@ -99,6 +121,12 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
             color: var(--p-menu-item-color);
             margin-left: auto;
         }
+
+        .value.theme {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
     }
 
     .section.clickable {
@@ -132,6 +160,19 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
         span:last-child {
             color: var(--p-menu-item-color);
         }
+    }
+}
+
+// 窄屏下主题选择器换行，避免挤出容器
+@media screen and (max-width: 800px) {
+    .setting-card .section {
+        flex-wrap: wrap;
+    }
+
+    .setting-card .value.theme {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 10px;
     }
 }
 </style>

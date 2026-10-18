@@ -163,7 +163,7 @@ const links = computed(() => filterByLevel(menuGroups))
 // 移除 menu 自身样式
 .p-menu.drawer {
     border: none;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid var(--e-border-color);
     border-radius: 0;
 }
 
@@ -203,7 +203,7 @@ const links = computed(() => filterByLevel(menuGroups))
         transition: all 0.2s ease;
 
         &.active {
-            background: var(--p-emerald-50);
+            background: var(--e-accent-soft);
             color: var(--e-color-theme);
         }
 

@@ -518,7 +518,7 @@ onMounted(async () => {
         // 表单分组
         padding-bottom: 16px;
         margin-bottom: 24px;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid var(--e-border-subtle);
 
         &:last-of-type {
             border-bottom: none;
@@ -587,7 +587,7 @@ onMounted(async () => {
             width: 100%;
             height: 100%;
             border-radius: var(--e-border-radius);
-            border: 1px solid #ddd;
+            border: 1px solid var(--e-border-color);
             object-fit: cover;
         }
 
@@ -597,7 +597,7 @@ onMounted(async () => {
             justify-content: center;
             font-size: 2.5rem;
             color: var(--p-text-muted-color);
-            background-color: var(--p-slate-100);
+            background-color: var(--e-surface-subtle);
         }
 
         .overlay {

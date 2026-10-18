@@ -168,11 +168,11 @@ function getDecisionClass(decision: string) {
 .card-header {
     display: flex;
     align-items: center;
-    background-color: var(--p-slate-100);
+    background-color: var(--e-surface-subtle);
     border-radius: var(--p-card-border-radius) var(--p-card-border-radius) 0 0;
     gap: 6px;
     padding: calc(var(--p-card-body-padding) * 0.66) var(--p-card-body-padding);
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--e-border-subtle);
 
     .title {
         line-height: 1.6;
@@ -189,7 +189,7 @@ function getDecisionClass(decision: string) {
         transition: background-color 0.2s ease;
 
         &:hover {
-            background-color: var(--p-slate-300);
+            background-color: var(--e-surface-hover);
         }
     }
 }
@@ -234,15 +234,15 @@ function getDecisionClass(decision: string) {
             font-weight: 600;
 
             &.pending {
-                color: var(--p-amber-600);
+                color: var(--e-warning-color);
             }
 
             &.active {
-                color: var(--p-emerald-600);
+                color: var(--e-accent-color);
             }
 
             &.rejected {
-                color: var(--p-red-600);
+                color: var(--e-danger-color);
             }
         }
     }
@@ -253,7 +253,7 @@ function getDecisionClass(decision: string) {
         height: 180px;
         object-fit: cover;
         border-radius: var(--e-border-radius);
-        border: 1px solid #eee;
+        border: 1px solid var(--e-border-subtle);
         cursor: pointer;
     }
 }
@@ -317,18 +317,18 @@ function getDecisionClass(decision: string) {
 
 .apply-tag {
     &.pending {
-        background-color: var(--p-amber-100);
-        color: var(--p-amber-600);
+        background-color: var(--e-warning-soft);
+        color: var(--e-warning-color);
     }
 
     &.active {
-        background-color: var(--p-emerald-100);
-        color: var(--p-emerald-600);
+        background-color: var(--e-accent-soft-strong);
+        color: var(--e-accent-color);
     }
 
     &.rejected {
-        background-color: var(--p-red-100);
-        color: var(--p-red-600);
+        background-color: var(--e-danger-soft);
+        color: var(--e-danger-color);
     }
 }
 </style>

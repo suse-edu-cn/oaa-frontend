@@ -88,7 +88,7 @@ header {
     line-height: 3.75rem;
     font-size: 1rem;
     padding: 0 var(--e-content-h-padding);
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--e-border-color);
 
     &.index {
         padding: 8px var(--e-content-h-padding);
@@ -123,7 +123,7 @@ header {
             width: 2.25em;
             height: 2.25em;
             border-radius: 50%;
-            background-color: var(--p-slate-100);
+            background-color: var(--e-surface-subtle);
             color: var(--p-text-muted-color);
         }
 

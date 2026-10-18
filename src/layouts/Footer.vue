@@ -16,10 +16,10 @@ footer {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    color: var(--p-gray-600);
+    color: var(--p-text-muted-color);
     font-size: 14px;
     padding: 12px 20px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--e-border-color);
     margin-top: 16px;
     line-height: 1.6;
 }

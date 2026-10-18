@@ -233,16 +233,15 @@ form {
                 width: 8rem;
                 height: 8rem;
                 border-radius: 50%;
-                border: 1px solid #ddd;
+                border: 1px solid var(--e-border-color);
             }
 
-            // 未设置头像时的占位，避免空 src 出现破图
             .avatar-placeholder {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                border: 1px solid #ddd;
-                background-color: var(--p-slate-100);
+                border: 1px solid var(--e-border-color);
+                background-color: var(--e-surface-subtle);
                 color: var(--p-text-muted-color);
                 display: flex;
                 align-items: center;

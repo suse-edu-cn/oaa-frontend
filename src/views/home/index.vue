@@ -148,6 +148,14 @@
     --title-cursor-height: 10px;
     --title-min-width: 600px;
 
+    // 深色模式
+    --home-accent: var(--p-emerald-600);
+    --home-card-title: linear-gradient(120deg, var(--p-emerald-800), var(--p-teal-600));
+    --home-card-hover-bg: var(--p-emerald-900);
+    --home-card-hover-border: var(--p-emerald-900);
+    --home-card-hover-shadow: 0 20px 44px -24px rgba(6, 78, 59, 0.55);
+    --home-cta-shadow: 0 32px 64px -32px rgba(5, 150, 105, 0.5);
+
     max-width: calc(1600px + 8em);
     margin: auto;
     color: var(--p-text-color);
@@ -161,9 +169,9 @@
         width: 100vw;
         height: calc(var(--header-h) + var(--section-first-margin) * 2 + var(--section-first-height));
         background-image:
-            linear-gradient(to bottom, rgba(255, 255, 255, 0) 85%, #fff 99%),
-            linear-gradient(to right, rgba(24, 24, 27, 0.06) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(24, 24, 27, 0.06) 1px, transparent 1px);
+            linear-gradient(to bottom, transparent 85%, var(--e-bg) 99%),
+            linear-gradient(to right, var(--e-grid-line) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--e-grid-line) 1px, transparent 1px);
         background-size:
             auto,
             60px 60px,
@@ -232,7 +240,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 55%, #fff 96%);
+            background: linear-gradient(to bottom, transparent 55%, var(--e-bg) 96%);
         }
     }
 
@@ -284,8 +292,8 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        background: #fff;
-        border: 1px solid #eceff1;
+        background: var(--e-surface);
+        border: 1px solid var(--e-border-subtle);
         border-radius: 20px;
         padding: 18px 27px;
         transition:
@@ -294,9 +302,9 @@
             box-shadow 0.25s ease;
 
         &:hover {
-            background: var(--p-emerald-900);
-            border-color: var(--p-emerald-900);
-            box-shadow: 0 20px 44px -24px rgba(6, 78, 59, 0.55);
+            background: var(--home-card-hover-bg);
+            border-color: var(--home-card-hover-border);
+            box-shadow: var(--home-card-hover-shadow);
 
             .title {
                 background: linear-gradient(120deg, var(--p-emerald-50), var(--p-teal-100));
@@ -314,7 +322,7 @@
             font-weight: 800;
             letter-spacing: -1px;
             margin-top: 36px;
-            background: linear-gradient(120deg, var(--p-emerald-800), var(--p-teal-600));
+            background: var(--home-card-title);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -338,6 +346,15 @@
             line-height: 1.15;
         }
     }
+}
+
+html.p-dark .home {
+    --home-accent: var(--p-emerald-400);
+    --home-card-title: linear-gradient(120deg, var(--p-emerald-300), var(--p-teal-200));
+    --home-card-hover-bg: var(--p-emerald-800);
+    --home-card-hover-border: var(--p-emerald-800);
+    --home-card-hover-shadow: 0 20px 44px -24px rgba(0, 0, 0, 0.55);
+    --home-cta-shadow: 0 32px 64px -32px rgba(0, 0, 0, 0.6);
 }
 
 // 第一屏 标题
@@ -367,7 +384,7 @@
         }
 
         .accent {
-            color: var(--p-emerald-600);
+            color: var(--home-accent);
         }
 
         .cursor {
@@ -439,7 +456,7 @@
         background:
             radial-gradient(120% 160% at 85% 0%, rgba(69, 222, 178, 0.35) 0%, transparent 55%),
             linear-gradient(135deg, var(--p-emerald-700), var(--p-teal-500));
-        box-shadow: 0 32px 64px -32px rgba(5, 150, 105, 0.5);
+        box-shadow: var(--home-cta-shadow);
 
         h2 {
             margin: 0;

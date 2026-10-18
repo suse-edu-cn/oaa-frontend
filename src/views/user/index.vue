@@ -52,7 +52,7 @@ onMounted(async () => {
 
 <template>
     <!-- 登录状态正常就显示信息 banner -->
-    <div class="e-banner" style="background-color: var(--p-emerald-50)" v-if="authStore.userInfo">
+    <div class="e-banner" style="background-color: var(--e-accent-soft)" v-if="authStore.userInfo">
         <img :src="authStore.userInfo.avatar?.url" alt="用户头像" srcset="" />
         <div class="info">
             <div class="title">{{ authStore.userInfo.username }}</div>
@@ -78,7 +78,7 @@ onMounted(async () => {
         </div>
     </div>
     <!-- 否则显示加载中骨架屏 -->
-    <div class="e-banner" style="background-color: var(--p-emerald-50)" v-else>
+    <div class="e-banner" style="background-color: var(--e-accent-soft)" v-else>
         <Skeleton shape="circle" size="129px" />
         <!-- 8rem + border -->
         <div class="info">
@@ -134,8 +134,8 @@ onMounted(async () => {
         height: 8rem;
         border-radius: 50%;
         padding: 1px;
-        border: 1px solid #ddd;
-        background-color: #fff;
+        border: 1px solid var(--e-border-color);
+        background-color: var(--e-surface);
     }
 
     .info {
@@ -154,7 +154,7 @@ onMounted(async () => {
             gap: 8px;
             align-items: center;
             line-height: 2;
-            color: #555;
+            color: var(--p-text-muted-color);
 
             .pi {
                 font-family: 'primeicons', 'Inter';
@@ -165,7 +165,7 @@ onMounted(async () => {
             }
 
             .p-button {
-                border: 1px solid #ccc !important;
+                border: 1px solid var(--p-content-border-color) !important;
             }
         }
 

@@ -83,17 +83,17 @@ onMounted(() => {
 <style lang="less" scoped>
 .ongoing-card {
     margin-bottom: 20px;
-    background-color: var(--p-slate-100);
+    background-color: var(--e-surface-subtle);
     padding: 14px 20px;
     border-radius: var(--p-button-border-radius);
     line-height: 1.5;
 
     &.active {
-        background-color: var(--p-emerald-50);
+        background-color: var(--e-accent-soft);
     }
 
     .head {
-        color: var(--p-emerald-600);
+        color: var(--e-accent-color);
     }
 
     .title {

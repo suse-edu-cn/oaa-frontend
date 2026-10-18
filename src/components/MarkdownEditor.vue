@@ -19,9 +19,11 @@ config({
 </script>
 
 <script lang="ts" setup>
+import { computed } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 
+import { useSettingsStore } from '@/stores/settings'
 import { uploadImage } from '@/utils/uploader'
 
 import type { UploadImgCallBack } from 'md-editor-v3'
@@ -43,6 +45,9 @@ const props = withDefaults(
 
 const content = defineModel<string>({ default: '' })
 
+const settings = useSettingsStore()
+const theme = computed<'light' | 'dark'>(() => (settings.isDark ? 'dark' : 'light'))
+
 async function onUploadImg(files: File[], callback: UploadImgCallBack) {
     const results = await Promise.all(files.map((file) => uploadImage(file, props.imgScene)))
     callback(
@@ -58,6 +63,7 @@ async function onUploadImg(files: File[], callback: UploadImgCallBack) {
         v-model="content"
         :placeholder="placeholder"
         :style="{ minHeight }"
+        :theme="theme"
         no-prettier
         no-mermaid
         no-echarts
