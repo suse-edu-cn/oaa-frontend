@@ -34,7 +34,7 @@ export default defineConfigWithVueTs([
 
     {
         name: 'app/test-globals',
-        files: ['vitest.config.ts', 'tests/**/*.ts'],
+        files: ['vitest.config.ts', 'playwright.config.ts', 'tests/**/*.ts'],
         languageOptions: {
             globals: {
                 ...globals.node,

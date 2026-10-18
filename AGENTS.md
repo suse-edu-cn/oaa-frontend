@@ -28,6 +28,7 @@
 | `pnpm test` | Vitest 单元 / 集成 / 组件测试（单次运行） |
 | `pnpm test:watch` | Vitest 监听模式 |
 | `pnpm test:coverage` | 运行测试并生成覆盖率报告 |
+| `pnpm test:e2e` | Playwright E2E（Chromium + dev server + 全量接口 mock） |
 | `pnpm type-check` | `vue-tsc --noEmit`（含测试配置） |
 | `pnpm format` | oxfmt 检查格式（不改文件） |
 | `pnpm format:write` | oxfmt 写入格式修复 |
@@ -41,7 +42,7 @@
 ## 目录结构
 
 ```
-tests/                 # Vitest 用例（unit / integration / component，*.spec.ts）
+tests/                 # Vitest（unit / integration / component）与 Playwright（e2e）用例
 src/
 ├── main.ts            # 浏览器入口
 ├── entry-ssg.ts       # 预渲染入口（createSSRApp）
@@ -125,9 +126,11 @@ pnpm type-check
 pnpm test
 ```
 
-涉及构建配置、SSG、PWA、路由或请求层（`src/utils/request.ts`、`src/api`）时，再执行 `pnpm build`，并确认 `dist/index.html` 中已注入首页 HTML。UI 改动需用 `pnpm dev` 实际过一遍：桌面与移动端布局、加载与空状态、Toast、权限跳转。
+涉及构建配置、SSG、PWA、路由或请求层（`src/utils/request.ts`、`src/api`）时，再执行 `pnpm build`，并确认 `dist/index.html` 中已注入首页 HTML。涉及登录态、权限、公告、申请等跨页面链路时，再执行 `pnpm test:e2e`。UI 改动需用 `pnpm dev` 实际过一遍：桌面与移动端布局、加载与空状态、Toast、权限跳转。
 
-测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。集成测试用 MSW 在网络层 mock，未匹配请求会直接失败；组件测试用 `tests/helpers/primevueStubs.ts` 的轻量 stub，不挂真实 PrimeVue；`tests/setup.ts` 负责 cookie 等测试间清理。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。覆盖率门槛已启用（70 / 70 / 65 / 70），E2E（Playwright）尚未引入。
+测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。集成测试用 MSW 在网络层 mock，未匹配请求会直接失败；组件测试用 `tests/helpers/primevueStubs.ts` 的轻量 stub，不挂真实 PrimeVue；`tests/setup.ts` 负责 cookie 等测试间清理。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。覆盖率门槛已启用（70 / 70 / 65 / 70）。
+
+E2E 使用 Playwright（只装 Chromium），配置见 `playwright.config.ts`，用例在 `tests/e2e/`。`tests/e2e/fixtures.ts` 用 `page.route` 拦截全部 `/v2/**` 请求并记录调用，未 mock 的接口会返回 404 且测试结束时报错，**不要让它穿透到开发代理**；`api.scenario` 切换场景，`signIn()` 预置登录 cookie。涉及登录态、权限、公告、申请等跨页面链路时执行 `pnpm test:e2e`（首次需 `pnpm exec playwright install chromium`）。
 
 ## 硬性约束
 
