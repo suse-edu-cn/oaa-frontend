@@ -53,7 +53,7 @@ src/
 ├── components/        # 可复用组件（ConfirmDialog、MarkdownEditor、ImageCropper 等）
 ├── api/               # 接口层，按后端模块拆分，业务端点只在这里出现一次
 ├── stores/            # Pinia：auth、org、settings
-├── utils/             # request、setToast、uploader、markdown、date、uriConverter、initAuthStore
+├── utils/             # request、session、setToast、uploader、markdown、date、uriConverter、initAuthStore
 ├── types/             # 接口类型，按后端模块拆分，由 types/index.ts 统一导出
 ├── styles/            # reset.less（基础样式）、markdown.less（Markdown 编辑器样式）、variables.less（设计变量）
 └── env.d.ts           # 环境变量与全局常量类型
@@ -71,9 +71,10 @@ src/
 
 ### 鉴权与请求
 
-- 登录态是 `token` / `refresh_token` / `user_id` 三个 cookie（20 天，`SameSite=Lax`），`user_id` 用于 token 过期后刷新；`initAuthStore.ts` 是唯一初始化入口（共享 Promise，可重复调用），`isReady` 表示完成。
+- 登录态是 `token` / `refresh_token` / `user_id` 三个 cookie（20 天，`SameSite=Lax`），`user_id` 用于 token 过期后刷新；cookie 的读写统一走 `src/utils/session.ts`，不要在组件 / store / 请求层直接 import `js-cookie`。
+- `useAuthStore` 持有登录态并提供 `hydrate` / `applyTokens` / `setUserInfo` / `clearSession` / `markReady`；`isAuthed` 由 token + userInfo 派生，`hasSession` 只表示有 token。`initAuthStore.ts` 是唯一异步初始化入口（共享 Promise，可重复调用），`isReady` 表示完成。
 - `request<T>()` **不抛异常**：失败时返回 `error.response?.data`（可能为 `undefined`），签名已如实标为 `Promise<T | undefined>`，调用方必须用 `resp?.code == 200` 判断并配合 `setToast` 提示；接口调用统一走 `src/api/<模块>.ts`。
-- 401 已在 `src/utils/request.ts` 统一处理（自动刷新 token 并重试一次，`/auth/*` 除外），业务代码不要重复处理。
+- 401 已在 `src/utils/request.ts` 统一处理（自动刷新 token 并重试一次，`/auth/*` 除外），业务代码不要重复处理。刷新失败后的跳转 / 提示由 `main.ts` 通过 `configureRequestAuth` 注入，请求层不直接 import router。
 - 路由默认需要登录，公开页面显式写 `meta: { requiresAuth: false }`；`meta.level` 表示最低 `role_level`（现有 20 / 50 / 80），不足会跳转 `/403`。
 
 ### 接口层（src/api）
@@ -84,11 +85,12 @@ src/
 - 接口函数只负责「路径 + method + 请求 / 响应类型」，不写 toast、loading、跳转、重试；统一返回 `Promise<ApiResult<T>>`（`ApiResponse<T> | undefined`），调用方负责判空和提示。
 - 请求体类型要如实描述线上 payload：不要把 UI 状态混进去（`login` 的 `isAccepted` 是待清理遗留）；更新类主键用 `number`，不要用 `number | null`。
 - 类型放 `src/types/<模块>.ts` 并注明端点；新增端点先加类型，再写 `src/api` 函数，最后替换调用点。页面 / 组件不要直接 import `request`，上传不要另建 API 文件。
-- 已知约束：`request` ↔ `router` ↔ `initAuthStore` ↔ `api/*` 存在模块循环，接口调用必须放在函数体内，禁止在模块顶层发请求或读取 `request`。
+- 已知约束：`request` 不再依赖 router，但 `api/*` 仍通过 `request → stores/auth` 访问登录态；接口调用必须放在函数体内，禁止在模块顶层发请求或读取 `request`。
 
 ### 数据与状态
 
 - Store 一律 setup 风格（`defineStore('x', () => { ... })`）。
+- 登录态只通过 `useAuthStore` 的 action 修改；组件和请求层不要直接改 `token` / `isAuthed` / cookie。`isAuthed` 是派生值，不可赋值。
 - 部门 / 职位等引用数据走 `useOrgStore`：`ensureLoaded()` 只请求一次，强制刷新用 `refresh()`。
 - 表单校验用 zod + `@primevue/forms` 的 `zodResolver`，错误文案用中文。
 - 上传统一走 `src/utils/uploader.ts`（`uploadImage` 限 4MB 常见图片格式，`uploadFile` 默认 100MB），不要另写上传请求。

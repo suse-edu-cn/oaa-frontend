@@ -11,13 +11,10 @@ const currentRoute = vi.hoisted(() => ({
         matched: [{ meta: {} }] as { meta: { requiresAuth?: boolean } }[],
     },
 }))
-vi.mock('@/router', () => ({
-    default: { currentRoute, push: routerPush },
-}))
 vi.mock('@/utils/setToast', () => ({ default: vi.fn() }))
 
 import { useAuthStore } from '@/stores/auth'
-import request from '@/utils/request'
+import request, { configureRequestAuth } from '@/utils/request'
 import setToast from '@/utils/setToast'
 import type { ApiResponse } from '@/types'
 import { setAuthCookies } from '../helpers/auth'
@@ -36,6 +33,12 @@ beforeEach(() => {
     setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh', userId: '1' })
     // 默认当前处于受保护页
     currentRoute.value = { path: '/user', meta: {}, matched: [{ meta: {} }] }
+    routerPush.mockReset()
+    configureRequestAuth({
+        getCurrentRoute: () => currentRoute.value,
+        redirectToAuth: () => routerPush('/auth'),
+        notify: (summary, detail) => toastMock('error', summary, detail),
+    })
 })
 
 function authStoreWithToken(token = 'old-token') {

@@ -3,11 +3,11 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Menu, Skeleton } from 'primevue'
 import type { MenuItem } from 'primevue/menuitem'
-import cookies from 'js-cookie'
 
 import { logout } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
+import { readSession } from '@/utils/session'
 import setToast from '@/utils/setToast'
 
 const authStore = useAuthStore()
@@ -19,8 +19,8 @@ const isIndex = computed(() => route.path == '/')
 // 登录状态点击用户头像的下拉菜单
 const userMenu = ref<{ toggle: (event: Event) => void } | null>(null)
 
-// 只有带 cookie 时才需要 skeleton
-const hasAuthToken = !import.meta.env.SSR && Boolean(cookies.get('token'))
+// 判断是否需要展示 skeleton
+const hasAuthToken = Boolean(readSession().token)
 const showAuthSkeleton = computed(() => hasAuthToken && !authStore.isReady)
 
 defineOptions({ name: 'PageHeader' })
@@ -34,10 +34,7 @@ onMounted(async () => {
 async function onLogout() {
     await logout()
 
-    cookies.remove('token', { path: '/' })
-    cookies.remove('refresh_token', { path: '/' })
-    cookies.remove('user_id', { path: '/' })
-    authStore.$patch({ token: '', refreshToken: '', isAuthed: false, userInfo: null })
+    authStore.clearSession()
 
     setToast('success', '已登出', '')
     router.push('/auth')

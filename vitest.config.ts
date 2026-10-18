@@ -45,6 +45,8 @@ export default defineConfig({
                 'src/utils/initAuthStore.ts',
                 'src/utils/applicationFormValidation.ts',
                 'src/utils/theme.ts',
+                'src/utils/session.ts',
+                'src/stores/auth.ts',
                 'src/stores/org.ts',
                 'src/stores/settings.ts',
                 'src/router/guard.ts',

@@ -1,15 +1,31 @@
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
-import cookies from 'js-cookie'
 
-import router from '@/router'
-import setToast from './setToast'
 import { useAuthStore } from '@/stores/auth'
+import { clearSessionCookies, readSession } from './session'
+import type { RouteMeta } from 'vue-router'
 import type { ApiResponse } from '@/types'
 
 const instance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 5000,
 })
+
+interface RetryableConfig extends InternalAxiosRequestConfig {
+    _retry?: boolean
+}
+
+export interface RequestAuthConfig {
+    /** 当前路由，用于判断是否在公开页 / 登录页 */
+    getCurrentRoute: () => { path: string; meta: RouteMeta; matched: readonly unknown[] }
+    redirectToAuth: () => void
+    notify: (summary: string, detail: string) => void
+}
+
+let authConfig: RequestAuthConfig | null = null
+
+export function configureRequestAuth(config: RequestAuthConfig | null): void {
+    authConfig = config
+}
 
 // 校验 token 是否过期
 function isTokenExpired(token: string): boolean {
@@ -36,30 +52,26 @@ function ensureFreshToken(): Promise<boolean> {
 
 async function doRefresh(): Promise<boolean> {
     const authStore = useAuthStore()
+    const session = readSession()
 
-    // 注：此处先取 store，再回退到 cookie
-    // 否则会变得不幸（逃
-    const userId = Number(authStore.userInfo?.user_id ?? cookies.get('user_id'))
-    const refreshToken = authStore.refreshToken || cookies.get('refresh_token') || ''
+    const userId = Number(authStore.userInfo?.user_id ?? session.userId)
+    const refreshToken = authStore.refreshToken || session.refreshToken
     if (!userId || !refreshToken) {
         return false
     }
 
     try {
+        const requestToken = authStore.token || session.token
         const resp = await instance.request<ApiResponse<{ token: string; refresh_token: string }>>({
             url: '/auth/refresh',
             method: 'POST',
             data: { refresh_token: refreshToken },
-            headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},
+            headers: requestToken ? { Authorization: `Bearer ${requestToken}` } : {},
         })
 
         if (resp.data.code == 200) {
             const { token, refresh_token } = resp.data.data
-            cookies.set('token', token, { expires: 20, secure: true, sameSite: 'Lax', path: '/' })
-            cookies.set('refresh_token', refresh_token, { expires: 20, secure: true, sameSite: 'Lax', path: '/' })
-            authStore.token = token
-            authStore.refreshToken = refresh_token
-            console.log('[request] 已刷新 token')
+            authStore.applyTokens({ token, refreshToken: refresh_token })
             return true
         }
         return false
@@ -68,49 +80,53 @@ async function doRefresh(): Promise<boolean> {
     }
 }
 
-function clearAuth() {
-    cookies.remove('token', { path: '/' })
-    cookies.remove('refresh_token', { path: '/' })
-    cookies.remove('user_id', { path: '/' })
+function clearAuth(): void {
     try {
-        const authStore = useAuthStore()
-        authStore.token = ''
-        authStore.refreshToken = ''
-        authStore.isAuthed = false
-        authStore.userInfo = null
+        useAuthStore().clearSession()
     } catch {
-        // pinia 尚未就绪时忽略
+        // pinia 尚未就绪时至少把 cookie 清掉
+        clearSessionCookies()
     }
 }
 
 // 只在需要登录且刷新 token 失败才跳转 /auth
-function shouldRedirectToAuth(): boolean {
-    const current = router.currentRoute.value
-    if (!current.matched.length) return false
-    if (current.meta.requiresAuth === false) return false
-    return current.path !== '/auth'
+function handleAuthExpired(): void {
+    if (!authConfig) return
+
+    const current = authConfig.getCurrentRoute()
+    if (!current.matched.length) return
+    if (current.meta.requiresAuth === false) return
+    if (current.path === '/auth') return
+
+    authConfig.notify('登录已过期', '请重新登录')
+    authConfig.redirectToAuth()
+}
+
+// /auth/* 以及已经重试过的请求不再触发刷新
+function shouldRefresh(config?: InternalAxiosRequestConfig): boolean {
+    if (!config) return false
+    if (config.url?.startsWith('/auth/')) return false
+    return !(config as RetryableConfig)._retry
 }
 
 async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<AxiosResponse | null> {
     const ok = await ensureFreshToken()
     if (!ok) {
         clearAuth()
-        if (shouldRedirectToAuth()) {
-            setToast('error', '登录已过期', '请重新登录')
-            router.push('/auth')
-        }
+        handleAuthExpired()
         return null
     }
 
-    config.headers.Authorization = `Bearer ${useAuthStore().token}`
-    // 仍 401 会再次进入响应拦截器，造成递归刷新
-    return axios.request({ ...config, baseURL: import.meta.env.VITE_API_URL })
+    const retryConfig = config as RetryableConfig
+    retryConfig._retry = true
+    retryConfig.headers.Authorization = `Bearer ${useAuthStore().token}`
+    return instance.request(retryConfig)
 }
 
 instance.interceptors.response.use(
     // 检测 401
     async (response) => {
-        if (response.data?.code === 401 && !response.config?.url?.startsWith('/auth/')) {
+        if (response.data?.code === 401 && shouldRefresh(response.config)) {
             return (await refreshAndRetry(response.config)) ?? response
         }
         return response
@@ -118,7 +134,7 @@ instance.interceptors.response.use(
     async (error) => {
         const { config, response } = error
         const expired = response?.status === 401 || response?.data?.code === 401
-        if (!expired || !config || config.url?.startsWith('/auth/')) {
+        if (!expired || !shouldRefresh(config)) {
             return Promise.reject(error)
         }
 
@@ -127,7 +143,9 @@ instance.interceptors.response.use(
 )
 
 /**
- * 统一请求入口：不抛异常，网络 / 超时失败时返回 undefined，调用方需判空
+ * 统一请求入口
+ *
+ * 不抛异常，网络 / 超时失败时返回 undefined，调用方需判空
  */
 const request = async function <T = any>(config: {
     url: string
@@ -143,7 +161,8 @@ const request = async function <T = any>(config: {
         if (!token) {
             try {
                 const authStore = useAuthStore()
-                token = authStore.token || ''
+                if (!authStore.token) authStore.hydrate()
+                token = authStore.token
                 // token 过期时静默刷新
                 if (token && isTokenExpired(token)) {
                     const ok = await ensureFreshToken()

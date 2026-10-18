@@ -2,17 +2,18 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
-import cookies from 'js-cookie'
 
 import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { login } from '@/api/auth'
+import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const emit = defineEmits<{ forgot: [] }>()
 
 const initialValues = ref({
@@ -48,26 +49,12 @@ async function onLogin() {
         const resp = await login(loginData.value)
 
         if (resp?.code == 200) {
-            cookies.set('token', resp.data.token, {
-                expires: 20,
-                secure: true,
-                sameSite: 'Lax',
-                path: '/',
-            })
-            // 刷新令牌单独持久化，供后续刷新流程使用（TODO: 接入刷新接口）
-            cookies.set('refresh_token', resp.data.refresh_token, {
-                expires: 20,
-                secure: true,
-                sameSite: 'Lax',
-                path: '/',
-            })
+            authStore.applyTokens({ token: resp.data.token, refreshToken: resp.data.refresh_token })
             await initAuthStore()
             router.push('/user')
         } else {
             setToast('error', '登录失败', resp?.message || '未知错误，请联系负责后端的同学')
         }
-    } catch (err: any) {
-        setToast('error', '登录失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     } finally {
         isSubmitting.value = false
     }

@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 import { useRoute } from 'vue-router'
-import cookies from 'js-cookie'
 import { Toast } from 'primevue'
 import { useToast } from 'primevue/usetoast'
 import 'modern-normalize/modern-normalize.css'
@@ -22,11 +21,7 @@ const authStore = useAuthStore()
 // 抽屉展示条件
 const canShowDrawer = computed(() => {
     if (route.path === '/' || route.path === '/auth') return false
-    return (
-        authStore.isReady &&
-        authStore.isAuthed &&
-        Boolean(cookies.get('token') && cookies.get('refresh_token') && cookies.get('user_id'))
-    )
+    return authStore.isReady && authStore.isAuthed
 })
 </script>
 

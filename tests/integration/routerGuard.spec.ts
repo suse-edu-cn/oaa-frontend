@@ -8,7 +8,7 @@ import { authGuard } from '@/router/guard'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
-import { setAuthCookies, clearAuthCookies } from '../helpers/auth'
+import { setAuthCookies } from '../helpers/auth'
 import { makeUser } from '../helpers/factories'
 
 const initMock = vi.mocked(initAuthStore)
@@ -80,12 +80,10 @@ describe('router/guard', () => {
         const store = useAuthStore()
         store.isReady = false
         initMock.mockImplementation(async () => {
-            // 模拟刷新 token 失败：cookie 与 store 都被清理
-            clearAuthCookies()
+            // 模拟刷新 token 失败
             const current = useAuthStore()
-            current.isReady = true
-            current.isAuthed = false
-            current.userInfo = null
+            current.clearSession()
+            current.markReady()
         })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe('/auth')

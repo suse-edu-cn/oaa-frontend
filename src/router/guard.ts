@@ -1,5 +1,3 @@
-import cookies from 'js-cookie'
-
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
@@ -11,17 +9,21 @@ export interface GuardRoute {
 }
 
 export async function authGuard(to: GuardRoute): Promise<true | string> {
-    const isAuthed = Boolean(cookies.get('token'))
-    if (to.meta.requiresAuth !== false && !isAuthed) {
+    const authStore = useAuthStore()
+    if (!authStore.isReady || !authStore.token) {
+        authStore.hydrate()
+    }
+
+    if (to.meta.requiresAuth !== false && !authStore.hasSession) {
         setToast('error', '未登录', '请先登录以访问该页面')
         return '/auth'
     }
 
     const requiredLevel = to.meta.level
-    if (requiredLevel && isAuthed) {
-        const authStore = useAuthStore()
+    if (requiredLevel && authStore.hasSession) {
+        // 权限等级需要用户信息，须等初始化完成
         if (!authStore.isReady) await initAuthStore()
-        if (!cookies.get('token')) {
+        if (!authStore.hasSession) {
             return '/auth'
         }
         if ((authStore.userInfo?.role_level ?? 0) < requiredLevel) {
