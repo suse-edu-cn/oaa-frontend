@@ -14,13 +14,22 @@ export const useAuthStore = defineStore('auth', () => {
     const token = ref('')
     const refreshToken = ref('')
     const userInfo = ref<UserInfo | null>(null)
+    // 身份版本在 token 变化时递增，token 刷新不递增
+    // 初始化请求用它判断返回时是否已经换了会话
+    const sessionVersion = ref(0)
 
     const hasSession = computed(() => Boolean(token.value))
     const isAuthed = computed(() => Boolean(token.value && userInfo.value))
 
-    /** 从 cookie 恢复 token，不发起请求 */
+    /** 从 cookie 恢复 token，不发起请求；token 变化时旧用户信息不再可信 */
     function hydrate(): void {
         const session = readSession()
+        const tokenChanged = session.token !== token.value
+        // 同一 token 的重复 hydrate 保留用户信息，
+        if (tokenChanged || !session.token) {
+            userInfo.value = null
+            if (tokenChanged) sessionVersion.value += 1
+        }
         token.value = session.token
         refreshToken.value = session.refreshToken
     }
@@ -32,16 +41,26 @@ export const useAuthStore = defineStore('auth', () => {
         saveTokens(tokens)
     }
 
+    /** 登录成功后开始新会话 */
+    function beginLogin(tokens: AuthTokens): void {
+        userInfo.value = null
+        sessionVersion.value += 1
+        applyTokens(tokens)
+    }
+
     function setUserInfo(info: UserInfo | null): void {
         userInfo.value = info
         if (info) saveUserId(info.user_id)
     }
+
     function clearSession(): void {
         token.value = ''
         refreshToken.value = ''
         userInfo.value = null
+        sessionVersion.value += 1
         clearSessionCookies()
     }
+
     function markReady(): void {
         isReady.value = true
     }
@@ -50,11 +69,13 @@ export const useAuthStore = defineStore('auth', () => {
         isReady,
         isAuthed,
         hasSession,
+        sessionVersion,
         token,
         refreshToken,
         userInfo,
         hydrate,
         applyTokens,
+        beginLogin,
         setUserInfo,
         clearSession,
         markReady,

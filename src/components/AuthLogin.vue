@@ -49,7 +49,7 @@ async function onLogin() {
         const resp = await login(loginData.value)
 
         if (resp?.code == 200) {
-            authStore.applyTokens({ token: resp.data.token, refreshToken: resp.data.refresh_token })
+            authStore.beginLogin({ token: resp.data.token, refreshToken: resp.data.refresh_token })
             await initAuthStore()
             router.push('/user')
         } else {

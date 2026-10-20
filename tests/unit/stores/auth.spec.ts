@@ -23,6 +23,48 @@ describe('stores/auth', () => {
         expect(store.isAuthed).toBe(false)
     })
 
+    it('hydrate 遇到同一 token 时保留已有用户信息', () => {
+        setAuthCookies({ token: 'access', refreshToken: 'refresh' })
+        const store = useAuthStore()
+        store.hydrate()
+        store.setUserInfo(makeUser({ user_id: 1 }))
+
+        store.hydrate()
+
+        expect(store.userInfo?.user_id).toBe(1)
+        expect(store.isAuthed).toBe(true)
+    })
+
+    it('hydrate 发现 token 变化时清空旧用户信息', () => {
+        setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh' })
+        const store = useAuthStore()
+        store.hydrate()
+        store.setUserInfo(makeUser({ user_id: 1 }))
+
+        setAuthCookies({ token: 'new-token', refreshToken: 'new-refresh' })
+        store.hydrate()
+
+        expect(store.token).toBe('new-token')
+        expect(store.userInfo).toBeNull()
+        expect(store.isAuthed).toBe(false)
+    })
+
+    it('beginLogin 清空旧用户信息并写入新 token', () => {
+        setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh' })
+        const store = useAuthStore()
+        store.hydrate()
+        store.setUserInfo(makeUser({ user_id: 1 }))
+
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+
+        expect(store.token).toBe('new-token')
+        expect(store.refreshToken).toBe('new-refresh')
+        expect(store.userInfo).toBeNull()
+        expect(store.isAuthed).toBe(false)
+        expect(Cookies.get('token')).toBe('new-token')
+        expect(Cookies.get('refresh_token')).toBe('new-refresh')
+    })
+
     it('applyTokens 同时更新内存与 cookie', () => {
         const store = useAuthStore()
 

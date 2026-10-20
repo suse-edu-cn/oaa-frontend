@@ -44,6 +44,7 @@ describe('router/guard', () => {
         setAuthCookies()
         const store = useAuthStore()
         store.isReady = true
+        store.token = 'token'
         store.userInfo = makeUser({ role_level: 20 })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe('/403')
@@ -55,6 +56,7 @@ describe('router/guard', () => {
         setAuthCookies()
         const store = useAuthStore()
         store.isReady = true
+        store.token = 'token'
         store.userInfo = makeUser({ role_level: 80 })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
@@ -109,6 +111,7 @@ describe('router/guard', () => {
         setAuthCookies()
         const store = useAuthStore()
         store.isReady = true
+        store.token = 'token'
         store.userInfo = null
 
         await expect(authGuard({ meta: { level: 20 } })).resolves.toBe('/403')
