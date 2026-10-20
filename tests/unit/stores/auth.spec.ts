@@ -87,15 +87,15 @@ describe('stores/auth', () => {
         expect(Cookies.get('user_id')).toBe('9')
     })
 
-    it('setUserInfo(null) 只清空用户信息，不写 user_id', () => {
+    it('setUserInfo 覆盖已有 user_id cookie', () => {
         const store = useAuthStore()
         store.applyTokens({ token: 'access', refreshToken: 'refresh' })
+        store.setUserInfo(makeUser({ user_id: 9 }))
 
-        store.setUserInfo(null)
+        store.setUserInfo(makeUser({ user_id: 10 }))
 
-        expect(store.userInfo).toBeNull()
-        expect(store.isAuthed).toBe(false)
-        expect(Cookies.get('user_id')).toBeUndefined()
+        expect(store.userInfo?.user_id).toBe(10)
+        expect(Cookies.get('user_id')).toBe('10')
     })
 
     it('clearSession 清空内存与全部 cookie', () => {

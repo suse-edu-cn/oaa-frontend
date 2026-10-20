@@ -48,9 +48,10 @@ export const useAuthStore = defineStore('auth', () => {
         applyTokens(tokens)
     }
 
-    function setUserInfo(info: UserInfo | null): void {
+    /** 写入已加载的用户信息 */
+    function setUserInfo(info: UserInfo): void {
         userInfo.value = info
-        if (info) saveUserId(info.user_id)
+        saveUserId(info.user_id)
     }
 
     function clearSession(): void {
