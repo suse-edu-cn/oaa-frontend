@@ -7,7 +7,6 @@ import type { MenuItem } from 'primevue/menuitem'
 import { logout } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
-import { readSession } from '@/utils/session'
 import setToast from '@/utils/setToast'
 
 const authStore = useAuthStore()
@@ -16,12 +15,11 @@ const router = useRouter()
 
 // 首页不显示 header 下边框
 const isIndex = computed(() => route.path == '/')
-// 登录状态点击用户头像的下拉菜单
+// 登录状态下拉菜单
 const userMenu = ref<{ toggle: (event: Event) => void } | null>(null)
 
-// 判断是否需要展示 skeleton
-const hasAuthToken = Boolean(readSession().token)
-const showAuthSkeleton = computed(() => hasAuthToken && !authStore.isReady)
+// 启动阶段有 token 时才需要 skeleton
+const showAuthSkeleton = computed(() => authStore.hasSession && !authStore.isReady)
 
 defineOptions({ name: 'PageHeader' })
 
