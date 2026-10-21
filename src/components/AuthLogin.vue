@@ -46,6 +46,8 @@ async function onLogin() {
 
     isSubmitting.value = true
     try {
+        if (!authStore.isReady) await initAuthStore()
+
         const resp = await login(loginData.value)
 
         if (resp?.code == 200) {

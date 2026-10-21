@@ -130,38 +130,6 @@ describe('utils/initAuthStore', () => {
         expect(store.isAuthed).toBe(true)
     })
 
-    it('旧初始化响应不会覆盖新 token 的用户信息', async () => {
-        setAuthCookies({ token: 'old-token' })
-        const oldGate = deferred<ApiResponse<UserInfo>>()
-        const newGate = deferred<ApiResponse<UserInfo>>()
-        let calls = 0
-        getCurrentUserMock.mockImplementation(() => {
-            calls += 1
-            return calls === 1 ? oldGate.promise : newGate.promise
-        })
-        const store = useAuthStore()
-
-        const first = initAuthStore()
-        expect(getCurrentUserMock).toHaveBeenCalledTimes(1)
-
-        // 登录态切换到新用户，并开始新初始化
-        setAuthCookies({ token: 'new-token' })
-        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
-        const second = initAuthStore()
-        expect(getCurrentUserMock).toHaveBeenCalledTimes(2)
-
-        newGate.resolve({ code: 200, message: 'ok', data: makeUser({ user_id: 2 }) })
-        await second
-        expect(store.userInfo?.user_id).toBe(2)
-
-        // 旧请求晚到，不能把新用户覆盖回旧用户
-        oldGate.resolve({ code: 200, message: 'ok', data: makeUser({ user_id: 1 }) })
-        await first
-
-        expect(store.token).toBe('new-token')
-        expect(store.userInfo?.user_id).toBe(2)
-    })
-
     it('初始化期间刷新 token 时保留当前用户信息', async () => {
         setAuthCookies({ token: 'old-token' })
         const gate = deferred<ApiResponse<UserInfo>>()

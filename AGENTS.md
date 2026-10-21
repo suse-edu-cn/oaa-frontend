@@ -72,7 +72,7 @@ src/
 ### 鉴权与请求
 
 - 登录态是 `token` / `refresh_token` 两个 cookie（20 天，`SameSite=Lax`），刷新 token 只需 `refresh_token`。cookie 的读写统一走 `src/utils/session.ts`，不要在组件 / store / 请求层直接 import `js-cookie`。
-- `useAuthStore` 持有登录态并提供 `hydrate` / `applyTokens` / `beginLogin` / `setUserInfo` / `clearSession` / `markReady`；`isAuthed` 由 token + userInfo 派生，`hasSession` 只表示有 token。登录用 `beginLogin`（会清掉旧用户），刷新 token 用 `applyTokens`（保留用户）；`hydrate` 发现 token 变化或为空时也会清掉旧用户信息。`initAuthStore.ts` 是唯一异步初始化入口（同 token 共享 Promise，token 变化时重新初始化，并丢弃旧响应），`isReady` 表示完成。
+- `useAuthStore` 持有登录态并提供 `hydrate` / `applyTokens` / `beginLogin` / `setUserInfo` / `clearSession` / `markReady`；`isAuthed` 由 token + userInfo 派生，`hasSession` 只表示有 token。登录用 `beginLogin`（会清掉旧用户），刷新 token 用 `applyTokens`（保留用户）；`hydrate` 发现 token 变化或为空时也会清掉旧用户信息。`initAuthStore.ts` 是唯一异步初始化入口（共享 Promise，`isReady` 表示完成）；登录提交前会先等待初始化，避免旧 `/user/me` 响应覆盖新会话。
 - `request<T>()` **不抛异常**：失败时返回 `error.response?.data`（可能为 `undefined`），签名已如实标为 `Promise<T | undefined>`，调用方必须用 `resp?.code == 200` 判断并配合 `setToast` 提示；接口调用统一走 `src/api/<模块>.ts`。
 - 401 已在 `src/utils/request.ts` 统一处理（自动刷新 token 并重试一次，`/auth/*` 除外），业务代码不要重复处理。刷新失败后的跳转 / 提示由 `main.ts` 通过 `configureRequestAuth` 注入，请求层不直接 import router。
 - 路由默认需要登录，公开页面显式写 `meta: { requiresAuth: false }`；`meta.level` 表示最低 `role_level`（现有 20 / 50 / 80），不足会跳转 `/403`。

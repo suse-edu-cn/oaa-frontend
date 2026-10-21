@@ -14,9 +14,6 @@ export const useAuthStore = defineStore('auth', () => {
     const token = ref('')
     const refreshToken = ref('')
     const userInfo = ref<UserInfo | null>(null)
-    // 身份版本在 token 变化时递增，token 刷新不递增
-    // 初始化请求用它判断返回时是否已经换了会话
-    const sessionVersion = ref(0)
 
     const hasSession = computed(() => Boolean(token.value))
     const isAuthed = computed(() => Boolean(token.value && userInfo.value))
@@ -25,10 +22,9 @@ export const useAuthStore = defineStore('auth', () => {
     function hydrate(): void {
         const session = readSession()
         const tokenChanged = session.token !== token.value
-        // 同一 token 的重复 hydrate 保留用户信息，
+        // 同一 token 的重复 hydrate 保留用户信息
         if (tokenChanged || !session.token) {
             userInfo.value = null
-            if (tokenChanged) sessionVersion.value += 1
         }
         token.value = session.token
         refreshToken.value = session.refreshToken
@@ -44,7 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
     /** 登录成功后开始新会话 */
     function beginLogin(tokens: AuthTokens): void {
         userInfo.value = null
-        sessionVersion.value += 1
         applyTokens(tokens)
     }
 
@@ -57,7 +52,6 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = ''
         refreshToken.value = ''
         userInfo.value = null
-        sessionVersion.value += 1
         clearSessionCookies()
     }
 
@@ -69,7 +63,6 @@ export const useAuthStore = defineStore('auth', () => {
         isReady,
         isAuthed,
         hasSession,
-        sessionVersion,
         token,
         refreshToken,
         userInfo,
