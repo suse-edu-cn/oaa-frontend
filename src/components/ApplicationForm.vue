@@ -5,14 +5,14 @@ import { computed, onMounted, reactive, ref, useId, watch } from 'vue'
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Skeleton, Textarea, ToggleSwitch } from 'primevue'
 
 import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
-import { getTermList } from '@/api/term'
 import { useOrgStore } from '@/stores/org'
+import { useTermStore } from '@/stores/term'
 import { getApplicationFormErrors } from '@/utils/applicationFormValidation'
 import { fromDate, toDate } from '@/utils/date'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 
-import type { DepartmentItem, ApplicationFormPrefill, ApplicationFormData, RoleItem, TermInfo } from '@/types'
+import type { DepartmentItem, ApplicationFormPrefill, ApplicationFormData, RoleItem } from '@/types'
 
 const props = withDefaults(
     defineProps<{
@@ -37,6 +37,7 @@ const props = withDefaults(
 const emit = defineEmits<{ submit: [data: ApplicationFormData, termId: number | null] }>()
 
 const orgStore = useOrgStore()
+const termStore = useTermStore()
 
 // 预填即为基线，此后的改动才视为已交互
 const p = props.initial
@@ -63,16 +64,7 @@ const confirmed = ref(false)
 const confirmId = useId()
 
 // ================= 周期 =================
-const terms = ref<TermInfo[]>([])
-// 加载可供选择的活动周期
-async function loadTerms() {
-    const resp = await getTermList()
-    if (resp?.code == 200) {
-        terms.value = resp.data ?? []
-    } else {
-        setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
-    }
-}
+const terms = computed(() => termStore.terms)
 
 // 图片上传处理
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -254,7 +246,7 @@ const optionsLoading = ref(true)
 
 onMounted(async () => {
     try {
-        await Promise.all([orgStore.ensureLoaded(), loadTerms(), loadPrefillOptions()])
+        await Promise.all([orgStore.ensureLoaded(), termStore.ensureLoaded(), loadPrefillOptions()])
     } finally {
         optionsLoading.value = false
     }

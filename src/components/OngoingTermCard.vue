@@ -4,29 +4,16 @@ import { computed, onMounted, ref } from 'vue'
 
 import { Skeleton } from 'primevue'
 
-import { getTermList } from '@/api/term'
+import { useTermStore } from '@/stores/term'
 import { fromDate } from '@/utils/date'
-import setToast from '@/utils/setToast'
 import type { TermInfo, TermPeriod } from '@/types'
 
-const terms = ref<TermInfo[]>([])
-const loading = ref(true)
-
-// 加载周期列表
-async function loadTerms() {
-    const resp = await getTermList()
-    loading.value = false
-
-    if (resp?.code == 200) {
-        terms.value = resp.data ?? []
-    } else {
-        setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
-    }
-}
+const termStore = useTermStore()
+const loading = ref(!termStore.loaded)
 
 // 判断现在是否在进行中的活动周期内
 const term = computed<TermInfo | null>(() => {
-    const t = terms.value[0]
+    const t = termStore.terms[0]
     if (!t) return null
     const today = fromDate(new Date())
     // 进行中条件：当前日期 >= 申请提交期开始 && 当前日期 <= 面试审核期结束
@@ -47,8 +34,12 @@ function formatPeriod(p: TermPeriod) {
     return p.start_at + ' ~ ' + p.end_at
 }
 
-onMounted(() => {
-    loadTerms()
+onMounted(async () => {
+    try {
+        await termStore.ensureLoaded()
+    } finally {
+        loading.value = false
+    }
 })
 </script>
 

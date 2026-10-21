@@ -6,10 +6,10 @@ import { Button, Column, DataTable, Dialog, Select, Skeleton, Tab, TabList, Tabs
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
 import { createInterviewResult, getInterviewResultList, updateInterviewResult } from '@/api/interview'
-import { getTermList } from '@/api/term'
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
+import { useTermStore } from '@/stores/term'
 import { fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
 
@@ -19,33 +19,15 @@ import type {
     InterviewResultItem,
     InterviewResultSubmitData,
     RoleItem,
-    TermInfo,
 } from '@/types'
 
 const orgStore = useOrgStore()
+const termStore = useTermStore()
 
 // ================= 周期 =================
-const terms = ref<TermInfo[]>([])
+const terms = computed(() => termStore.terms)
 const termId = ref<number | null>(null)
-const termsLoading = ref(true)
-
-// 加载可供选择的活动周期
-async function loadTerms() {
-    termsLoading.value = true
-    try {
-        const resp = await getTermList()
-        if (resp?.code == 200) {
-            terms.value = resp.data ?? []
-            // 打开页面时默认选中第一个活动周期
-            // 由 watch 触发申请列表加载
-            termId.value = terms.value[0]?.id ?? null
-        } else {
-            setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
-        }
-    } finally {
-        termsLoading.value = false
-    }
-}
+const termsLoading = ref(!termStore.loaded)
 
 // ================= 申请列表 =================
 const applications = ref<ApplicationItem[]>([])
@@ -259,7 +241,13 @@ function previewAvatar(url: string) {
 onMounted(async () => {
     // 用于把志愿里的部门 / 职位 id 显示为名称
     orgStore.ensureLoaded()
-    await loadTerms()
+    try {
+        // 打开页面时默认选中第一个活动周期，由 watch 触发申请列表加载
+        await termStore.ensureLoaded()
+        termId.value = termStore.terms[0]?.id ?? null
+    } finally {
+        termsLoading.value = false
+    }
     if (!termId.value) {
         loading.value = false
         resultsLoading.value = false

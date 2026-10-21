@@ -52,7 +52,7 @@ src/
 ├── views/             # 页面，按业务域分目录（home、user、manage、announcement、apply、settings、error）
 ├── components/        # 可复用组件（ConfirmDialog、MarkdownEditor、ImageCropper 等）
 ├── api/               # 接口层，按后端模块拆分，业务端点只在这里出现一次
-├── stores/            # Pinia：auth、org、settings
+├── stores/            # Pinia：auth、org、term、settings
 ├── utils/             # request、session、setToast、uploader、markdown、date、uriConverter、initAuthStore
 ├── types/             # 接口类型，按后端模块拆分，由 types/index.ts 统一导出
 ├── styles/            # reset.less（基础样式）、markdown.less（Markdown 编辑器样式）、variables.less（设计变量）
@@ -92,6 +92,7 @@ src/
 - Store 一律 setup 风格（`defineStore('x', () => { ... })`）。
 - 登录态只通过 `useAuthStore` 的 action 修改；组件和请求层不要直接改 `token` / `isAuthed` / cookie。`isAuthed` 是派生值，不可赋值。
 - 部门 / 职位等引用数据走 `useOrgStore`：`ensureLoaded()` 只请求一次，强制刷新用 `refresh()`。
+- 活动周期引用数据走 `useTermStore`：`ensureLoaded()` 会缓存并合并并发请求，周期增删改后调用 `refresh()`；页面 / 组件不要再各自调用 `getTermList()`。
 - 表单校验用 zod + `@primevue/forms` 的 `zodResolver`，错误文案用中文。
 - 上传统一走 `src/utils/uploader.ts`（`uploadImage` 限 4MB 常见图片格式，`uploadFile` 默认 100MB），不要另写上传请求。
 

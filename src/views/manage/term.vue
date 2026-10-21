@@ -3,9 +3,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Select } from 'primevue'
 
-import { createTerm, deleteTerm, getTermList, updateTerm } from '@/api/term'
+import { createTerm, deleteTerm, updateTerm } from '@/api/term'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
+import { useTermStore } from '@/stores/term'
 import { fromDate, toDate, fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
 import type { TermInfo, TermPeriod } from '@/types'
@@ -13,22 +14,11 @@ import type { TermInfo, TermPeriod } from '@/types'
 // 周期类型
 const TERM_TYPES = ['招新', '换届'] as const
 
-const terms = ref<TermInfo[]>([])
-const loading = ref(true)
+const termStore = useTermStore()
+const terms = computed(() => termStore.terms)
+const loading = ref(!termStore.loaded)
 
 // ================= 页面逻辑 =================
-// 加载周期列表
-async function loadTerms(silent = false) {
-    if (!silent) loading.value = true
-    const resp = await getTermList()
-    if (!silent) loading.value = false
-
-    if (resp?.code == 200) {
-        terms.value = resp.data ?? []
-    } else {
-        setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
-    }
-}
 
 // 筛选条件
 const filterYear = ref<number | null>(null)
@@ -132,7 +122,7 @@ async function onSave() {
             formTitle.value.trim() + '的数据已更新'
         )
         dialogVisible.value = false
-        await loadTerms(true)
+        await termStore.refresh()
     } else {
         setToast('error', '保存失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
@@ -157,7 +147,7 @@ async function onDeleteTerm() {
     if (resp?.code == 200) {
         setToast('success', `${target.title}删除成功`)
         deleteVisible.value = false
-        await loadTerms(true)
+        await termStore.refresh()
     } else {
         setToast('error', '删除失败', resp?.message || '未知错误，请联系负责后端的同学')
     }
@@ -167,8 +157,12 @@ function formatPeriod(p: TermPeriod) {
     return p.start_at + ' ~ ' + p.end_at
 }
 
-onMounted(() => {
-    loadTerms()
+onMounted(async () => {
+    try {
+        await termStore.ensureLoaded()
+    } finally {
+        loading.value = false
+    }
 })
 </script>
 

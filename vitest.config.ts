@@ -48,6 +48,7 @@ export default defineConfig({
                 'src/utils/session.ts',
                 'src/stores/auth.ts',
                 'src/stores/org.ts',
+                'src/stores/term.ts',
                 'src/stores/settings.ts',
                 'src/router/guard.ts',
                 'src/components/ApplicationForm.vue',

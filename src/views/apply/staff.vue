@@ -9,41 +9,27 @@ import {
     getInterviewStaffList,
     updateInterviewStaff,
 } from '@/api/interview'
-import { getTermList } from '@/api/term'
 import { getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
+import { useTermStore } from '@/stores/term'
 import setToast from '@/utils/setToast'
 
-import type { InterviewStaffItem, TermInfo, UserInfo } from '@/types'
+import type { InterviewStaffItem, UserInfo } from '@/types'
 import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
 
 const orgStore = useOrgStore()
+const termStore = useTermStore()
 
 const staff = ref<InterviewStaffItem[]>([])
 const staffLoading = ref(true)
 let staffRequests = 0
 
 // ================= 活动周期 =================
-const terms = ref<TermInfo[]>([])
-const termsLoading = ref(true)
+const terms = computed(() => termStore.terms)
+const termsLoading = ref(!termStore.loaded)
 const filterTermId = ref<number | null>(null)
 const tableLoading = computed(() => termsLoading.value || staffLoading.value)
-async function loadTerms() {
-    termsLoading.value = true
-    try {
-        const resp = await getTermList()
-        if (resp?.code == 200) {
-            terms.value = resp.data ?? []
-            // 打开页面时默认选中第一个活动周期
-            filterTermId.value = terms.value[0]?.id ?? null
-        } else {
-            setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
-        }
-    } finally {
-        termsLoading.value = false
-    }
-}
 
 // 加载当前周期的面试官列表
 async function loadStaff() {
@@ -221,7 +207,13 @@ async function onDelete() {
 
 onMounted(async () => {
     orgStore.ensureLoaded()
-    await loadTerms()
+    try {
+        // 打开页面时默认选中第一个活动周期
+        await termStore.ensureLoaded()
+        filterTermId.value = termStore.terms[0]?.id ?? null
+    } finally {
+        termsLoading.value = false
+    }
     // 没有可选周期时不会触发面试官列表请求，直接结束加载
     if (!filterTermId.value) staffLoading.value = false
 })
