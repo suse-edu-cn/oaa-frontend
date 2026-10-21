@@ -76,7 +76,7 @@ describe('stores/auth', () => {
         expect(Cookies.get('refresh_token')).toBe('refresh')
     })
 
-    it('setUserInfo 写入用户信息与 user_id cookie，并提供 isAuthed', () => {
+    it('setUserInfo 写入用户信息并提供 isAuthed', () => {
         const store = useAuthStore()
         store.applyTokens({ token: 'access', refreshToken: 'refresh' })
 
@@ -84,10 +84,9 @@ describe('stores/auth', () => {
 
         expect(store.userInfo?.user_id).toBe(9)
         expect(store.isAuthed).toBe(true)
-        expect(Cookies.get('user_id')).toBe('9')
     })
 
-    it('setUserInfo 覆盖已有 user_id cookie', () => {
+    it('setUserInfo 覆盖已有用户信息', () => {
         const store = useAuthStore()
         store.applyTokens({ token: 'access', refreshToken: 'refresh' })
         store.setUserInfo(makeUser({ user_id: 9 }))
@@ -95,7 +94,6 @@ describe('stores/auth', () => {
         store.setUserInfo(makeUser({ user_id: 10 }))
 
         expect(store.userInfo?.user_id).toBe(10)
-        expect(Cookies.get('user_id')).toBe('10')
     })
 
     it('clearSession 清空内存与全部 cookie', () => {
@@ -113,6 +111,5 @@ describe('stores/auth', () => {
         expect(store.isAuthed).toBe(false)
         expect(Cookies.get('token')).toBeUndefined()
         expect(Cookies.get('refresh_token')).toBeUndefined()
-        expect(Cookies.get('user_id')).toBeUndefined()
     })
 })

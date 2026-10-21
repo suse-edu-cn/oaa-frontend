@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import { clearSessionCookies, readSession, saveTokens, saveUserId } from '@/utils/session'
+import { clearSessionCookies, readSession, saveTokens } from '@/utils/session'
 import type { UserInfo } from '@/types'
 
 export interface AuthTokens {
@@ -51,7 +51,6 @@ export const useAuthStore = defineStore('auth', () => {
     /** 写入已加载的用户信息 */
     function setUserInfo(info: UserInfo): void {
         userInfo.value = info
-        saveUserId(info.user_id)
     }
 
     function clearSession(): void {

@@ -296,7 +296,6 @@ async function setAuthCookies(context: BrowserContext, baseURL: string, expiresI
     await context.addCookies([
         { name: 'token', value: makeJwt(expiresInSeconds), url: baseURL },
         { name: 'refresh_token', value: 'e2e-refresh-token', url: baseURL },
-        { name: 'user_id', value: '1', url: baseURL },
     ])
 }
 

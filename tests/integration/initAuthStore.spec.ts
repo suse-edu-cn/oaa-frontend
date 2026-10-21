@@ -30,7 +30,7 @@ describe('utils/initAuthStore', () => {
         expect(store.isAuthed).toBe(false)
     })
 
-    it('有 token 时写入用户信息与 user_id cookie', async () => {
+    it('有 token 时写入用户信息', async () => {
         setAuthCookies({ token: 'token', refreshToken: 'refresh' })
         getCurrentUserMock.mockResolvedValue({
             code: 200,
@@ -46,7 +46,6 @@ describe('utils/initAuthStore', () => {
         expect(store.userInfo?.user_id).toBe(7)
         expect(store.isAuthed).toBe(true)
         expect(store.isReady).toBe(true)
-        expect(Cookies.get('user_id')).toBe('7')
     })
 
     it('后端字段缺失时使用默认头像与职位', async () => {

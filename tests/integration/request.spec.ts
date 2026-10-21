@@ -30,7 +30,7 @@ useMsw()
 
 beforeEach(() => {
     setActivePinia(createPinia())
-    setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh', userId: '1' })
+    setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh' })
     // 默认当前处于受保护页
     currentRoute.value = { path: '/user', meta: {}, matched: [{ meta: {} }] }
     routerPush.mockReset()
@@ -212,7 +212,6 @@ describe('utils/request', () => {
 
     it('缺少 refresh_token 时不发起刷新，直接清理登录态', async () => {
         Cookies.remove('refresh_token', { path: '/' })
-        Cookies.remove('user_id', { path: '/' })
         let refreshCalls = 0
         server.use(
             http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
@@ -291,7 +290,6 @@ describe('utils/request', () => {
         expect(meCalls).toBe(1)
         expect(Cookies.get('token')).toBeUndefined()
         expect(Cookies.get('refresh_token')).toBeUndefined()
-        expect(Cookies.get('user_id')).toBeUndefined()
         expect(store.token).toBe('')
         expect(store.refreshToken).toBe('')
         expect(store.isAuthed).toBe(false)

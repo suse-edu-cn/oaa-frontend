@@ -13,18 +13,16 @@ const COOKIE_OPTIONS = {
     path: '/',
 } as const
 
-const SESSION_COOKIE_NAMES = ['token', 'refresh_token', 'user_id'] as const
+const SESSION_COOKIE_NAMES = ['token', 'refresh_token'] as const
 
 export interface SessionSnapshot {
     token: string
     refreshToken: string
-    userId: string
 }
 
 const EMPTY_SESSION: SessionSnapshot = {
     token: '',
     refreshToken: '',
-    userId: '',
 }
 
 // SSG 环境没有 document，读写 cookie 一律返回空 / 不执行
@@ -38,7 +36,6 @@ export function readSession(): SessionSnapshot {
     return {
         token: cookies.get('token') ?? '',
         refreshToken: cookies.get('refresh_token') ?? '',
-        userId: cookies.get('user_id') ?? '',
     }
 }
 
@@ -47,12 +44,6 @@ export function saveTokens(tokens: { token: string; refreshToken: string }): voi
 
     cookies.set('token', tokens.token, COOKIE_OPTIONS)
     cookies.set('refresh_token', tokens.refreshToken, COOKIE_OPTIONS)
-}
-
-export function saveUserId(userId: number | string): void {
-    if (!canUseCookies()) return
-
-    cookies.set('user_id', String(userId), COOKIE_OPTIONS)
 }
 
 export function clearSessionCookies(): void {

@@ -9,18 +9,22 @@ test.describe('招新申请', () => {
         await page.goto('/apply/new')
         await expect(page.getByRole('heading', { name: '添加新申请' })).toBeVisible()
 
+        // PrimeVue 关闭后的 Select 仍会留在 DOM 中，选项必须限定在当前可见的浮层里
+        const option = (name: string) =>
+            page.locator('.p-select-overlay:visible').last().getByRole('option', { name, exact: true })
+
         const termSection = page.locator('.form-section', { hasText: '申请周期' })
         const termSelect = termSection.getByRole('combobox')
         await expect(termSelect).toBeVisible()
 
         // 活动周期
         await termSelect.click()
-        await page.getByRole('option', { name: term.title, exact: true }).click()
+        await option(term.title).click()
 
         // 个人信息
         const personal = page.locator('.form-section', { hasText: '个人信息' })
         await personal.getByRole('combobox', { name: '请选择', exact: true }).click()
-        await page.getByRole('option', { name: '男', exact: true }).click()
+        await option('男').click()
         await page.getByPlaceholder('请选择出生日期').fill('2005-01-05')
         await page.getByPlaceholder('请选择出生日期').press('Enter')
         await page.getByPlaceholder('请输入学院').fill('计算机科学与工程学院')
@@ -48,14 +52,14 @@ test.describe('招新申请', () => {
         // 志愿
         const firstChoice = page.locator('.form-section', { hasText: '第一志愿' }).locator('.form-grid').first()
         await firstChoice.getByRole('combobox').nth(0).click()
-        await page.getByRole('option', { name: '项目实践部', exact: true }).click()
+        await option('项目实践部').click()
         await firstChoice.getByRole('combobox').nth(1).click()
-        await page.getByRole('option', { name: '干事', exact: true }).click()
+        await option('干事').click()
         const secondChoice = page.locator('.form-section', { hasText: '第二志愿' }).locator('.form-grid').nth(1)
         await secondChoice.getByRole('combobox').nth(0).click()
-        await page.getByRole('option', { name: '宣传部', exact: true }).click()
+        await option('宣传部').click()
         await secondChoice.getByRole('combobox').nth(1).click()
-        await page.getByRole('option', { name: '部长', exact: true }).click()
+        await option('部长').click()
 
         // 材料
         await page.getByPlaceholder('个人经历、项目经历等').fill('参与过开源项目维护。')

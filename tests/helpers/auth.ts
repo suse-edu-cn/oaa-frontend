@@ -1,10 +1,9 @@
-import { clearSessionCookies, saveTokens, saveUserId } from '@/utils/session'
+import { clearSessionCookies, saveTokens } from '@/utils/session'
 
-export function setAuthCookies(values: { token?: string; refreshToken?: string; userId?: string } = {}): void {
-    const { token = 'token', refreshToken = 'refresh_token', userId = '1' } = values
+export function setAuthCookies(values: { token?: string; refreshToken?: string } = {}): void {
+    const { token = 'token', refreshToken = 'refresh_token' } = values
 
     saveTokens({ token, refreshToken })
-    saveUserId(userId)
 }
 
 export function clearAuthCookies(): void {

@@ -52,21 +52,17 @@ function ensureFreshToken(): Promise<boolean> {
 
 async function doRefresh(): Promise<boolean> {
     const authStore = useAuthStore()
-    const session = readSession()
 
-    const userId = Number(authStore.userInfo?.user_id ?? session.userId)
-    const refreshToken = authStore.refreshToken || session.refreshToken
-    if (!userId || !refreshToken) {
+    const refreshToken = authStore.refreshToken || readSession().refreshToken
+    if (!refreshToken) {
         return false
     }
 
     try {
-        const requestToken = authStore.token || session.token
         const resp = await instance.request<ApiResponse<{ token: string; refresh_token: string }>>({
             url: '/auth/refresh',
             method: 'POST',
             data: { refresh_token: refreshToken },
-            headers: requestToken ? { Authorization: `Bearer ${requestToken}` } : {},
         })
 
         if (resp.data.code == 200) {

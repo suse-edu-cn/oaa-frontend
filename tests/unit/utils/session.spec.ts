@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Cookies from 'js-cookie'
 
-import { clearSessionCookies, readSession, saveTokens, saveUserId } from '@/utils/session'
+import { clearSessionCookies, readSession, saveTokens } from '@/utils/session'
 import { clearAuthCookies } from '../../helpers/auth'
 
 beforeEach(() => {
@@ -10,37 +10,33 @@ beforeEach(() => {
 
 describe('utils/session', () => {
     it('没有 cookie 时返回空会话', () => {
-        expect(readSession()).toEqual({ token: '', refreshToken: '', userId: '' })
+        expect(readSession()).toEqual({ token: '', refreshToken: '' })
     })
 
-    it('保存后可读取 token / refresh_token / user_id', () => {
+    it('保存后可读取 token / refresh_token', () => {
         saveTokens({ token: 'access', refreshToken: 'refresh' })
-        saveUserId(7)
 
-        expect(readSession()).toEqual({ token: 'access', refreshToken: 'refresh', userId: '7' })
+        expect(readSession()).toEqual({ token: 'access', refreshToken: 'refresh' })
         expect(Cookies.get('token')).toBe('access')
         expect(Cookies.get('refresh_token')).toBe('refresh')
-        expect(Cookies.get('user_id')).toBe('7')
     })
 
     it('清理会删除全部登录态 cookie', () => {
         saveTokens({ token: 'access', refreshToken: 'refresh' })
-        saveUserId(7)
 
         clearSessionCookies()
 
+        expect(readSession()).toEqual({ token: '', refreshToken: '' })
         expect(Cookies.get('token')).toBeUndefined()
         expect(Cookies.get('refresh_token')).toBeUndefined()
-        expect(Cookies.get('user_id')).toBeUndefined()
     })
 
     it('SSR 没有 document 时不读写 cookie', () => {
         vi.stubGlobal('document', undefined)
         try {
             saveTokens({ token: 'access', refreshToken: 'refresh' })
-            saveUserId(7)
 
-            expect(readSession()).toEqual({ token: '', refreshToken: '', userId: '' })
+            expect(readSession()).toEqual({ token: '', refreshToken: '' })
             expect(() => clearSessionCookies()).not.toThrow()
         } finally {
             vi.unstubAllGlobals()
