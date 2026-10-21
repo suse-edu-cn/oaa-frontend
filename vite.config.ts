@@ -13,7 +13,6 @@ const buildInfo = {
     hash: 'unknown',
     build: 'unknown',
     date: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development',
 }
 try {
     buildInfo.hash = execSync('git rev-parse --short=7 HEAD').toString().trim()

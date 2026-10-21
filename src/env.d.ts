@@ -16,5 +16,4 @@ declare const __BUILD_INFO__: {
     hash: string
     build: string
     date: string
-    env: string
 }

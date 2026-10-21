@@ -57,7 +57,9 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
                 </div>
             </div>
         </div>
-        <Dialog v-model:visible="showBuildDialog" modal header="版本信息" :style="{ minWidth: '24rem' }">
+
+        <!-- 版本信息弹窗 -->
+        <Dialog v-model:visible="showBuildDialog" modal header="版本信息" :style="{ minWidth: '22rem' }">
             <div class="build-info">
                 <div class="item">
                     <span>版本号</span>
@@ -70,10 +72,6 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
                 <div class="item">
                     <span>构建时间</span>
                     <span>{{ buildDate }}</span>
-                </div>
-                <div class="item">
-                    <span>构建环境</span>
-                    <span>{{ buildInfo.env }}</span>
                 </div>
             </div>
         </Dialog>
@@ -147,7 +145,10 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
 
 .build-info {
     font-size: 15px;
-    line-height: 2.4;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    margin-bottom: 0.5em;
 
     .item {
         display: flex;
