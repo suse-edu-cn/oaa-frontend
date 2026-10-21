@@ -7,6 +7,7 @@ import { createTerm, deleteTerm, updateTerm } from '@/api/term'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import { useTermStore } from '@/stores/term'
+import { toastApiError } from '@/utils/apiError'
 import { fromDate, toDate, fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
 import type { TermInfo, TermPeriod } from '@/types'
@@ -124,7 +125,7 @@ async function onSave() {
         dialogVisible.value = false
         await termStore.refresh()
     } else {
-        setToast('error', '保存失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('保存失败', resp)
     }
 }
 
@@ -149,7 +150,7 @@ async function onDeleteTerm() {
         deleteVisible.value = false
         await termStore.refresh()
     } else {
-        setToast('error', '删除失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('删除失败', resp)
     }
 }
 

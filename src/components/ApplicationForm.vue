@@ -7,6 +7,7 @@ import { Button, Checkbox, DatePicker, InputText, Message, Select, Skeleton, Tex
 import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
+import { toastApiError } from '@/utils/apiError'
 import { getApplicationFormErrors } from '@/utils/applicationFormValidation'
 import { fromDate, toDate } from '@/utils/date'
 import { uploadImage } from '@/utils/uploader'
@@ -99,7 +100,7 @@ async function fetchRoles(departmentId: number | null) {
     if (resp?.code == 200) {
         return resp.data ?? []
     }
-    setToast('error', '获取职位列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    toastApiError('获取职位列表失败', resp)
     return []
 }
 
@@ -119,7 +120,7 @@ async function fetchDepts(roleId: number | null) {
     if (resp?.code == 200) {
         return resp.data ?? []
     }
-    setToast('error', '获取部门列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+    toastApiError('获取部门列表失败', resp)
     return []
 }
 

@@ -40,6 +40,7 @@ export default defineConfig({
                 'src/utils/date.ts',
                 'src/utils/uriConverter.ts',
                 'src/utils/setToast.ts',
+                'src/utils/apiError.ts',
                 'src/utils/uploader.ts',
                 'src/utils/request.ts',
                 'src/utils/initAuthStore.ts',

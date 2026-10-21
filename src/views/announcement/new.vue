@@ -8,6 +8,7 @@ import { createAnnouncement, publishAnnouncement } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import { useOrgStore } from '@/stores/org'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 import { urlToUri } from '@/utils/uriConverter'
 
@@ -41,7 +42,7 @@ async function submitAnnouncement(): Promise<{ ok: boolean; id: number | null }>
         if (resp?.code == 200) {
             return { ok: true, id: resp.data?.announcement_id ?? null }
         }
-        setToast('error', '公告创建失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('公告创建失败', resp)
         return { ok: false, id: null }
     } finally {
         publishing.value = false
@@ -79,7 +80,7 @@ async function onPushConfirm() {
         if (resp?.code == 200) {
             setToast('success', '公告发布成功')
         } else {
-            setToast('error', '公告已创建，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('公告已创建，但发布失败', resp)
         }
         pushConfirmVisible.value = false
         router.push('/announcement/list')

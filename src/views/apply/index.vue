@@ -9,7 +9,7 @@ import ApplicationCard from '@/components/ApplicationCard.vue'
 import OngoingTermCard from '@/components/OngoingTermCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
-import setToast from '@/utils/setToast'
+import { toastApiError } from '@/utils/apiError'
 import type { ApplicationItem } from '@/types'
 
 const orgStore = useOrgStore()
@@ -35,7 +35,7 @@ async function loadApplications() {
         // 无申请时后端返回空的 data 数组
         applications.value = resp.data ?? []
     } else {
-        setToast('error', '获取申请信息失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('获取申请信息失败', resp)
     }
 }
 

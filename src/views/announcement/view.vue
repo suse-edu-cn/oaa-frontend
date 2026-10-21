@@ -7,8 +7,8 @@ import { Skeleton, Tag } from 'primevue'
 
 import { getAnnouncement } from '@/api/announcement'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
+import { toastApiError } from '@/utils/apiError'
 import { fromIso } from '@/utils/date'
-import setToast from '@/utils/setToast'
 
 import type { AnnouncementItem } from '@/types'
 
@@ -32,7 +32,7 @@ async function loadAnnouncement() {
             router.replace('/404')
         } else {
             loadFailed.value = true
-            setToast('error', '获取公告详情失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取公告详情失败', resp)
         }
     } finally {
         loading.value = false

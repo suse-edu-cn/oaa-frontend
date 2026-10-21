@@ -6,6 +6,7 @@ import { Button, Column, DataTable, Dialog, InputNumber, InputText, ToggleSwitch
 import { createDepartment, createRole, updateDepartment, updateRole } from '@/api/org'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 import type { DepartmentItem, RoleItem } from '@/types'
 
@@ -84,7 +85,7 @@ async function onDeptConfirm() {
         // 刷新 org 缓存
         await orgStore.refresh()
     } else {
-        setToast('error', `${deptDialogTitle.value}失败`, resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError(`${deptDialogTitle.value}失败`, resp)
     }
 }
 /** ============ 部门管理 END ============ */
@@ -165,7 +166,7 @@ async function onRoleConfirm() {
         // 刷新组织架构缓存
         await orgStore.refresh()
     } else {
-        setToast('error', `${roleDialogTitle.value}失败`, resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError(`${roleDialogTitle.value}失败`, resp)
     }
 }
 /** ============ 职位管理 END ============ */

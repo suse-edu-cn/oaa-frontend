@@ -6,9 +6,10 @@ import { useRouter, RouterLink } from 'vue-router'
 import { Button, Skeleton } from 'primevue'
 
 import { getAnnouncementList } from '@/api/announcement'
+import { toastApiError } from '@/utils/apiError'
 import { fromIso } from '@/utils/date'
-import setToast from '@/utils/setToast'
 import { initAuthStore } from '@/utils/initAuthStore'
+import setToast from '@/utils/setToast'
 import { useAuthStore } from '@/stores/auth'
 
 import type { AnnouncementItem } from '@/types'
@@ -25,7 +26,7 @@ async function loadAnnouncements() {
     if (resp?.code == 200) {
         announcements.value = resp.data ?? []
     } else {
-        setToast('error', '获取公告失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('获取公告失败', resp)
     }
     loading.value = false
 }

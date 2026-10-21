@@ -76,13 +76,6 @@ describe('utils/uploader', () => {
             expect(toastMock).toHaveBeenCalledWith('error', '上传失败', expect.stringContaining('未知错误'))
         })
 
-        it('请求异常时返回 null 并提示后端 message', async () => {
-            requestMock.mockRejectedValue({ response: { data: { message: '网关异常' } } } as never)
-
-            await expect(uploadImage(makeFile(), 'application')).resolves.toBeNull()
-            expect(toastMock).toHaveBeenCalledWith('error', '上传失败', '网关异常')
-        })
-
         it('请求形态正确', async () => {
             mockResponse({ code: 200, message: 'ok', data: { uri: 'oss://a.png', url: 'https://obj/a.png' } })
             const file = makeFile()

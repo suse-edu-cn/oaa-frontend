@@ -8,6 +8,7 @@ import { Button } from 'primevue'
 import { createApplication } from '@/api/application'
 import ApplicationForm from '@/components/ApplicationForm.vue'
 import { useAuthStore } from '@/stores/auth'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 import type { ApplicationFormData } from '@/types'
@@ -27,7 +28,7 @@ async function onSubmit(data: ApplicationFormData, termId: number | null) {
         setToast('success', '申请提交成功，请等待审核')
         router.push('/apply')
     } else {
-        setToast('error', '申请提交失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('申请提交失败', resp)
     }
 }
 </script>

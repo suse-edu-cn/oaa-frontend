@@ -7,6 +7,7 @@ import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { register } from '@/api/auth'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
@@ -60,10 +61,8 @@ async function onRegister() {
             setToast('success', '注册成功', '使用你的通行证登录吧！')
             emit('switchMode')
         } else {
-            setToast('error', '注册失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('注册失败', resp)
         }
-    } catch (err: any) {
-        setToast('error', '注册失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     } finally {
         isSubmitting.value = false
     }

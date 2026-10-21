@@ -7,6 +7,7 @@ import { Button, Checkbox, InputText, Skeleton } from 'primevue'
 import { getAnnouncement, publishAnnouncement, updateAnnouncement } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 import { urlToUri, uriToUrl } from '@/utils/uriConverter'
 
@@ -39,7 +40,7 @@ async function loadAnnouncement() {
             notFound.value = true
         } else {
             loadFailed.value = true
-            setToast('error', '获取公告详情失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取公告详情失败', resp)
         }
     } finally {
         loading.value = false
@@ -65,7 +66,7 @@ async function saveAnnouncement(): Promise<boolean> {
         if (resp?.code == 200) {
             return true
         }
-        setToast('error', '公告保存失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('公告保存失败', resp)
         return false
     } finally {
         saving.value = false
@@ -94,7 +95,7 @@ async function onPushConfirm() {
         if (resp?.code == 200) {
             setToast('success', '公告已保存并发布')
         } else {
-            setToast('error', '公告已保存，但发布失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('公告已保存，但发布失败', resp)
         }
         pushConfirmVisible.value = false
         router.push('/announcement/list')

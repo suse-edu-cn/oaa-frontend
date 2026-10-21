@@ -7,6 +7,7 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { changePassword } from '@/api/auth'
 import AuthResetPass from '@/components/AuthResetPass.vue'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
@@ -57,10 +58,8 @@ async function onChangePass() {
             setToast('success', '密码修改成功', '请使用新密码重新登录')
             emit('switchMode')
         } else {
-            setToast('error', '修改失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('修改失败', resp)
         }
-    } catch (err: any) {
-        setToast('error', '修改失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     } finally {
         isSubmitting.value = false
     }

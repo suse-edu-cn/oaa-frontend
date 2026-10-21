@@ -13,6 +13,7 @@ import { getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 import type { InterviewStaffItem, UserInfo } from '@/types'
@@ -43,7 +44,7 @@ async function loadStaff() {
         if (resp?.code == 200) {
             staff.value = resp.data ?? []
         } else {
-            setToast('error', '获取面试官列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取面试官列表失败', resp)
         }
     } finally {
         if (seq === staffRequests) staffLoading.value = false
@@ -77,7 +78,7 @@ async function loadUsers() {
         if (resp?.code == 200) {
             users.value = resp.data.list
         } else {
-            setToast('error', '获取人员列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取人员列表失败', resp)
         }
     } finally {
         if (seq === userRequests) usersLoading.value = false
@@ -147,7 +148,7 @@ async function onDialogConfirm() {
                 dialogVisible.value = false
                 await loadStaff()
             } else {
-                setToast('error', '添加面试官失败', resp?.message || '未知错误，请联系负责后端的同学')
+                toastApiError('添加面试官失败', resp)
             }
         } finally {
             dialogSaving.value = false
@@ -169,7 +170,7 @@ async function onDialogConfirm() {
             setToast('success', '更新面试官成功')
             dialogVisible.value = false
         } else {
-            setToast('error', '更新面试官失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('更新面试官失败', resp)
         }
     } finally {
         dialogSaving.value = false
@@ -198,7 +199,7 @@ async function onDelete() {
             setToast('success', `已移除面试官 ${target.name}`)
             deleteVisible.value = false
         } else {
-            setToast('error', '删除面试官失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('删除面试官失败', resp)
         }
     } finally {
         deleting.value = false

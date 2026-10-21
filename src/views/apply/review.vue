@@ -10,6 +10,7 @@ import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
+import { toastApiError } from '@/utils/apiError'
 import { fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
 
@@ -49,7 +50,7 @@ async function loadApplications() {
         if (resp?.code == 200) {
             applications.value = resp.data ?? []
         } else {
-            setToast('error', '获取申请列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取申请列表失败', resp)
         }
     } finally {
         if (seq === listRequests) loading.value = false
@@ -80,7 +81,7 @@ async function loadResults() {
         if (resp?.code == 200) {
             results.value = resp.data ?? []
         } else {
-            setToast('error', '获取审核记录失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取审核记录失败', resp)
         }
     } finally {
         if (seq === resultRequests) resultsLoading.value = false
@@ -118,7 +119,7 @@ async function loadResultRoles(departmentId: number) {
         if (resp?.code == 200) {
             resultRoles.value = resp.data ?? []
         } else {
-            setToast('error', '获取职位列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取职位列表失败', resp)
         }
     } finally {
         if (seq === resultRoleRequests) rolesLoading.value = false
@@ -206,11 +207,7 @@ async function onReviewConfirm() {
             await loadApplications()
             loadResults()
         } else {
-            setToast(
-                'error',
-                isEdit ? '更新审核失败' : '提交审核失败',
-                resp?.message || '未知错误，请联系负责后端的同学'
-            )
+            toastApiError(isEdit ? '更新审核失败' : '提交审核失败', resp)
         }
     } finally {
         reviewSaving.value = false

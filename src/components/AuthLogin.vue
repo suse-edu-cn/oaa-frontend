@@ -9,8 +9,8 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { login } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { toastApiError } from '@/utils/apiError'
 import { initAuthStore } from '@/utils/initAuthStore'
-import setToast from '@/utils/setToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -55,7 +55,7 @@ async function onLogin() {
             await initAuthStore()
             router.push('/user')
         } else {
-            setToast('error', '登录失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('登录失败', resp)
         }
     } finally {
         isSubmitting.value = false

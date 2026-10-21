@@ -6,6 +6,7 @@ import { Button, Column, DataTable, IconField, InputIcon, InputText, Select } fr
 import { batchUpdateUsers, deleteUser, getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 import type { UserBatchUpdateItem, UserInfo } from '@/types'
 
@@ -56,7 +57,7 @@ async function onDelete() {
         setToast('success', '删除成功', `已删除用户 ${target.name}（${target.username}）`)
         deleteVisible.value = false
     } else {
-        setToast('error', '删除失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('删除失败', resp)
     }
 }
 
@@ -114,7 +115,7 @@ async function onSaveBatch() {
         const detail = resp.data.map((item) => `${item.name}：${item.error_message}`).join('\n')
         setToast('error', '部分用户更新失败', detail)
     } else {
-        setToast('error', '保存失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('保存失败', resp)
     }
 }
 
@@ -125,7 +126,7 @@ onMounted(async () => {
         users.value = userResp.data.list
         resetDrafts()
     } else {
-        setToast('error', '获取用户列表失败', userResp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('获取用户列表失败', userResp)
     }
 
     loading.value = false

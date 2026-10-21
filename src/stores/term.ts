@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { getTermList } from '@/api/term'
-import setToast from '@/utils/setToast'
+import { toastApiError } from '@/utils/apiError'
 import type { TermInfo } from '@/types'
 
 /**
@@ -27,7 +27,7 @@ export const useTermStore = defineStore('term', () => {
                 loaded.value = true
                 return true
             }
-            setToast('error', '获取活动周期列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取活动周期列表失败', resp)
             loaded.value = false
             return false
         } finally {

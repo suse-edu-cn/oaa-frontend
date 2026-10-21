@@ -1,4 +1,5 @@
 import request from './request'
+import { toastApiError } from './apiError'
 import setToast from './setToast'
 import type { ApiResponse, UploadResponse } from '@/types'
 
@@ -30,22 +31,17 @@ async function upload(
     formData.append('file', file)
     formData.append('scene', scene)
 
-    try {
-        const resp = await request<ApiResponse<UploadResponse>>({
-            url,
-            method: 'POST',
-            data: formData,
-            timeout: 120 * 1000,
-        })
-        if (resp?.code == 200) {
-            return { uri: resp.data.uri || '', url: resp.data.url || '' }
-        }
-        setToast('error', '上传失败', resp?.message || '未知错误，请联系负责后端的同学')
-        return null
-    } catch (err: any) {
-        setToast('error', '上传失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
-        return null
+    const resp = await request<ApiResponse<UploadResponse>>({
+        url,
+        method: 'POST',
+        data: formData,
+        timeout: 120 * 1000,
+    })
+    if (resp?.code == 200) {
+        return { uri: resp.data.uri || '', url: resp.data.url || '' }
     }
+    toastApiError('上传失败', resp)
+    return null
 }
 
 /**

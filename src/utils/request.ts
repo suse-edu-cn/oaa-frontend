@@ -142,6 +142,7 @@ instance.interceptors.response.use(
  * 统一请求入口
  *
  * 不抛异常，网络 / 超时失败时返回 undefined，调用方需判空
+ * 失败提示交给 utils/apiError.ts 的 toastApiError
  */
 const request = async function <T = any>(config: {
     url: string
@@ -177,8 +178,9 @@ const request = async function <T = any>(config: {
             timeout: config.timeout,
         })
         return response.data
-    } catch (error: any) {
-        return error.response?.data
+    } catch (error: unknown) {
+        // HTTP 错误仍把后端响应体交给调用方
+        return axios.isAxiosError(error) ? (error.response?.data as T | undefined) : undefined
     }
 }
 

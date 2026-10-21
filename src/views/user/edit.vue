@@ -13,6 +13,7 @@ import AuthChangePass from '@/components/AuthChangePass.vue'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 import { useAuthStore } from '@/stores/auth'
+import { toastApiError } from '@/utils/apiError'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 
@@ -43,21 +44,17 @@ async function onUpdateData() {
         return
     }
 
-    try {
-        const resp = await updateCurrentUser({
-            username: updateData.value.username,
-            email: updateData.value.email,
-            avatar: updateData.value.avatar,
-        })
-        if (resp?.code == 200) {
-            setToast('success', '修改成功', '个人信息已更新！')
-            await initAuthStore()
-            router.push('/user')
-        } else {
-            setToast('error', '修改失败', resp?.message || '未知错误，请联系负责后端的同学')
-        }
-    } catch (err: any) {
-        setToast('error', '修改失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
+    const resp = await updateCurrentUser({
+        username: updateData.value.username,
+        email: updateData.value.email,
+        avatar: updateData.value.avatar,
+    })
+    if (resp?.code == 200) {
+        setToast('success', '修改成功', '个人信息已更新！')
+        await initAuthStore()
+        router.push('/user')
+    } else {
+        toastApiError('修改失败', resp)
     }
 }
 

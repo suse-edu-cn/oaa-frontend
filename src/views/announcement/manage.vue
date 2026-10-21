@@ -9,6 +9,7 @@ import { deleteAnnouncement, getAnnouncementList } from '@/api/announcement'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useOrgStore } from '@/stores/org'
+import { toastApiError } from '@/utils/apiError'
 import { fromIso } from '@/utils/date'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
@@ -51,7 +52,7 @@ async function loadAnnouncements() {
             const list = resp.data ?? []
             announcements.value = canManage.value ? list : list.filter((a) => a.is_active)
         } else {
-            setToast('error', '获取公告列表失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('获取公告列表失败', resp)
         }
     } finally {
         // 仅最新一次请求可以解除 loading，避免被旧响应提前打断
@@ -92,7 +93,7 @@ async function onDelete() {
             // 需重新拉取，保证与后端状态一致
             loadAnnouncements()
         } else {
-            setToast('error', '删除公告失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('删除公告失败', resp)
         }
     } finally {
         deleting.value = false

@@ -8,6 +8,7 @@ import { Button, Skeleton } from 'primevue'
 import { deleteApplication, getMyApplications, updateApplication } from '@/api/application'
 import ApplicationForm from '@/components/ApplicationForm.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 import type { ApplicationFormPrefill, ApplicationFormData } from '@/types'
@@ -34,7 +35,7 @@ async function loadApplication() {
     loading.value = false
 
     if (resp?.code != 200) {
-        setToast('error', '获取申请信息失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('获取申请信息失败', resp)
         notFound.value = true
         return
     }
@@ -79,7 +80,7 @@ async function onSave(data: ApplicationFormData) {
         setToast('success', '申请更新成功')
         router.push('/apply')
     } else {
-        setToast('error', '申请更新失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('申请更新失败', resp)
     }
 }
 
@@ -95,7 +96,7 @@ async function onDelete() {
         setToast('success', '申请删除成功')
         router.push('/apply')
     } else {
-        setToast('error', '申请删除失败', resp?.message || '未知错误，请联系负责后端的同学')
+        toastApiError('申请删除失败', resp)
     }
 }
 

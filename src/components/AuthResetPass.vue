@@ -6,6 +6,7 @@ import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { resetPassword, sendVerificationCode } from '@/api/auth'
+import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 withDefaults(
@@ -80,10 +81,8 @@ async function sendCode() {
                 }
             }, 1000)
         } else {
-            setToast('error', '发送失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('发送失败', resp)
         }
-    } catch (err: any) {
-        setToast('error', '发送失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     } finally {
         isSending.value = false
     }
@@ -115,10 +114,8 @@ async function onReset() {
             setToast('success', '重置成功', '请使用新密码登录')
             emit('switchMode')
         } else {
-            setToast('error', '重置失败', resp?.message || '未知错误，请联系负责后端的同学')
+            toastApiError('重置失败', resp)
         }
-    } catch (err: any) {
-        setToast('error', '重置失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
     } finally {
         isSubmitting.value = false
     }
