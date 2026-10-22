@@ -54,6 +54,8 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
                 buildBase: '/',
                 scope: '/',
                 registerType: 'autoUpdate',
+                // 插件默认注入的 registerSW.js 只在 load 时注册一次，发现不了新版本
+                injectRegister: null,
                 includeAssets: [],
                 manifest: {
                     name: '青蟹',
@@ -72,11 +74,23 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
                     ],
                 },
                 workbox: {
-                    globPatterns: ['**/*.{html,js}'],
-                    globIgnores: ['_oaa/**', 'oaa.svg', 'apple-touch-icon.png', 'workbox-*.js', 'pwa-*.png'],
+                    globPatterns: [],
+                    // 没有预缓存的 HTML，也就不能生成导航回退
+                    navigateFallback: null,
                     runtimeCaching: [
                         {
-                            // 当前环境 OSS 上带 hash 的构建资源，内容不可变
+                            // 导航网络优先，在线时永远拿最新 HTML，离线时回退
+                            urlPattern: ({ request }) => request.mode === 'navigate',
+                            handler: 'NetworkFirst',
+                            options: {
+                                cacheName: 'pages',
+                                networkTimeoutSeconds: 3,
+                                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                                cacheableResponse: { statuses: [200] },
+                            },
+                        },
+                        {
+                            // 当前环境 OSS 上带 hash 的构建资源
                             urlPattern: new RegExp(`^${ossOriginRe}/.*\\/_oaa\\/`),
                             handler: 'CacheFirst',
                             options: {

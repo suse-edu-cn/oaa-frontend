@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from '@/router'
 import { initAuthStore } from '@/utils/initAuthStore'
+import { registerServiceWorker } from '@/utils/pwa'
 import { configureRequestAuth } from '@/utils/request'
 import setToast from '@/utils/setToast'
 import { useSettingsStore } from '@/stores/settings'
@@ -41,5 +42,7 @@ app.use(ToastService)
 
 useSettingsStore(pinia)
 initAuthStore()
+
+if (import.meta.env.PROD) registerServiceWorker()
 
 app.mount('#app')

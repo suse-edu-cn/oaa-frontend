@@ -44,6 +44,7 @@ export default defineConfig({
                 'src/utils/uploader.ts',
                 'src/utils/request.ts',
                 'src/utils/initAuthStore.ts',
+                'src/utils/pwa.ts',
                 'src/utils/applicationFormValidation.ts',
                 'src/utils/theme.ts',
                 'src/utils/session.ts',
