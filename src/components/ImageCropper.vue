@@ -62,12 +62,12 @@ async function onCropConfirm() {
     uploading.value = true
     try {
         const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 })
-        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve))
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
         if (!blob) {
             setToast('error', '图片上传失败', '裁剪生成图片失败，请重试')
             return
         }
-        const uploaded = await uploadImage(new File([blob], 'image.png'), props.imgScene)
+        const uploaded = await uploadImage(new File([blob], 'image.png', { type: 'image/png' }), props.imgScene)
         if (!uploaded) return
 
         emit('uploaded', uploaded)
