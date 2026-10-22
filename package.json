@@ -34,7 +34,7 @@
     },
     "dependencies": {
         "@primeuix/themes": "^3.1.0",
-        "@primevue/forms": "^5.0.4",
+        "@primevue/forms": "^4.5.5",
         "axios": "^1.21.0",
         "cropperjs": "^1.7.0",
         "highlight.js": "^11.12.0",

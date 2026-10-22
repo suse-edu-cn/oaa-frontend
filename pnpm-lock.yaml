@@ -15,8 +15,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0
       '@primevue/forms':
-        specifier: ^5.0.4
-        version: 5.0.4(vue@3.5.44(typescript@6.0.3))
+        specifier: ^4.5.5
+        version: 4.5.5(vue@3.5.44(typescript@6.0.3))
       axios:
         specifier: ^1.21.0
         version: 1.21.0(debug@4.4.3)
@@ -1298,9 +1298,6 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  '@primeui/license-manager@1.1.0':
-    resolution: {integrity: sha512-irjhOGs6Xjwh1JhMyXtdUsYCsve6kBySZzDUhS/mWxsjwQm/wSN7oulyP/f5huJKdhZSzaN6rVApwpp4nDWE1g==}
-
   '@primeuix/forms@0.1.0':
     resolution: {integrity: sha512-LctcQidb+B5PuvAFWH24YH/SIzmHlOabLHpaTeGY/k51iBv1WyCp+5w9JMYuMB/BplSvV0ZGySxQVkN5Azr/aQ==}
     engines: {node: '>=12.11.0'}
@@ -1333,13 +1330,9 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
-  '@primevue/core@5.0.4':
-    resolution: {integrity: sha512-EK2te4t5VaCAPddRo47z3quBwFPK0Xf/f0Lk7EGXa3u+lXy63WI4JV2tYjtPoONTD4ulsrtyUOD0iopWh8GicQ==}
-    peerDependencies:
-      vue: ^3.5.0
-
-  '@primevue/forms@5.0.4':
-    resolution: {integrity: sha512-u1VxDW8zb/NHWUWiVuFuS8JeEMwxw02SKK6Kyu/UyMMUa6UipM6hqR7rfLtYv8Y8t/uuhpNAy/pe7hVlRVuSmQ==}
+  '@primevue/forms@4.5.5':
+    resolution: {integrity: sha512-LUeIt6oItwCZyBreQ7ycErE8aEjPmBWOTq1VPLhyaATcnzMBOZRIiwclaYk8s/tf5VYMqN9N4B80XnXoO7OdvQ==}
+    engines: {node: '>=12.11.0'}
 
   '@primevue/icons@4.5.5':
     resolution: {integrity: sha512-eteOhTdAOXEYE9qW1AOrBBgDxQ2szHJxSkEK1XVdV2TKxGM5FQf03Ovms0VDyZTc16XBIgvwYjXJQS0BPbhPaA==}
@@ -5345,8 +5338,6 @@ snapshots:
     dependencies:
       playwright: 1.64.1
 
-  '@primeui/license-manager@1.1.0': {}
-
   '@primeuix/forms@0.1.0':
     dependencies:
       '@primeuix/utils': 0.6.4
@@ -5377,18 +5368,11 @@ snapshots:
       '@primeuix/utils': 0.6.4
       vue: 3.5.44(typescript@6.0.3)
 
-  '@primevue/core@5.0.4(vue@3.5.44(typescript@6.0.3))':
-    dependencies:
-      '@primeui/license-manager': 1.1.0
-      '@primeuix/styled': 1.2.0
-      '@primeuix/utils': 0.8.3
-      vue: 3.5.44(typescript@6.0.3)
-
-  '@primevue/forms@5.0.4(vue@3.5.44(typescript@6.0.3))':
+  '@primevue/forms@4.5.5(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@primeuix/forms': 0.1.0
-      '@primeuix/utils': 0.8.3
-      '@primevue/core': 5.0.4(vue@3.5.44(typescript@6.0.3))
+      '@primeuix/utils': 0.6.4
+      '@primevue/core': 4.5.5(vue@3.5.44(typescript@6.0.3))
     transitivePeerDependencies:
       - vue
 
