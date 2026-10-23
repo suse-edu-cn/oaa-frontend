@@ -37,12 +37,15 @@ const registerSchema = z.object({
     student_id: z
         .string()
         .min(1, { message: '请填写学号' })
-        .regex(/^\d{11,12}$/, { message: '学号格式有误' }),
+        // 注：本科 11 位学号，研究生 12 位学号且 3 开头
+        .refine((value) => /^\d{11}$/.test(value) || /^3\d{11}$/.test(value), {
+            message: '学号格式有误',
+        }),
     grade: z
         .string()
         .min(1, { message: '请填写入学年份' })
         .regex(/^\d{4}$/, { message: '入学年份必须为 4 位数字' })
-        .refine((value) => Number(value) >= 2003, { message: '入学年份有误' }),
+        .refine((value) => Number(value) >= new Date().getFullYear(), { message: '入学年份不得早于当前年份' }),
     name: z.string().min(1, { message: '请填写姓名' }),
     username: z.string().min(1, { message: '请填写用户名' }),
     email: z.email({ message: '邮箱格式不正确' }),
@@ -55,10 +58,14 @@ const registerResolver = () => validateRegister({ values: registerData.value })
 function fillGradeByStudentId() {
     const studentId = registerData.value.student_id
 
-    // 如果学号是 11 位，则前两位表示入学年份
-    if (!/^\d{11}$/.test(studentId)) return
-
-    registerData.value.grade = String(2000 + Number(studentId.slice(0, 2)))
+    // 本科学号
+    if (/^\d{11}$/.test(studentId)) {
+        registerData.value.grade = String(2000 + Number(studentId.slice(0, 2)))
+    }
+    // 研究生学号
+    else if (/^3\d{11}$/.test(studentId)) {
+        registerData.value.grade = String(2000 + Number(studentId.slice(1, 3)))
+    }
 }
 
 const isSubmitting = ref(false)
