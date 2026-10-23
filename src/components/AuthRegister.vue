@@ -14,6 +14,7 @@ const emit = defineEmits<{ switchMode: [] }>()
 
 const initialValues = ref({
     student_id: '',
+    grade: '',
     name: '',
     username: '',
     email: '',
@@ -22,6 +23,7 @@ const initialValues = ref({
 
 const registerData = ref({
     student_id: '',
+    grade: '',
     username: '',
     name: '',
     email: '',
@@ -32,13 +34,32 @@ const registerData = ref({
 const isAccepted = ref(false)
 
 const registerSchema = z.object({
-    student_id: z.string().min(1, { message: '请填写学号' }).regex(/^\d+$/, { message: '学号必须为数字' }),
+    student_id: z
+        .string()
+        .min(1, { message: '请填写学号' })
+        .regex(/^\d{11,12}$/, { message: '学号格式有误' }),
+    grade: z
+        .string()
+        .min(1, { message: '请填写入学年份' })
+        .regex(/^\d{4}$/, { message: '入学年份必须为 4 位数字' })
+        .refine((value) => Number(value) >= 2003, { message: '入学年份有误' }),
     name: z.string().min(1, { message: '请填写姓名' }),
     username: z.string().min(1, { message: '请填写用户名' }),
     email: z.email({ message: '邮箱格式不正确' }),
     password: z.string().min(1, { message: '请填写密码' }),
 })
-const registerResolver = zodResolver(registerSchema)
+const validateRegister = zodResolver(registerSchema)
+const registerResolver = () => validateRegister({ values: registerData.value })
+
+// 自动填写入学年份
+function fillGradeByStudentId() {
+    const studentId = registerData.value.student_id
+
+    // 如果学号是 11 位，则前两位表示入学年份
+    if (!/^\d{11}$/.test(studentId)) return
+
+    registerData.value.grade = String(2000 + Number(studentId.slice(0, 2)))
+}
 
 const isSubmitting = ref(false)
 
@@ -55,7 +76,7 @@ async function onRegister() {
 
     isSubmitting.value = true
     try {
-        const resp = await register(registerData.value)
+        const resp = await register({ ...registerData.value, grade: Number(registerData.value.grade) })
 
         if (resp?.code == 200) {
             setToast('success', '注册成功', '使用你的通行证登录吧！')
@@ -81,12 +102,41 @@ async function onRegister() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-id-card" />
-                    <InputText v-model="registerData.student_id" name="student_id" size="large" class="input-box" />
+                    <InputText
+                        v-model="registerData.student_id"
+                        name="student_id"
+                        inputmode="numeric"
+                        maxlength="12"
+                        size="large"
+                        class="input-box"
+                        @blur="fillGradeByStudentId"
+                    />
                 </IconField>
                 <label for="on_label">学号</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.student_id?.invalid">{{ $form.student_id.error?.message }}</span
+                >&nbsp;
+            </Message>
+        </div>
+
+        <div class="input-box">
+            <FloatLabel variant="on">
+                <IconField>
+                    <InputIcon class="pi pi-calendar" />
+                    <InputText
+                        v-model="registerData.grade"
+                        name="grade"
+                        inputmode="numeric"
+                        maxlength="4"
+                        size="large"
+                        class="input-box"
+                    />
+                </IconField>
+                <label for="on_label">入学年份</label>
+            </FloatLabel>
+            <Message severity="error" size="small" variant="simple">
+                <span v-if="$form.grade?.invalid">{{ $form.grade.error?.message }}</span
                 >&nbsp;
             </Message>
         </div>

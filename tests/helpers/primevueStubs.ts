@@ -7,6 +7,7 @@ export const InputTextStub = defineComponent({
     props: {
         modelValue: { type: [String, Number], default: '' },
         disabled: Boolean,
+        size: String,
     },
     emits: ['update:modelValue'],
     setup(props, { emit }) {
@@ -198,6 +199,22 @@ export const SkeletonStub = defineComponent({
     },
 })
 
+// 纯布局包装组件，只透传 slot 保证输入框仍然可查询
+export const FloatLabelStub = defineComponent({
+    name: 'FloatLabel',
+    props: { variant: String },
+    setup(_, { slots }) {
+        return () => h('label', { class: 'float-label-stub' }, slots.default ? slots.default() : [])
+    },
+})
+
+export const IconFieldStub = defineComponent({
+    name: 'IconField',
+    setup(_, { slots }) {
+        return () => h('div', { class: 'icon-field-stub' }, slots.default ? slots.default() : [])
+    },
+})
+
 export const primevueStubs = {
     InputText: InputTextStub,
     Textarea: TextareaStub,
@@ -209,4 +226,6 @@ export const primevueStubs = {
     Message: MessageStub,
     Dialog: DialogStub,
     Skeleton: SkeletonStub,
+    FloatLabel: FloatLabelStub,
+    IconField: IconFieldStub,
 }

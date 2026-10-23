@@ -20,6 +20,7 @@ export interface LoginResult {
  */
 export interface RegisterData {
     student_id: string
+    grade: number
     username: string
     name: string
     email: string
