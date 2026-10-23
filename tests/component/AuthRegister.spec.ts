@@ -132,6 +132,16 @@ describe('components/AuthRegister', () => {
             })
         })
 
+        it('11 位学号推导出的往年入学年份可以注册', async () => {
+            const wrapper = mountRegister()
+
+            await fillForm(wrapper, '25101000000')
+            await submit(wrapper)
+
+            expect(registerMock).toHaveBeenCalledTimes(1)
+            expect(registerMock.mock.calls[0]![0].grade).toBe(2025)
+        })
+
         it('首位为 3 的 12 位学号可以注册', async () => {
             const wrapper = mountRegister()
 
@@ -163,11 +173,21 @@ describe('components/AuthRegister', () => {
             expect(registerMock).not.toHaveBeenCalled()
         })
 
-        it('入学年份早于当前年份时不发起注册', async () => {
+        it('入学年份晚于当前年份时不发起注册', async () => {
             const wrapper = mountRegister()
 
             await fillForm(wrapper, '26101000000')
-            await inputByName(wrapper, 'grade').setValue(String(CURRENT_YEAR - 1))
+            await inputByName(wrapper, 'grade').setValue(String(CURRENT_YEAR + 1))
+            await submit(wrapper)
+
+            expect(registerMock).not.toHaveBeenCalled()
+        })
+
+        it('入学年份早于 2003 时不发起注册', async () => {
+            const wrapper = mountRegister()
+
+            await fillForm(wrapper, '26101000000')
+            await inputByName(wrapper, 'grade').setValue('2002')
             await submit(wrapper)
 
             expect(registerMock).not.toHaveBeenCalled()

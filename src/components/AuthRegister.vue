@@ -45,7 +45,8 @@ const registerSchema = z.object({
         .string()
         .min(1, { message: '请填写入学年份' })
         .regex(/^\d{4}$/, { message: '入学年份必须为 4 位数字' })
-        .refine((value) => Number(value) >= new Date().getFullYear(), { message: '入学年份不得早于当前年份' }),
+        .refine((value) => Number(value) >= 2003, { message: '入学年份有误' })
+        .refine((value) => Number(value) <= new Date().getFullYear(), { message: '入学年份不得晚于当前年份' }),
     name: z.string().min(1, { message: '请填写姓名' }),
     username: z.string().min(1, { message: '请填写用户名' }),
     email: z.email({ message: '邮箱格式不正确' }),
