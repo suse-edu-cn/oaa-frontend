@@ -4,7 +4,10 @@ const { toast } = vi.hoisted(() => ({ toast: vi.fn() }))
 
 vi.mock('@/utils/setToast', () => ({ default: toast }))
 
-import { SW_URL, UPDATE_CHECK_INTERVAL, registerServiceWorker } from '@/utils/pwa'
+import { registerServiceWorker } from '@/utils/pwa'
+
+/** 更新检查间隔 */
+const UPDATE_CHECK_INTERVAL = 30 * 60 * 1000
 
 type Listener = (event: Event) => void
 
@@ -62,7 +65,7 @@ describe('utils/pwa', () => {
         window.dispatchEvent(new Event('load'))
         await flushPromises()
 
-        expect(container.register).toHaveBeenCalledWith(SW_URL, { scope: '/' })
+        expect(container.register).toHaveBeenCalledWith('/sw.js', { scope: '/' })
         expect(update).toHaveBeenCalledTimes(1)
     })
 
