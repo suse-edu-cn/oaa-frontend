@@ -10,7 +10,6 @@ const settingsStore = useSettingsStore()
 
 // vite 注入的版本信息
 const buildInfo = __BUILD_INFO__
-const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12: false })
 </script>
 
 <template>
@@ -38,7 +37,7 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
             <div class="setting-catalog">关于工作台</div>
             <div class="setting-card">
                 <a
-                    :href="buildInfo.repo + '/issues'"
+                    :href="buildInfo.repo + '/issues/new/choose'"
                     class="section clickable"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -71,7 +70,7 @@ const buildDate = new Date(__BUILD_INFO__.date).toLocaleString('zh-CN', { hour12
                 </div>
                 <div class="item">
                     <span>构建时间</span>
-                    <span>{{ buildDate }}</span>
+                    <span>{{ new Date(buildInfo.date).toLocaleString('zh-CN', { hour12: false }) }}</span>
                 </div>
             </div>
         </Dialog>
