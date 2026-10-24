@@ -2,7 +2,6 @@ import request from '@/utils/request'
 import type {
     ApiResponse,
     ApiResult,
-    InterviewResultItem,
     InterviewResultSubmitData,
     InterviewStaffCreateData,
     InterviewStaffItem,
@@ -42,15 +41,6 @@ export function deleteInterviewStaff(interviewerId: number): Promise<ApiResult<n
         url: '/interviewer/delete',
         method: 'POST',
         data: { interviewer_id: interviewerId },
-    })
-}
-
-// 审核记录列表 /interviewer/result/list
-export function getInterviewResultList(params: { term_id: number }): Promise<ApiResult<InterviewResultItem[]>> {
-    return request<ApiResponse<InterviewResultItem[]>>({
-        url: '/interviewer/result/list',
-        method: 'GET',
-        params,
     })
 }
 

@@ -28,7 +28,6 @@ import {
     createInterviewResult,
     createInterviewStaff,
     deleteInterviewStaff,
-    getInterviewResultList,
     getInterviewStaffList,
     updateInterviewResult,
     updateInterviewStaff,
@@ -231,6 +230,11 @@ const cases: Case[] = [
         expected: { url: '/application/list', method: 'GET', params: listParams },
     },
     {
+        name: 'application/getApplicationList（按审核结果过滤）',
+        run: () => getApplicationList({ term_id: 9, has_result: true }),
+        expected: { url: '/application/list', method: 'GET', params: { term_id: 9, has_result: true } },
+    },
+    {
         name: 'application/createApplication',
         run: () => createApplication(payload),
         expected: { url: '/application/create', method: 'POST', data: payload },
@@ -276,11 +280,6 @@ const cases: Case[] = [
         name: 'interview/deleteInterviewStaff',
         run: () => deleteInterviewStaff(7),
         expected: { url: '/interviewer/delete', method: 'POST', data: { interviewer_id: 7 } },
-    },
-    {
-        name: 'interview/getInterviewResultList',
-        run: () => getInterviewResultList({ term_id: 9 }),
-        expected: { url: '/interviewer/result/list', method: 'GET', params: { term_id: 9 } },
     },
     {
         name: 'interview/createInterviewResult',

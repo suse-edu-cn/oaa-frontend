@@ -96,4 +96,5 @@ export interface ApplicationUpdateData extends Omit<ApplicationCreateData, 'term
 export interface ApplicationListParams {
     term_id: number
     department_id?: number
+    has_result?: boolean
 }

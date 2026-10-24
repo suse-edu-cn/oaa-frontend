@@ -2,25 +2,18 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 
-import { Button, Column, DataTable, Dialog, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
+import { Button, Dialog, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
-import { createInterviewResult, getInterviewResultList, updateInterviewResult } from '@/api/interview'
+import { createInterviewResult, updateInterviewResult } from '@/api/interview'
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
-import { fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
 
-import type {
-    ApplicationItem,
-    ApplicationListParams,
-    InterviewResultItem,
-    InterviewResultSubmitData,
-    RoleItem,
-} from '@/types'
+import type { ApplicationItem, ApplicationListParams, ApiResult, InterviewResultSubmitData, RoleItem } from '@/types'
 
 const orgStore = useOrgStore()
 const termStore = useTermStore()
@@ -30,12 +23,28 @@ const terms = computed(() => termStore.terms)
 const termId = ref<number | null>(null)
 const termsLoading = ref(!termStore.loaded)
 
-// ================= 申请列表 =================
-const applications = ref<ApplicationItem[]>([])
+// ================ 申请列表 ================
+const tabs = [
+    { value: 'all', label: '全部申请' },
+    { value: 'unreviewed', label: '未审核' },
+    { value: 'reviewed', label: '已审核' },
+] as const
+type TabValue = (typeof tabs)[number]['value']
+
+const activeTab = ref<TabValue>('all')
+const lists = ref<Record<TabValue, ApplicationItem[]>>({ all: [], unreviewed: [], reviewed: [] })
 const loading = ref(true)
 // 请求序号，快速切换过滤项时丢弃旧响应
 let listRequests = 0
+
 const deptId = ref<number | null>(null)
+// 周期未就绪时也算加载中，避免先闪空状态
+const applicationsLoading = computed(() => termsLoading.value || loading.value)
+
+function applyList(target: TabValue, resp: ApiResult<ApplicationItem[]> | undefined) {
+    if (resp?.code == 200) lists.value[target] = resp.data ?? []
+}
+
 async function loadApplications() {
     if (!termId.value) return
 
@@ -45,52 +54,23 @@ async function loadApplications() {
     const seq = ++listRequests
     loading.value = true
     try {
-        const resp = await getApplicationList(params)
+        const [all, unreviewed, reviewed] = await Promise.all([
+            getApplicationList(params),
+            getApplicationList({ ...params, has_result: false }),
+            getApplicationList({ ...params, has_result: true }),
+        ])
         if (seq !== listRequests) return
-        if (resp?.code == 200) {
-            applications.value = resp.data ?? []
-        } else {
-            toastApiError('获取申请列表失败', resp)
-        }
+
+        applyList('all', all)
+        applyList('unreviewed', unreviewed)
+        applyList('reviewed', reviewed)
+        const failed = [all, unreviewed, reviewed].find((resp) => resp?.code != 200)
+        if (failed) toastApiError('获取申请列表失败', failed)
     } finally {
         if (seq === listRequests) loading.value = false
     }
 }
 watch([termId, deptId], loadApplications)
-
-// ================= 列表切换 =================
-// 已审核展示审核记录，全部申请展示申请卡片
-const activeTab = ref('reviewed')
-
-// ================= 审核记录 =================
-const results = ref<InterviewResultItem[]>([])
-const resultsLoading = ref(true)
-// 表格与卡片列表的加载态：周期未就绪时也算加载中，避免先闪空状态
-const applicationsLoading = computed(() => termsLoading.value || loading.value)
-const resultsTableLoading = computed(() => termsLoading.value || resultsLoading.value)
-// 请求序号，快速切换周期时丢弃旧响应
-let resultRequests = 0
-async function loadResults() {
-    if (!termId.value) return
-
-    const seq = ++resultRequests
-    resultsLoading.value = true
-    try {
-        const resp = await getInterviewResultList({ term_id: termId.value })
-        if (seq !== resultRequests) return
-        if (resp?.code == 200) {
-            results.value = resp.data ?? []
-        } else {
-            toastApiError('获取审核记录失败', resp)
-        }
-    } finally {
-        if (seq === resultRequests) resultsLoading.value = false
-    }
-}
-// 处于已审核 Tab 时，周期变化或切回该 Tab 都重新拉取
-watch([termId, activeTab], () => {
-    if (activeTab.value === 'reviewed') loadResults()
-})
 
 // ================= 审核 =================
 const decisionOptions = ['录取第一志愿', '录取第二志愿', '已调剂', '未通过', '待定']
@@ -98,7 +78,6 @@ const decisionOptions = ['录取第一志愿', '录取第二志愿', '已调剂'
 const reviewVisible = ref(false)
 const dialogType = ref<'create' | 'edit'>('create')
 const reviewTarget = ref<ApplicationItem | null>(null)
-const editTarget = ref<InterviewResultItem | null>(null)
 const dialogTitle = computed(() => (dialogType.value === 'create' ? '审核申请' : '修改审核'))
 const reviewForm = ref({
     decision: '',
@@ -131,33 +110,22 @@ function onResultDeptChange() {
     if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
     else resultRoles.value = []
 }
+
+function isReviewed(a: ApplicationItem) {
+    return activeTab.value === 'reviewed' || Boolean(a.operator_user_id) || Boolean(a.decision && a.decision !== '待定')
+}
+
 function openReview(a: ApplicationItem) {
-    dialogType.value = 'create'
+    dialogType.value = isReviewed(a) ? 'edit' : 'create'
     reviewTarget.value = a
-    editTarget.value = null
     reviewForm.value = {
         decision: a.decision || '',
-        deptId: a.result?.department_id ?? null,
-        roleId: a.result?.role_id ?? null,
+        deptId: a.result?.department_id || null,
+        roleId: a.result?.role_id || null,
         remark: a.decision_remark || '',
     }
     resultRoles.value = []
     // 预填了部门时拉取对应职位
-    if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
-    reviewVisible.value = true
-}
-
-function openResultEdit(r: InterviewResultItem) {
-    dialogType.value = 'edit'
-    reviewTarget.value = null
-    editTarget.value = r
-    reviewForm.value = {
-        decision: r.decision || '',
-        deptId: r.result_department_id || null,
-        roleId: r.result_role_id || null,
-        remark: r.remark || '',
-    }
-    resultRoles.value = []
     if (reviewForm.value.deptId) loadResultRoles(reviewForm.value.deptId)
     reviewVisible.value = true
 }
@@ -172,17 +140,13 @@ const reviewCanSave = computed(() => {
 const reviewSaving = ref(false)
 
 async function onReviewConfirm() {
+    const app = reviewTarget.value
     const decision = reviewForm.value.decision
-    if (!decision) return
+    if (!app || !decision) return
 
-    // create 直接用申请；edit 记录里只有 application_id，需回申请列表反查
     const isEdit = dialogType.value === 'edit'
-    const appId = isEdit ? editTarget.value?.application_id : reviewTarget.value?.id
-    if (!appId) return
-    const app = isEdit ? applications.value.find((a) => a.id === appId) : reviewTarget.value
-
     const data: InterviewResultSubmitData = {
-        application_id: appId,
+        application_id: app.id,
         decision,
         remark: reviewForm.value.remark.trim(),
     }
@@ -191,10 +155,9 @@ async function onReviewConfirm() {
         data.result_department_id = reviewForm.value.deptId
         data.result_role_id = reviewForm.value.roleId
     } else if (decision === '录取第一志愿' || decision === '录取第二志愿') {
-        // 申请不在列表（如被部门过滤）时，录取志愿沿用记录中已存的结果
-        const choice = decision === '录取第一志愿' ? app?.first_choice : app?.second_choice
-        data.result_department_id = choice?.department_id ?? editTarget.value?.result_department_id
-        data.result_role_id = choice?.role_id ?? editTarget.value?.result_role_id
+        const choice = decision === '录取第一志愿' ? app.first_choice : app.second_choice
+        data.result_department_id = choice?.department_id ?? app.result?.department_id
+        data.result_role_id = choice?.role_id ?? app.result?.role_id
     }
 
     reviewSaving.value = true
@@ -203,9 +166,8 @@ async function onReviewConfirm() {
         if (resp?.code == 200) {
             setToast('success', isEdit ? '审核已更新' : '审核已提交')
             reviewVisible.value = false
-            // 刷新申请列表与审核记录
+            // 三个 Tab 一起刷新，保证审核结果在各 Tab 间一致
             await loadApplications()
-            loadResults()
         } else {
             toastApiError(isEdit ? '更新审核失败' : '提交审核失败', resp)
         }
@@ -215,18 +177,6 @@ async function onReviewConfirm() {
 }
 
 // ================= 展示辅助 =================
-// 结果部门 / 职位 id 反查名称
-function resultOrgText(departmentId?: number, roleId?: number) {
-    if (!departmentId && !roleId) return '—'
-    const dept = orgStore.departments.find((d) => d.id === departmentId)?.name
-    const role = orgStore.roles.find((r) => r.id === roleId)?.name
-    return (
-        [dept ?? (departmentId ? `部门 #${departmentId}` : ''), role ?? (roleId ? `职位 #${roleId}` : '')]
-            .filter(Boolean)
-            .join(' ') || '—'
-    )
-}
-
 // 图片预览 lightbox
 const previewVisible = ref(false)
 const previewUrl = ref('')
@@ -247,7 +197,6 @@ onMounted(async () => {
     }
     if (!termId.value) {
         loading.value = false
-        resultsLoading.value = false
     }
 })
 </script>
@@ -281,97 +230,42 @@ onMounted(async () => {
 
         <Tabs v-model:value="activeTab" class="status-tabs">
             <TabList>
-                <Tab value="all">
-                    全部申请
-                    <Tag :value="applications.length" class="tab-count" severity="secondary" />
-                </Tab>
-                <Tab value="reviewed">
-                    已审核
-                    <Tag :value="results.length" class="tab-count" severity="secondary" />
+                <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+                    {{ tab.label }}
+                    <Tag :value="lists[tab.value].length" class="tab-count" severity="secondary" />
                 </Tab>
             </TabList>
         </Tabs>
 
-        <!-- 已审核 -->
-        <DataTable
-            v-if="activeTab === 'reviewed'"
-            :value="results"
-            :loading="resultsTableLoading"
-            data-key="id"
-            striped-rows
-            paginator
-            :rows="20"
-        >
-            <template #empty>
-                <div v-if="!resultsTableLoading" class="e-table-empty">暂无审核记录</div>
-            </template>
-            <Column field="name" header="姓名" />
-            <Column field="decision" header="结果" />
-            <Column header="录取情况">
-                <template #body="{ data }">
-                    {{
-                        resultOrgText(
-                            (data as InterviewResultItem).result_department_id,
-                            (data as InterviewResultItem).result_role_id
-                        )
-                    }}
-                </template>
-            </Column>
-            <Column field="operator_name" header="审核员" />
-            <Column header="审核时间">
-                <template #body="{ data }">
-                    {{ fromIso((data as InterviewResultItem).created_at) }}
-                </template>
-            </Column>
-            <Column field="remark" header="备注">
-                <template #body="{ data }">
-                    {{ data.remark || '—' }}
-                </template>
-            </Column>
-            <Column header="">
-                <template #body="{ data }">
-                    <Button
-                        icon="pi pi-pencil"
-                        severity="secondary"
-                        text
-                        @click="openResultEdit(data as InterviewResultItem)"
+        <!-- 加载中骨架屏，结构与申请卡片一致 -->
+        <div v-if="applicationsLoading" class="skeleton-list">
+            <div v-for="i in 3" :key="i" class="skeleton-card">
+                <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
+                <div class="s-fields">
+                    <Skeleton
+                        v-for="j in 4"
+                        :key="j"
+                        height="15px"
+                        :width="j === 4 ? '40%' : `${50 + ((i + j) % 3) * 14}%`"
                     />
-                </template>
-            </Column>
-        </DataTable>
-
-        <!-- 全部申请 -->
-        <template v-else>
-            <!-- 加载中骨架屏，结构与申请卡片一致 -->
-            <div v-if="applicationsLoading" class="skeleton-list">
-                <div v-for="i in 3" :key="i" class="skeleton-card">
-                    <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
-                    <div class="s-fields">
-                        <Skeleton
-                            v-for="j in 4"
-                            :key="j"
-                            height="15px"
-                            :width="j === 4 ? '40%' : `${50 + ((i + j) % 3) * 14}%`"
-                        />
-                    </div>
                 </div>
             </div>
+        </div>
 
-            <div v-else-if="!applications.length" class="empty">
-                <i class="pi pi-times-circle icon"></i>
-                <p>暂无符合条件的申请</p>
-            </div>
+        <div v-else-if="!lists[activeTab].length" class="empty">
+            <i class="pi pi-times-circle icon"></i>
+            <p>暂无符合条件的申请</p>
+        </div>
 
-            <template v-else>
-                <ApplicationCard
-                    v-for="a in applications"
-                    :key="a.id"
-                    :application="a"
-                    review-mode
-                    @preview="previewAvatar"
-                    @review="openReview"
-                />
-            </template>
+        <template v-else>
+            <ApplicationCard
+                v-for="a in lists[activeTab]"
+                :key="a.id"
+                :application="a"
+                review-mode
+                @preview="previewAvatar"
+                @review="openReview"
+            />
         </template>
 
         <!-- 头像灯箱预览 -->

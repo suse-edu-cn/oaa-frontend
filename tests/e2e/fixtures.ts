@@ -84,6 +84,38 @@ export function makeTerm(overrides: Partial<TermInfo> = {}): TermInfo {
     }
 }
 
+export function makeApplication(overrides: Partial<ApplicationItem> = {}): ApplicationItem {
+    return {
+        id: 1,
+        term_id: 7,
+        term_title: '2026 秋季招新',
+        type: '招新',
+        user_id: 1,
+        name: '测试申请人',
+        gender: '男',
+        avatar: DEFAULT_UPLOAD,
+        student_id: '20260001',
+        college: '计算机科学与工程学院',
+        major_class: '计科241',
+        political_status: '共青团员',
+        birth_date: '2006-01-05',
+        qq: '123456789',
+        phone: '13800138000',
+        first_choice: { department_id: 1, role_id: 1 },
+        second_choice: { department_id: 2, role_id: 2 },
+        allow_adjust: true,
+        resume: '参与过开源项目维护。',
+        reason: '希望和协会一起做有意思的项目。',
+        decision: '待定',
+        result: { department_id: 0, role_id: 0 },
+        operator_user_id: 0,
+        decision_remark: '',
+        created_at: '2026-09-10T10:00:00+08:00',
+        updated_at: '2026-09-10T10:00:00+08:00',
+        ...overrides,
+    }
+}
+
 /**
  * 构造只需要 payload 的假 JWT，exp 为相对当前时间的秒数
  * 保留 base64 的 `=` 填充，request.ts 直接 atob 解析
@@ -133,6 +165,11 @@ interface ApiEnvelope<T> {
 
 function ok<T>(data: T): ApiEnvelope<T> {
     return { code: 200, message: 'ok', data }
+}
+
+/** 已审核 = 有审核员或结果不再是默认的“待定”，与 review 页的判断一致 */
+function isReviewed(item: ApplicationItem): boolean {
+    return Boolean(item.operator_user_id) || Boolean(item.decision && item.decision !== '待定')
 }
 
 function fail(code: number, message: string): ApiEnvelope<null> {
@@ -216,6 +253,14 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
 
     if (method === 'GET' && path === '/application/me') {
         return fulfill(route, ok(scenario.applications ?? []))
+    }
+
+    if (method === 'GET' && path === '/application/list') {
+        const hasResult = url.searchParams.get('has_result')
+        const applications = scenario.applications ?? []
+        const list =
+            hasResult === null ? applications : applications.filter((item) => String(isReviewed(item)) === hasResult)
+        return fulfill(route, ok(list))
     }
 
     if (method === 'POST' && path === '/application/create') {
