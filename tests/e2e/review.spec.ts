@@ -53,4 +53,34 @@ test.describe('审核申请', () => {
         await expect(page.getByText('审核结果')).toBeVisible()
         await expect(page.getByText('修改审核')).toHaveCount(0)
     })
+
+    test('每页 10 条申请信息', async ({ page, api, signIn }) => {
+        const applications = Array.from({ length: 12 }, (_, index) =>
+            makeApplication({ id: index + 1, name: `申请人${String(index + 1).padStart(2, '0')}` })
+        )
+        api.scenario = { user: makeUser({ role_level: 50 }), terms: [makeTerm()], applications }
+        await signIn()
+
+        await page.goto('/apply/review')
+        await expect(page.getByRole('heading', { name: '审核申请' })).toBeVisible()
+
+        // 第一页 10 条
+        await expect(page.getByText('申请人01')).toBeVisible()
+        await expect(page.getByText('申请人10')).toBeVisible()
+        await expect(page.getByText('申请人11')).toHaveCount(0)
+
+        // 第二页 2 条
+        const paginator = page.locator('.p-paginator')
+        const tabList = page.getByRole('tablist')
+        await paginator.scrollIntoViewIfNeeded()
+        await page.locator('.p-paginator-page').filter({ hasText: /^2$/ }).click()
+        await expect(page.getByText('申请人11')).toBeVisible()
+        await expect(page.getByText('申请人12')).toBeVisible()
+        await expect(page.getByText('申请人01')).toHaveCount(0)
+        await expect.poll(async () => Math.abs((await tabList.boundingBox())?.y ?? 9999)).toBeLessThan(150)
+
+        // 切 Tab 回到第一页
+        await page.getByRole('tab', { name: /未审核/ }).click()
+        await expect(page.getByText('申请人01')).toBeVisible()
+    })
 })

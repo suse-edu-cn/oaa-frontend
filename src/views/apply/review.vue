@@ -1,8 +1,8 @@
 <!-- 申请表审核页 /apply/review -->
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
-import { Button, Dialog, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
+import { Button, Dialog, Paginator, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
 import { createInterviewResult, updateInterviewResult } from '@/api/interview'
@@ -40,6 +40,29 @@ let listRequests = 0
 const deptId = ref<number | null>(null)
 // 周期未就绪时也算加载中，避免先闪空状态
 const applicationsLoading = computed(() => termsLoading.value || loading.value)
+
+// ================= 分页 =================
+const pageRows = 10
+const first = ref(0)
+const activeList = computed(() => lists.value[activeTab.value])
+const pagedApplications = computed(() => activeList.value.slice(first.value, first.value + pageRows))
+watch(activeTab, () => {
+    first.value = 0
+})
+// 新后数据变少时收回页码避免停在空白页
+watch(activeList, () => {
+    if (first.value >= activeList.value.length) first.value = 0
+})
+
+// 换页后滚回列表顶部
+const listTop = ref<HTMLElement | null>(null)
+async function scrollToListTop() {
+    const el = listTop.value
+    if (!el || el.getBoundingClientRect().top >= 0) return
+    // 等新一页渲染完再滚动
+    await nextTick()
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 function applyList(target: TabValue, resp: ApiResult<ApplicationItem[]> | undefined) {
     if (resp?.code == 200) lists.value[target] = resp.data ?? []
@@ -228,14 +251,16 @@ onMounted(async () => {
             />
         </div>
 
-        <Tabs v-model:value="activeTab" class="status-tabs">
-            <TabList>
-                <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
-                    {{ tab.label }}
-                    <Tag :value="lists[tab.value].length" class="tab-count" severity="secondary" />
-                </Tab>
-            </TabList>
-        </Tabs>
+        <div ref="listTop">
+            <Tabs v-model:value="activeTab" class="status-tabs">
+                <TabList>
+                    <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+                        {{ tab.label }}
+                        <Tag :value="lists[tab.value].length" class="tab-count" severity="secondary" />
+                    </Tab>
+                </TabList>
+            </Tabs>
+        </div>
 
         <!-- 加载中骨架屏，结构与申请卡片一致 -->
         <div v-if="applicationsLoading" class="skeleton-list">
@@ -259,12 +284,21 @@ onMounted(async () => {
 
         <template v-else>
             <ApplicationCard
-                v-for="a in lists[activeTab]"
+                v-for="a in pagedApplications"
                 :key="a.id"
                 :application="a"
                 review-mode
                 @preview="previewAvatar"
                 @review="openReview"
+            />
+            <Paginator
+                v-if="activeList.length > pageRows"
+                v-model:first="first"
+                :rows="pageRows"
+                :total-records="activeList.length"
+                template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+                class="pagination"
+                @page="scrollToListTop"
             />
         </template>
 
@@ -333,6 +367,11 @@ onMounted(async () => {
     .tab-count {
         margin-left: 6px;
     }
+}
+
+// 与 DataTable 底部 paginator 的位置保持一致
+.pagination {
+    margin-top: 4px;
 }
 
 .dialog-fields {
