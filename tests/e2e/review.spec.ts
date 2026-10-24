@@ -31,27 +31,31 @@ test.describe('审核申请', () => {
         await expect(tab('未审核')).toContainText('1')
         await expect(tab('已审核')).toContainText('1')
 
+        // 未审核 -> 审核申请，已审核 -> 修改审核
         // 全部申请
         await expect(page.getByText('待审核同学')).toBeVisible()
         await expect(page.getByText('已审核同学')).toBeVisible()
+        await expect(page.getByRole('button', { name: '审核申请' })).toHaveCount(1)
+        await expect(page.getByRole('button', { name: '修改审核' })).toHaveCount(1)
 
         // 未审核
         await tab('未审核').click()
         await expect(page.getByText('待审核同学')).toBeVisible()
         await expect(page.getByText('已审核同学')).toHaveCount(0)
+        await expect(page.getByRole('button', { name: '修改审核' })).toHaveCount(0)
 
-        // 已审核弹窗内容
+        // 已审核
         await tab('已审核').click()
         await expect(page.getByText('已审核同学')).toBeVisible()
-        await page.getByRole('button', { name: '审核申请' }).click()
-        await expect(page.getByText('修改审核')).toBeVisible()
+        await page.getByRole('button', { name: '修改审核' }).click()
+        await expect(page.getByRole('dialog').getByText('修改审核')).toBeVisible()
 
-        // 未审核弹窗内容
+        // 未审核弹窗
         await page.getByRole('button', { name: '取消' }).click()
         await tab('未审核').click()
         await page.getByRole('button', { name: '审核申请' }).click()
+        await expect(page.getByRole('dialog').getByText('审核申请')).toBeVisible()
         await expect(page.getByText('审核结果')).toBeVisible()
-        await expect(page.getByText('修改审核')).toHaveCount(0)
     })
 
     test('每页 10 条申请信息', async ({ page, api, signIn }) => {

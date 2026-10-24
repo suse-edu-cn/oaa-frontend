@@ -157,7 +157,11 @@ function getDecisionClass(decision: string) {
             <!--  -->
             <div :class="['card-footer', reviewMode ? 'review' : '']">
                 <div class="info">提交时间：{{ fromIso(application.created_at) }}</div>
-                <Button v-if="reviewMode" label="审核申请" @click="emit('review', application)" />
+                <Button
+                    v-if="reviewMode"
+                    :label="getDecisionClass(application.decision) !== 'pending' ? '修改审核' : '审核申请'"
+                    @click="emit('review', application)"
+                />
             </div>
         </template>
     </Card>
