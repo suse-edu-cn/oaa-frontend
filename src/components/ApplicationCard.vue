@@ -129,13 +129,9 @@ function getDecisionClass(decision: string) {
                     </div>
                 </div>
 
-                <img
-                    v-if="application.avatar?.url"
-                    :src="application.avatar.url"
-                    alt="用户头像"
-                    class="img"
-                    @click="emit('preview', application.avatar.url)"
-                />
+                <div v-if="application.avatar?.url" class="avatar" @click="emit('preview', application.avatar.url)">
+                    <img :src="application.avatar.url" alt="用户头像" class="img" />
+                </div>
             </div>
 
             <!-- 文字内容 -->
@@ -251,14 +247,36 @@ function getDecisionClass(decision: string) {
         }
     }
 
-    .img {
+    .avatar {
+        position: relative;
         flex-shrink: 0;
         width: 160px;
         height: 180px;
-        object-fit: cover;
-        border-radius: var(--e-border-radius);
         border: 1px solid var(--e-border-subtle);
+        border-radius: var(--e-border-radius);
+        overflow: hidden;
         cursor: pointer;
+
+        // hover 遮罩
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: var(--e-mask-hover);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        &:hover::after {
+            opacity: 1;
+        }
+
+        .img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     }
 }
 
