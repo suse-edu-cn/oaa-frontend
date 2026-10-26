@@ -5,6 +5,7 @@ import type {
     AnnouncementItem,
     ApplicationItem,
     DepartmentItem,
+    InterviewStaffItem,
     RoleItem,
     TermInfo,
     UploadResponse,
@@ -139,6 +140,8 @@ export interface MockScenario {
     announcements?: AnnouncementItem[]
     announcement?: AnnouncementItem | null
     applications?: ApplicationItem[]
+    interviewers?: InterviewStaffItem[]
+    users?: UserInfo[]
     terms?: TermInfo[]
     departments?: DepartmentItem[]
     roles?: RoleItem[]
@@ -265,6 +268,19 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
 
     if (method === 'POST' && path === '/application/create') {
         if (scenario.createApplication === 'fail') return fulfill(route, fail(500, '创建申请失败'))
+        return fulfill(route, ok(null))
+    }
+
+    if (method === 'GET' && path === '/user/list') {
+        const users = scenario.users ?? []
+        return fulfill(route, ok({ total: users.length, list: users }))
+    }
+
+    if (method === 'GET' && path === '/interviewer/list') {
+        return fulfill(route, ok(scenario.interviewers ?? []))
+    }
+
+    if (method === 'POST' && path === '/interviewer/create') {
         return fulfill(route, ok(null))
     }
 

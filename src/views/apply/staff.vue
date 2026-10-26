@@ -100,7 +100,7 @@ const dialogFormUserId = computed(() =>
 const editTarget = computed(() => staff.value.find((s) => s.id === dialogTargetId.value))
 const dialogCanSave = computed(() => {
     if (dialogMode.value !== 'create') return true
-    return dialogFormTermId.value !== null && dialogFormUserId.value !== null && dialogFormRemark.value.trim() !== ''
+    return dialogFormTermId.value !== null && dialogFormUserId.value !== null
 })
 
 function openCreate() {
@@ -137,11 +137,14 @@ async function onDialogConfirm() {
         const user = users.value.find((u) => u.user_id === userId)
         if (!user) return
 
+        // 简介留空时默认用部门 + 职位
+        const remark = dialogFormRemark.value.trim() || user.department + user.role
+
         dialogSaving.value = true
         try {
             const resp = await createInterviewStaff({
                 term_id: termId,
-                interviewers: [{ user_id: userId, remark: dialogFormRemark.value.trim() }],
+                interviewers: [{ user_id: userId, remark }],
             })
             if (resp?.code == 200) {
                 setToast('success', '添加面试官成功')
