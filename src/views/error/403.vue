@@ -46,4 +46,24 @@ main {
         gap: 12px;
     }
 }
+
+@media screen and (max-width: 800px) {
+    main {
+        padding: 6vh 0;
+    }
+
+    .code {
+        font-size: 72px;
+    }
+
+    .actions {
+        width: 100%;
+        flex-direction: column;
+
+        .p-button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
 </style>

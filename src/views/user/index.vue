@@ -256,6 +256,36 @@ main {
         --banner-direction: column;
         --banner-info-align: center;
         --banner-h-margin: auto;
+
+        gap: 1rem;
+
+        img {
+            width: 6rem;
+            height: 6rem;
+        }
+
+        .info .title {
+            font-size: 26px;
+            margin: 4px auto 8px;
+        }
+
+        .subtitle {
+            gap: 10px;
+        }
+
+        .subtitle .identity {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px 16px;
+        }
+
+        .subtitle .p-button {
+            width: 100%;
+        }
+    }
+
+    .section-header {
+        align-items: center;
     }
 
     .announcement-grid {

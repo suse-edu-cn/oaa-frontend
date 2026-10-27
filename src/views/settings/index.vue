@@ -163,16 +163,31 @@ const buildInfo = __BUILD_INFO__
     }
 }
 
-// 窄屏下主题选择器换行，避免挤出容器
 @media screen and (max-width: 800px) {
-    .setting-card .section {
-        flex-wrap: wrap;
+    .setting-card {
+        .section {
+            flex-wrap: wrap;
+            padding: 14px 16px;
+        }
+
+        .divider {
+            margin: 0 16px;
+        }
     }
 
     .setting-card .value.theme {
         width: 100%;
         margin-left: 0;
         margin-top: 10px;
+
+        .p-select {
+            width: 100%;
+        }
+    }
+
+    .build-info .item {
+        flex-direction: column;
+        gap: 2px;
     }
 }
 </style>
