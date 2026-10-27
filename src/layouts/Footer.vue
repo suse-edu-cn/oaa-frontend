@@ -27,6 +27,10 @@ footer {
 @media (max-width: 800px) {
     footer {
         flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        text-align: center;
     }
 }
 </style>

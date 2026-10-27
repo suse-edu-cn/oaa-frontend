@@ -120,4 +120,18 @@ watch(cropVisible, (visible) => {
         margin: 0 24px 18px 24px;
     }
 }
+
+@media screen and (max-width: 800px) {
+    .dialog-cropper {
+        .p-dialog-content {
+            max-width: 100%;
+            max-height: 60vh;
+        }
+
+        .cropper-container {
+            max-width: calc(100vw - 48px);
+            max-height: calc(60vh - 18px);
+        }
+    }
+}
 </style>

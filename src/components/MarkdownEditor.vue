@@ -25,6 +25,7 @@ import 'md-editor-v3/lib/style.css'
 
 import { useSettingsStore } from '@/stores/settings'
 import { uploadImage } from '@/utils/uploader'
+import { useMediaQuery } from '@/utils/useMediaQuery'
 
 import type { UploadImgCallBack } from 'md-editor-v3'
 import type { UploadResponse } from '@/types'
@@ -47,6 +48,7 @@ const content = defineModel<string>({ default: '' })
 
 const settings = useSettingsStore()
 const theme = computed<'light' | 'dark'>(() => (settings.isDark ? 'dark' : 'light'))
+const isMobile = useMediaQuery('(max-width: 800px)')
 
 async function onUploadImg(files: File[], callback: UploadImgCallBack) {
     const results = await Promise.all(files.map((file) => uploadImage(file, props.imgScene)))
@@ -64,6 +66,7 @@ async function onUploadImg(files: File[], callback: UploadImgCallBack) {
         :placeholder="placeholder"
         :style="{ minHeight }"
         :theme="theme"
+        :preview="!isMobile"
         no-prettier
         no-mermaid
         no-echarts

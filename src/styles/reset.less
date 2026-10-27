@@ -18,6 +18,7 @@ body {
 #app {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
@@ -49,6 +50,18 @@ body {
 }
 .p-toast .p-toast-message-detail {
     white-space: pre-line;
+}
+
+// 列较多的表格在窄容器内横向滚动，避免把页面撑宽
+.p-datatable {
+    width: 100%;
+    max-width: 100%;
+}
+
+.p-datatable-table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .p-autocomplete-fluid {
     width: 100%;
@@ -112,3 +125,47 @@ a:hover {
 .p-button-label {
     font-size: 15px;
 }
+
+// ====== 移动端 BEGIN ======
+@media screen and (max-width: 800px) {
+    .e-title {
+        font-size: 1.5rem;
+        margin: 1.5rem 0 1rem;
+    }
+
+    .p-dialog {
+        width: calc(100vw - 2rem) !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - 2rem) !important;
+        max-height: calc(100dvh - 2rem);
+    }
+
+    .p-dialog .p-dialog-content {
+        overflow-y: auto;
+    }
+
+    .p-dialog .p-dialog-footer {
+        display: flex;
+        gap: 8px;
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    .p-toast {
+        max-width: calc(100vw - 2rem);
+    }
+
+    .p-datatable .p-paginator {
+        flex-wrap: wrap;
+        row-gap: 4px;
+        padding: 8px 4px;
+    }
+
+    .md-editor {
+        min-height: 50vh !important;
+    }
+}
+// ====== 移动端 END ======
