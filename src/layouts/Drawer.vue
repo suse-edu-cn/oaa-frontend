@@ -191,8 +191,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 }
 
 .drawer {
-    width: clamp(208px, 18%, 270px);
-    max-width: 270px;
+    width: var(--e-drawer-width);
     min-height: 0;
     overflow-y: auto;
     font-size: 14px;
@@ -219,8 +218,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         transform: translateY(-50%);
         align-items: center;
         justify-content: center;
-        width: 2.25rem;
-        height: 2.25rem;
+        width: var(--e-icon-button-size);
+        height: var(--e-icon-button-size);
         padding: 0;
         border: none;
         border-radius: var(--e-border-radius);
@@ -283,12 +282,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         left: 0;
         z-index: calc(var(--e-mobile-overlay-z) + 1);
         width: var(--e-mobile-nav-width);
-        max-width: none;
         height: 100dvh;
-        padding-top: calc(8px + env(safe-area-inset-top));
+        padding-top: calc(8px + var(--e-safe-area-top));
         overflow-y: auto;
         border-radius: 0;
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--e-shadow-drawer);
         transform: translateX(-105%);
         visibility: hidden;
         transition:

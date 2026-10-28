@@ -134,10 +134,10 @@ a:hover {
     }
 
     .p-dialog {
-        width: calc(100vw - 2rem) !important;
+        width: calc(100vw - var(--e-mobile-overlay-inset)) !important;
         min-width: 0 !important;
-        max-width: calc(100vw - 2rem) !important;
-        max-height: calc(100dvh - 2rem);
+        max-width: calc(100vw - var(--e-mobile-overlay-inset)) !important;
+        max-height: calc(100dvh - var(--e-mobile-overlay-inset));
     }
 
     .p-dialog .p-dialog-content {
@@ -155,7 +155,7 @@ a:hover {
     }
 
     .p-toast {
-        max-width: calc(100vw - 2rem);
+        max-width: calc(100vw - var(--e-mobile-overlay-inset));
     }
 
     .p-datatable .p-paginator {

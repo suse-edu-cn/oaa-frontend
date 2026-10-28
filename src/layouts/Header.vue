@@ -106,7 +106,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    line-height: 3.75rem;
+    line-height: var(--e-header-height);
     font-size: 1rem;
     padding: 0 var(--e-content-h-padding);
     border-bottom: 1px solid var(--e-border-color);
@@ -137,8 +137,8 @@ header {
         display: none;
         align-items: center;
         justify-content: center;
-        width: 2.25rem;
-        height: 2.25rem;
+        width: var(--e-icon-button-size);
+        height: var(--e-icon-button-size);
         margin-left: -0.4rem;
         padding: 0;
         border: none;
@@ -208,8 +208,6 @@ header {
 
 @media screen and (max-width: 800px) {
     header {
-        line-height: var(--e-header-height);
-
         &.index {
             padding-top: 0;
             padding-bottom: 0;

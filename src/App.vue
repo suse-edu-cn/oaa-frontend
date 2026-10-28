@@ -108,8 +108,8 @@ watch(isDesktop, (value) => {
     position: fixed;
     inset: 0;
     z-index: var(--e-mobile-overlay-z);
-    background-color: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
+    background-color: var(--e-overlay-bg);
+    backdrop-filter: blur(var(--e-overlay-blur));
 }
 
 .e-fade-enter-active,

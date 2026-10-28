@@ -29,7 +29,7 @@ footer {
         flex-direction: column;
         align-items: center;
         gap: 2px;
-        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        padding-bottom: calc(12px + var(--e-safe-area-bottom));
         text-align: center;
     }
 }
