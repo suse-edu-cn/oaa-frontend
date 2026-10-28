@@ -121,6 +121,10 @@ header {
         align-items: center;
         gap: 0.5rem;
         min-width: 0;
+
+        button i.pi {
+            font-size: 20px;
+        }
     }
 
     .brand {

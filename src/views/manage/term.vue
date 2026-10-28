@@ -1,7 +1,7 @@
 <!-- 招新/换届周期管理页 /manage/term -->
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Select } from 'primevue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Paginator, Select } from 'primevue'
 
 import { createTerm, deleteTerm, updateTerm } from '@/api/term'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -10,6 +10,7 @@ import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
 import { fromDate, toDate, fromIso } from '@/utils/date'
 import setToast from '@/utils/setToast'
+import { useMediaQuery } from '@/utils/useMediaQuery'
 import type { TermInfo, TermPeriod } from '@/types'
 
 // 周期类型
@@ -33,6 +34,18 @@ const filteredTerms = computed(() =>
         return true
     })
 )
+
+// 移动端把表格换成卡片列表，单独分页
+const isMobile = useMediaQuery('(max-width: 800px)')
+const mobileRows = 10
+const mobileFirst = ref(0)
+const mobileTerms = computed(() => filteredTerms.value.slice(mobileFirst.value, mobileFirst.value + mobileRows))
+watch([filterYear, filterType], () => {
+    mobileFirst.value = 0
+})
+watch(filteredTerms, () => {
+    if (mobileFirst.value >= filteredTerms.value.length) mobileFirst.value = 0
+})
 
 // 新建 / 编辑对话框
 const dialogVisible = ref(false)
@@ -174,7 +187,59 @@ onMounted(async () => {
         <!-- 当前活动卡片 -->
         <OngoingTermCard />
 
-        <DataTable :value="filteredTerms" :loading="loading" data-key="id" striped-rows paginator :rows="10">
+        <!-- 移动端筛选栏 -->
+        <div v-if="isMobile" class="filter-bar mobile-filter">
+            <Select v-model="filterYear" :options="filterYears" placeholder="全部年份" show-clear />
+            <Select v-model="filterType" :options="filterTypes" placeholder="全部类型" show-clear />
+            <Button icon="pi pi-plus" label="新建活动周期" @click="openCreate" />
+        </div>
+
+        <!-- 移动端卡片列表 -->
+        <div v-if="isMobile" class="term-list">
+            <div v-if="loading" class="e-table-empty">加载中......</div>
+            <template v-else>
+                <div v-for="term in mobileTerms" :key="term.id" class="term-card">
+                    <div class="term-head">
+                        <div class="title">{{ term.title }}</div>
+                        <span class="status" :class="term.is_executed ? 'active' : 'inactive'">
+                            {{ term.is_executed ? '已更新' : '未更新' }}
+                        </span>
+                    </div>
+                    <div class="term-sub">{{ term.type }} ({{ term.year }})</div>
+                    <div class="term-row">
+                        <span class="label">申请提交</span>
+                        <span>{{ formatPeriod(term.edit_period) }}</span>
+                    </div>
+                    <div class="term-row">
+                        <span class="label">面试审核</span>
+                        <span>{{ formatPeriod(term.query_period) }}</span>
+                    </div>
+                    <div class="term-row">
+                        <span class="label">身份更新</span>
+                        <span>{{ fromIso(term.executed_at) || '—' }}</span>
+                    </div>
+                    <div class="term-actions">
+                        <Button icon="pi pi-pencil" label="编辑" severity="secondary" text @click="openEdit(term)" />
+                        <Button icon="pi pi-trash" label="删除" severity="danger" text @click="openDelete(term)" />
+                    </div>
+                </div>
+                <div v-if="!filteredTerms.length" class="e-table-empty">
+                    {{ terms.length ? '没有符合条件的活动周期' : '暂无招新 / 换届数据' }}
+                </div>
+            </template>
+            <Paginator
+                v-if="filteredTerms.length > mobileRows"
+                v-model:first="mobileFirst"
+                :rows="mobileRows"
+                :total-records="filteredTerms.length"
+                template="PrevPageLink CurrentPageReport NextPageLink"
+                current-page-report-template="{currentPage} / {totalPages}"
+                class="pagination"
+            />
+        </div>
+
+        <!-- PC端表格 -->
+        <DataTable v-else :value="filteredTerms" :loading="loading" data-key="id" striped-rows paginator :rows="10">
             <template #header>
                 <!-- 筛选栏 -->
                 <div class="filter-bar">
@@ -208,7 +273,7 @@ onMounted(async () => {
             </Column>
             <Column header="身份更新时间">
                 <template #body="{ data }">
-                    {{ fromIso(data.executed_at) ?? '—' }}
+                    {{ fromIso(data.executed_at) || '—' }}
                 </template>
             </Column>
             <Column>
@@ -321,5 +386,118 @@ onMounted(async () => {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+}
+
+@media screen and (max-width: 800px) {
+    .filter-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+
+        & > :last-child {
+            width: 100%;
+            margin-left: 0;
+            justify-content: center;
+        }
+    }
+
+    .mobile-filter {
+        margin-bottom: 16px;
+    }
+
+    // 日期区间在窄屏改为上下排列
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    :deep(.p-datepicker),
+    :deep(.p-datepicker-input),
+    :deep(.p-select) {
+        width: 100%;
+    }
+
+    .term-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .term-card {
+        padding: 14px;
+        border: 1px solid var(--e-border-color);
+        border-radius: var(--e-border-radius);
+        background-color: var(--e-surface-subtle);
+    }
+
+    .term-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+
+        .title {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+    }
+
+    .status {
+        flex-shrink: 0;
+        font-size: 13px;
+        line-height: 1.6;
+
+        &.active {
+            color: var(--e-accent-color);
+        }
+
+        &.inactive {
+            color: var(--p-text-muted-color);
+        }
+    }
+
+    .term-sub {
+        margin-top: 2px;
+        font-size: 13px;
+        color: var(--p-text-muted-color);
+    }
+
+    .term-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.6;
+
+        .label {
+            flex: 0 0 4.5em;
+            color: var(--p-text-muted-color);
+        }
+
+        span:last-child {
+            min-width: 0;
+            word-break: break-word;
+        }
+    }
+
+    .term-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--e-border-subtle);
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    .pagination {
+        margin-top: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
 </style>

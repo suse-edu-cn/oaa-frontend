@@ -116,7 +116,7 @@
                 <div class="cta">
                     <h2>加入我们</h2>
                     <p><span>S</span>TAY <span>U</span>NSTOPPABLE, <span>S</span>TAY <span>E</span>XCEPTIONAL.</p>
-                    <div>
+                    <div class="buttons">
                         <a
                             class="button"
                             href="https://github.com/suse-edu-cn"
@@ -125,7 +125,6 @@
                         >
                             GitHub @suse-edu-cn
                         </a>
-                        &nbsp;
                         <router-link class="button" to="/auth"> 登录青蟹 </router-link>
                     </div>
                 </div>
@@ -480,9 +479,16 @@ html.p-dark .home {
             }
         }
 
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
         .button {
             display: inline-flex;
-            margin-top: 24px;
             align-items: center;
             gap: 10px;
             padding: 12px 30px;
@@ -634,11 +640,27 @@ html.p-dark .home {
         grid-template-columns: 1fr;
     }
 
+    .sec-fourth {
+        margin-top: 72px;
+        margin-bottom: 72px;
+    }
+
     .sec-fourth .cta {
         padding: 64px 24px;
 
         h2 {
             font-size: 36px;
+        }
+
+        .buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .button {
+            width: 100%;
+            max-width: 320px;
+            justify-content: center;
         }
     }
 }

@@ -12,6 +12,7 @@ import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
+import { useMediaQuery } from '@/utils/useMediaQuery'
 
 import type { ApplicationItem, ApplicationListParams, ApiResult, InterviewResultSubmitData, RoleItem } from '@/types'
 
@@ -44,6 +45,13 @@ const applicationsLoading = computed(() => termsLoading.value || loading.value)
 // ================= 分页 =================
 const pageRows = 10
 const first = ref(0)
+// 移动端换页简化为上一页 / 页码 / 下一页
+const isMobile = useMediaQuery('(max-width: 800px)')
+const paginationTemplate = computed(() =>
+    isMobile.value
+        ? 'PrevPageLink CurrentPageReport NextPageLink'
+        : 'FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink'
+)
 const activeList = computed(() => lists.value[activeTab.value])
 const pagedApplications = computed(() => activeList.value.slice(first.value, first.value + pageRows))
 watch(activeTab, () => {
@@ -296,7 +304,8 @@ onMounted(async () => {
                 v-model:first="first"
                 :rows="pageRows"
                 :total-records="activeList.length"
-                template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+                :template="paginationTemplate"
+                current-page-report-template="{currentPage} / {totalPages}"
                 class="pagination"
                 @page="scrollToListTop"
             />
@@ -410,6 +419,61 @@ onMounted(async () => {
         display: flex;
         flex-direction: column;
         gap: 9px;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .filter-bar {
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 6px;
+        margin-bottom: 1.25em;
+
+        label {
+            width: 100%;
+            font-size: 13px;
+            line-height: 1.6;
+
+            & + .p-select {
+                margin-bottom: 4px;
+            }
+        }
+
+        .p-select {
+            width: 100%;
+        }
+    }
+
+    .status-tabs {
+        :deep(.p-tablist),
+        :deep(.p-tablist-tab-list) {
+            width: 100%;
+        }
+
+        :deep(.p-tab) {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 4px;
+            font-size: 14px;
+        }
+    }
+
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .dialog-fields {
+        align-items: stretch;
+    }
+
+    .empty {
+        font-size: 16px;
+        padding: 3em 0;
+    }
+
+    .skeleton-card {
+        padding: 14px 16px;
     }
 }
 </style>

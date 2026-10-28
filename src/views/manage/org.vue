@@ -340,4 +340,27 @@ onMounted(async () => {
     align-items: flex-start;
     gap: 12px;
 }
+
+@media screen and (max-width: 800px) {
+    .section-header {
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .p-button {
+            flex-shrink: 0;
+        }
+    }
+
+    :deep(.p-datatable-tbody > tr > td),
+    :deep(.p-datatable-thead > tr > th) {
+        padding: 8px;
+    }
+
+    .dialog-fields {
+        width: 100%;
+        align-items: stretch;
+    }
+}
 </style>

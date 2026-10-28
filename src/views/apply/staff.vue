@@ -1,7 +1,7 @@
 <!-- 面试官管理页 /apply/interview/staff -->
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { AutoComplete, Button, Column, DataTable, Dialog, Select, Textarea } from 'primevue'
+import { AutoComplete, Button, Column, DataTable, Dialog, Paginator, Select, Textarea } from 'primevue'
 
 import {
     createInterviewStaff,
@@ -15,6 +15,7 @@ import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
+import { useMediaQuery } from '@/utils/useMediaQuery'
 
 import type { InterviewStaffItem, UserInfo } from '@/types'
 import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
@@ -52,6 +53,18 @@ async function loadStaff() {
 }
 // 周期变化（含载入后自动选中第一个）时重新拉取列表
 watch(filterTermId, loadStaff)
+
+// 移动端把表格换成卡片列表，单独分页
+const isMobile = useMediaQuery('(max-width: 800px)')
+const mobileRows = 20
+const mobileFirst = ref(0)
+const mobileStaff = computed(() => staff.value.slice(mobileFirst.value, mobileFirst.value + mobileRows))
+watch(filterTermId, () => {
+    mobileFirst.value = 0
+})
+watch(staff, () => {
+    if (mobileFirst.value >= staff.value.length) mobileFirst.value = 0
+})
 
 // ================= 人员列表 =================
 const users = ref<UserInfo[]>([])
@@ -227,7 +240,51 @@ onMounted(async () => {
     <main>
         <h1 class="e-title">面试官管理</h1>
 
-        <DataTable :value="staff" :loading="tableLoading" data-key="id" striped-rows paginator :rows="20">
+        <!-- 移动端筛选栏 -->
+        <div v-if="isMobile" class="filter-bar mobile-filter">
+            <label for="staff-term-filter-mobile">活动周期</label>
+            <Select
+                v-model="filterTermId"
+                input-id="staff-term-filter-mobile"
+                :options="terms"
+                option-label="title"
+                option-value="id"
+                placeholder="请选择活动周期"
+                :loading="termsLoading"
+            />
+            <Button class="add" icon="pi pi-plus" label="添加面试官" @click="openCreate" />
+        </div>
+
+        <!-- 移动端卡片列表 -->
+        <div v-if="isMobile" class="staff-list">
+            <div v-if="tableLoading" class="e-table-empty">加载中…</div>
+            <template v-else>
+                <div v-for="s in mobileStaff" :key="s.id" class="staff-card">
+                    <div class="staff-head">
+                        <span class="name">{{ s.name }}</span>
+                        <span class="dept">{{ s.department_name }}</span>
+                    </div>
+                    <p v-if="s.remark" class="remark">{{ s.remark }}</p>
+                    <div class="staff-actions">
+                        <Button icon="pi pi-pencil" label="编辑" severity="secondary" text @click="openEdit(s)" />
+                        <Button icon="pi pi-trash" label="删除" severity="danger" text @click="openDelete(s)" />
+                    </div>
+                </div>
+                <div v-if="!staff.length" class="e-table-empty">暂无面试官数据</div>
+            </template>
+            <Paginator
+                v-if="staff.length > mobileRows"
+                v-model:first="mobileFirst"
+                :rows="mobileRows"
+                :total-records="staff.length"
+                template="PrevPageLink CurrentPageReport NextPageLink"
+                current-page-report-template="{currentPage} / {totalPages}"
+                class="pagination"
+            />
+        </div>
+
+        <!-- PC 端表格 -->
+        <DataTable v-else :value="staff" :loading="tableLoading" data-key="id" striped-rows paginator :rows="20">
             <template #header>
                 <div class="filter-bar">
                     <label for="staff-term-filter">活动周期</label>
@@ -370,6 +427,95 @@ onMounted(async () => {
         margin: 0;
         line-height: 1.5;
         font-size: 15px;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .filter-bar {
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 6px;
+
+        label {
+            width: 100%;
+            font-size: 13px;
+        }
+
+        .p-select {
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .add {
+            width: 100%;
+            margin-left: 0;
+            justify-content: center;
+        }
+    }
+
+    .mobile-filter {
+        margin-bottom: 12px;
+    }
+
+    .dialog-fields {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .staff-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .staff-card {
+        padding: 14px;
+        border: 1px solid var(--e-border-color);
+        border-radius: var(--e-border-radius);
+        background-color: var(--e-surface-subtle);
+    }
+
+    .staff-head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 4px 10px;
+
+        .name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .dept {
+            font-size: 13px;
+            color: var(--p-text-muted-color);
+        }
+    }
+
+    .staff-card .remark {
+        margin: 8px 0 0;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--p-text-muted-color);
+        word-break: break-word;
+    }
+
+    .staff-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--e-border-subtle);
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    .staff-list .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
     }
 }
 </style>

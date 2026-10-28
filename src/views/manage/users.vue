@@ -1,13 +1,14 @@
 <!-- 用户管理页 /manage/users -->
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
-import { Button, Column, DataTable, IconField, InputIcon, InputText, Select } from 'primevue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { Button, Column, DataTable, IconField, InputIcon, InputText, Paginator, Select } from 'primevue'
 
 import { batchUpdateUsers, deleteUser, getUserList } from '@/api/user'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { useOrgStore } from '@/stores/org'
 import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
+import { useMediaQuery } from '@/utils/useMediaQuery'
 import type { UserBatchUpdateItem, UserInfo } from '@/types'
 
 // 部门和职位的下拉菜单
@@ -31,6 +32,18 @@ const filteredUsers = computed(() => {
         if (kw && ![u.name, u.username, u.student_id].some((v) => v.toLowerCase().includes(kw))) return false
         return true
     })
+})
+
+// 移动端表格换成卡片列表
+const isMobile = useMediaQuery('(max-width: 800px)')
+const mobileRows = 20
+const mobileFirst = ref(0)
+const mobileUsers = computed(() => filteredUsers.value.slice(mobileFirst.value, mobileFirst.value + mobileRows))
+watch([filterDepartment, filterRole, keyword], () => {
+    mobileFirst.value = 0
+})
+watch(filteredUsers, () => {
+    if (mobileFirst.value >= filteredUsers.value.length) mobileFirst.value = 0
 })
 
 // 删除用户
@@ -136,7 +149,90 @@ onMounted(async () => {
 <template>
     <main>
         <h1 class="e-title">用户管理</h1>
+
+        <!-- 移动端卡片 BEGIN -->
+        <template v-if="isMobile">
+            <div class="filter-bar mobile-filter">
+                <Select
+                    v-model="filterDepartment"
+                    :options="orgStore.departments"
+                    option-label="name"
+                    option-value="name"
+                    placeholder="全部部门"
+                    show-clear
+                />
+                <Select
+                    v-model="filterRole"
+                    :options="orgStore.roles"
+                    option-label="name"
+                    option-value="name"
+                    placeholder="全部职位"
+                    show-clear
+                />
+                <IconField class="search">
+                    <InputIcon class="pi pi-search" />
+                    <InputText v-model="keyword" placeholder="搜索姓名 / 昵称 / 学号" fluid />
+                </IconField>
+                <Button
+                    icon="pi pi-save"
+                    label="保存"
+                    :disabled="!changedUsers.length"
+                    :loading="savingBatch"
+                    @click="onSaveBatch"
+                />
+            </div>
+
+            <div v-if="loading" class="e-table-empty">加载中......</div>
+            <template v-else>
+                <div v-for="u in mobileUsers" :key="u.user_id" class="user-card">
+                    <div class="user-head">
+                        <div class="info">
+                            <span class="name">{{ u.name }}</span>
+                            <span class="sub">昵称：{{ u.username }}</span>
+                            <span class="sub">学号：{{ u.student_id }}</span>
+                        </div>
+                        <Button icon="pi pi-trash" severity="danger" text @click="openDelete(u)" />
+                    </div>
+                    <div class="user-field">
+                        <label>部门</label>
+                        <Select
+                            v-model="drafts[u.user_id].department"
+                            :options="orgStore.departments"
+                            option-label="name"
+                            option-value="name"
+                            fluid
+                        />
+                    </div>
+                    <div class="user-field">
+                        <label>职位</label>
+                        <Select
+                            v-model="drafts[u.user_id].role"
+                            :options="orgStore.roles"
+                            option-label="name"
+                            option-value="name"
+                            fluid
+                        />
+                    </div>
+                </div>
+                <div v-if="!filteredUsers.length" class="e-table-empty">
+                    {{ users.length ? '没有符合条件的用户' : '暂无用户数据' }}
+                </div>
+            </template>
+
+            <Paginator
+                v-if="filteredUsers.length > mobileRows"
+                v-model:first="mobileFirst"
+                :rows="mobileRows"
+                :total-records="filteredUsers.length"
+                template="PrevPageLink CurrentPageReport NextPageLink"
+                current-page-report-template="{currentPage} / {totalPages}"
+                class="pagination"
+            />
+        </template>
+        <!-- 移动端卡片 END -->
+
         <DataTable
+            v-else
             :value="filteredUsers"
             :loading="loading"
             data-key="user_id"
@@ -236,6 +332,86 @@ onMounted(async () => {
     .search {
         flex: 1;
         min-width: 14rem;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .filter-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+
+        .search {
+            min-width: 0;
+        }
+
+        .p-button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .mobile-filter {
+        margin-bottom: 12px;
+    }
+
+    .user-card {
+        padding: 14px;
+        margin-bottom: 12px;
+        border: 1px solid var(--e-border-color);
+        border-radius: var(--e-border-radius);
+        background-color: var(--e-surface-subtle);
+    }
+
+    .user-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            gap: 2px;
+        }
+
+        .name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0.5em;
+        }
+
+        .sub {
+            font-size: 13px;
+            color: var(--p-text-muted-color);
+            word-break: break-all;
+        }
+    }
+
+    .user-field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+
+        label {
+            flex: 0 0 3em;
+            font-size: 13px;
+            color: var(--p-text-muted-color);
+        }
+
+        .p-select {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
+    .pagination {
+        margin-top: 4px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 }
 </style>
