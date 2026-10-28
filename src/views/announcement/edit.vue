@@ -113,7 +113,7 @@ onMounted(() => {
     <main>
         <h1 class="e-title">编辑公告</h1>
 
-        <!-- 加载中骨架屏，结构与编辑表单一致 -->
+        <!-- 骨架屏 -->
         <div v-if="loading" class="skeleton-form">
             <div v-for="i in 2" :key="i" class="s-row">
                 <Skeleton class="s-label" width="4em" height="14px" />
@@ -209,7 +209,6 @@ onMounted(() => {
     }
 }
 
-// 加载中骨架屏，行结构与表单一致，避免数据到达时页面跳动
 .skeleton-form {
     .s-row {
         display: flex;
@@ -255,6 +254,40 @@ onMounted(() => {
 @media screen and (max-width: 800px) {
     .form-item {
         --label-display: block;
+
+        margin-bottom: 8px;
+
+        label {
+            width: auto;
+            margin-top: 0;
+            margin-right: 0;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+
+        .input-container {
+            width: 100%;
+        }
+
+        .p-inputtext {
+            width: 100%;
+        }
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .push-option {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 4px;
+        }
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
     }
 
     .skeleton-form .s-row {

@@ -89,15 +89,18 @@ onMounted(async () => {
 
     .title {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 8px;
+        gap: 4px 8px;
         font-size: 20px;
         font-weight: 600;
-        line-height: 2.25;
+        line-height: 1.6;
+        word-break: break-word;
 
         .tag {
             display: inline-block;
-            line-height: 2;
+            flex-shrink: 0;
+            line-height: 1.7;
             font-size: 13px;
             color: #fff;
             background-color: var(--p-emerald-500);
@@ -110,6 +113,7 @@ onMounted(async () => {
         font-size: 14px;
         line-height: 1.8;
         color: var(--p-text-muted-color);
+        word-break: break-word;
     }
 
     .empty {
@@ -121,6 +125,16 @@ onMounted(async () => {
         flex-direction: column;
         gap: 10px;
         margin-top: 8px;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .ongoing-card {
+        padding: 12px 16px;
+
+        .title {
+            font-size: 18px;
+        }
     }
 }
 </style>

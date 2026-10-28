@@ -46,7 +46,7 @@ onMounted(() => {
 
 <template>
     <main :aria-busy="loading">
-        <!-- 加载中骨架屏 -->
+        <!-- 骨架屏 -->
         <template v-if="loading">
             <Skeleton class="title-skeleton" width="55%" height="2.25rem" />
             <div class="description" aria-hidden="true">
@@ -108,7 +108,7 @@ onMounted(() => {
     margin-bottom: 1em;
 }
 
-// 正文骨架，行距与 Markdown 正文接近
+// 骨架屏
 .skeleton-content {
     display: flex;
     flex-direction: column;
@@ -134,5 +134,18 @@ onMounted(() => {
 .update-skeleton {
     display: block;
     margin-top: 1em;
+}
+
+@media screen and (max-width: 800px) {
+    .description {
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        font-size: 13px;
+    }
+
+    // 正文里的宽表格 / 代码块单独横向滚动
+    :deep(.md-editor-preview) {
+        overflow-x: auto;
+    }
 }
 </style>

@@ -637,7 +637,7 @@ onMounted(async () => {
 }
 
 @media screen and (max-width: 800px) {
-    .form-grid {
+    .form-body .form-grid {
         grid-template-columns: 1fr;
     }
 
@@ -645,10 +645,20 @@ onMounted(async () => {
     .form-body {
         flex-direction: column-reverse;
         align-items: center;
+        gap: 24px;
     }
 
     .form-main {
         width: 100%;
+    }
+
+    .form-image {
+        width: 140px;
+
+        .wrapper {
+            width: 140px;
+            height: 160px;
+        }
     }
 }
 </style>

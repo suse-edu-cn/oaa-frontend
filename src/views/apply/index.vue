@@ -125,4 +125,20 @@ onMounted(() => {
         gap: 9px;
     }
 }
+
+@media screen and (max-width: 800px) {
+    .action-bar .p-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .empty {
+        font-size: 16px;
+        padding: 3em 0;
+    }
+
+    .skeleton-card {
+        padding: 14px 16px;
+    }
+}
 </style>

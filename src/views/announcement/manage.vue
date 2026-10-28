@@ -123,7 +123,7 @@ onMounted(() => {
                 placeholder="全部部门"
                 show-clear
             />
-            <router-link v-if="canManage" to="/announcement/new" :style="{ marginLeft: 'auto' }">
+            <router-link v-if="canManage" to="/announcement/new" class="new-link">
                 <Button label="新建公告" icon="pi pi-plus" />
             </router-link>
         </div>
@@ -206,6 +206,10 @@ onMounted(() => {
     .p-select {
         min-width: 240px;
     }
+
+    .new-link {
+        margin-left: auto;
+    }
 }
 
 .tab-item {
@@ -259,6 +263,82 @@ onMounted(() => {
 
     .actions {
         margin-left: 18px;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .filter-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin-bottom: 1.25em;
+
+        label {
+            font-size: 13px;
+        }
+
+        .p-select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .new-link {
+            width: 100%;
+            margin-left: 0;
+            margin-top: 4px;
+
+            .p-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    }
+
+    .status-tabs {
+        :deep(.p-tablist),
+        :deep(.p-tablist-tab-list) {
+            width: 100%;
+        }
+
+        :deep(.p-tab) {
+            flex: 1;
+            justify-content: center;
+            gap: 4px;
+            padding: 10px 2px;
+            font-size: 13px;
+        }
+    }
+
+    .tab-item {
+        width: auto;
+    }
+
+    .announcement-item {
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px 2px;
+
+        .title {
+            font-size: 16px;
+        }
+
+        .data {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            font-size: 13px;
+        }
+
+        .data .item {
+            flex-wrap: wrap;
+            gap: 4px 10px;
+        }
+
+        .actions {
+            display: flex;
+            flex-shrink: 0;
+            margin-left: 0;
+        }
     }
 }
 </style>

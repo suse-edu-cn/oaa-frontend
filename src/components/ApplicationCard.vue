@@ -313,13 +313,70 @@ function getDecisionClass(decision: string) {
 }
 
 @media screen and (max-width: 800px) {
-    .card-grid {
-        grid-template-columns: 1fr;
+    .card-header {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        padding: 12px 16px;
+
+        .title {
+            flex: 1;
+            min-width: 0;
+            font-size: 16px;
+            word-break: break-word;
+        }
+
+        .link {
+            margin-left: 0;
+        }
     }
 
-    .card-body {
+    .card-table {
         flex-direction: column;
-        align-items: center;
+        gap: 16px;
+
+        .avatar {
+            align-self: center;
+            width: 140px;
+            height: 160px;
+        }
+
+        .info .card-grid {
+            grid-template-columns: 1fr;
+            gap: 4px;
+            padding-bottom: 1em;
+
+            .field {
+                font-size: 14px;
+                line-height: 1.8;
+
+                span {
+                    min-width: 0;
+                    word-break: break-word;
+                }
+            }
+        }
+    }
+
+    :deep(.p-card-body) {
+        padding: 14px 16px;
+    }
+
+    .card-block p {
+        font-size: 14px;
+    }
+
+    .card-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+
+        &.review {
+            margin-top: 0;
+        }
+
+        .p-button {
+            width: 100%;
+        }
     }
 }
 </style>

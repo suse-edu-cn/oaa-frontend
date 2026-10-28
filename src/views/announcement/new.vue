@@ -183,6 +183,40 @@ onMounted(() => {
 @media screen and (max-width: 800px) {
     .form-item {
         --label-display: block;
+
+        margin-bottom: 8px;
+
+        label {
+            width: auto;
+            margin-top: 0;
+            margin-right: 0;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+
+        .input-container {
+            width: 100%;
+        }
+
+        .p-select {
+            width: 100%;
+        }
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .push-option {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 4px;
+        }
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
     }
 }
 </style>
