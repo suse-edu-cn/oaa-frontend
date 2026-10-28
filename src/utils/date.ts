@@ -11,8 +11,8 @@ export function toDate(s: string | null | undefined): Date | null {
     return s ? new Date(`${s}T00:00:00`) : null
 }
 
-/** ISO 时间串 -> 'YYYY-MM-DD HH:mm'，按本地时区处理 */
-export function fromIso(s: string): string {
+/** ISO 时间串 -> 'YYYY-MM-DD HH:mm' */
+export function fromIso(s: string | null | undefined): string {
     if (!s) return ''
     const d = new Date(s)
     if (Number.isNaN(d.getTime())) return ''
