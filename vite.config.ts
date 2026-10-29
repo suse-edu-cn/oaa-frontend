@@ -25,7 +25,7 @@ try {
 export default defineConfig(({ command, mode, isSsrBuild }) => {
     const env = loadEnv(mode, import.meta.dirname, '')
     const ossOrigin = env.VITE_OSS_ORIGIN || 'https://obj.suseoaa.com'
-    const ossVersion = mode === 'production' ? `v${pkgInfo.version}` : `v${pkgInfo.version}-internal`
+    const ossVersion = 'v' + pkgInfo.version
     const ossBase = command === 'serve' ? '/' : `${ossOrigin}/oaa-fe/${ossVersion}/`
     // 注：sw 的 urlPattern 会被序列化进 sw.js，此处在构建期写成正则字面量
     const ossOriginRe = ossOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

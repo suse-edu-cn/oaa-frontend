@@ -17,9 +17,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "dev:public": "vite --mode development-public",
         "build": "vite build",
-        "build:internal": "vite build --mode internal",
         "preview": "vite preview",
         "lint": "oxlint && eslint",
         "lint:fix": "oxlint --fix && eslint --fix",

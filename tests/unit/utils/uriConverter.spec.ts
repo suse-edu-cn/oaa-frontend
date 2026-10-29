@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { uriToUrl, urlToUri } from '@/utils/uriConverter'
 
 const OSS_ORIGIN = 'https://obj.suseoaa.com'
-const OSS_IN_ORIGIN = 'https://obj.in.suseoaa.com'
 
 describe('utils/uriConverter', () => {
     it('从 .env.test 读取 OSS 域名', () => {
@@ -13,10 +12,6 @@ describe('utils/uriConverter', () => {
     describe('urlToUri', () => {
         it('公网 OSS 图片转为 oss://', () => {
             expect(urlToUri('![图](https://obj.suseoaa.com/oaa/2026/01.png)')).toBe('![图](oss://oaa/2026/01.png)')
-        })
-
-        it('内网 OSS 图片同样转换', () => {
-            expect(urlToUri(`![图](${OSS_IN_ORIGIN}/oaa/a.png)`)).toBe('![图](oss://oaa/a.png)')
         })
 
         it('保留 alt、丢弃 title', () => {

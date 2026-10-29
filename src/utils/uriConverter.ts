@@ -1,6 +1,6 @@
 // 公告 Markdown 图片链接与 oss:// uri 的互转
 
-const OSS_URL_RE = /!\[([^\]]*)\]\((https:\/\/obj(?:\.in)?\.suseoaa\.com\/[^)\s]+)(?:\s+['"][^'"]*['"])?\)/g
+const OSS_URL_RE = /!\[([^\]]*)\]\((https:\/\/obj\.suseoaa\.com\/[^)\s]+)(?:\s+['"][^'"]*['"])?\)/g
 const OSS_URI_RE = /!\[([^\]]*)\]\(oss:\/\/([^)\s]+)(?:\s+['"][^'"]*['"])?\)/g
 
 const OSS_ORIGIN = import.meta.env.VITE_OSS_ORIGIN

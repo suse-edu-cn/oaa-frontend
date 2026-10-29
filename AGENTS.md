@@ -18,10 +18,8 @@
 
 | 命令 | 说明 |
 | --- | --- |
-| `pnpm dev` | 开发服务器，连内网后端，端口 3011 |
-| `pnpm dev:public` | 开发服务器，连公网后端 |
-| `pnpm build` | 公网生产构建（含首页预渲染） |
-| `pnpm build:internal` | 内网生产构建 |
+| `pnpm dev` | 开发服务器，连公网后端，端口 3011 |
+| `pnpm build` | 生产构建（含首页预渲染） |
 | `pnpm preview` | 预览构建产物 |
 | `pnpm lint` | oxlint + eslint |
 | `pnpm lint:fix` | 自动修复 lint 问题 |
@@ -35,9 +33,9 @@
 
 ## 环境变量与构建模式
 
-四种模式（配置在 `.env.*`，只放公开配置，**不要写密钥**）：`development` 用 `VITE_API_URL=/v2` 经 `VITE_PROXY_API_TARGET` 代理到内网；`development-public` 代理到公网；`production` 直连 `https://v2-api.suseoaa.com/v2`；`internal` 直连 `https://api.in.suseoaa.com/v2`。
+三种模式（配置在 `.env.*`，只放公开配置，**不要写密钥**）：`development` 用 `VITE_API_URL=/v2` 经 `VITE_PROXY_API_TARGET` 代理到 `https://v2-api.suseoaa.com`；`production` 直连 `https://v2-api.suseoaa.com/v2`；`test` 供 Vitest 使用。
 
-新增变量同步补到 `src/env.d.ts` 的 `ImportMetaEnv`；`base` 由 `VITE_OSS_ORIGIN` 拼成 `.../oaa-fe/v{version}/`（内网 `-internal`），产物在 `_oaa/`。`vite.config.ts` 用 `define` 注入 `__BUILD_INFO__`，类型见 `env.d.ts`，设置页版本信息来自它。
+新增变量同步补到 `src/env.d.ts` 的 `ImportMetaEnv`；`base` 由 `VITE_OSS_ORIGIN` 拼成 `.../oaa-fe/v{version}/`，产物在 `_oaa/`。`vite.config.ts` 用 `define` 注入 `__BUILD_INFO__`，类型见 `env.d.ts`，设置页版本信息来自它。
 
 ## 目录结构
 
@@ -55,7 +53,7 @@ src/
 ├── stores/            # Pinia：auth、org、term、settings
 ├── utils/             # request、apiError、session、setToast、uploader、markdown、date、uriConverter、initAuthStore
 ├── types/             # 接口类型，按后端模块拆分，由 types/index.ts 统一导出
-├── styles/            # reset.less（基础样式）、markdown.less（Markdown 编辑器样式）、variables.less（设计变量）
+├── styles/            # reset.less（入口 + 基础 reset）、components.less（全局 e-* 组件类）、overrides.less（第三方覆写）、markdown.less、variables.less
 └── env.d.ts           # 环境变量与全局常量类型
 ```
 
@@ -100,6 +98,7 @@ src/
 
 - 单文件组件用 `<style lang="less" scoped>`；只有在覆写 PrimeVue 内部结构时才用非 scoped。
 - 全局类名以 `e-` 开头（`e-title`、`e-card`、`e-banner` 等），页面内容包在 `<main>` 里。
+- 全局 `e-*` 组件 / 工具类放 `styles/components.less`；PrimeVue、nprogress、md-editor 等第三方覆写放 `styles/overrides.less`；页面级样式留在各自 SFC，不要往 `reset.less` 里继续堆。
 - 颜色与尺寸优先用 CSS 变量：`--e-color-theme`（emerald-500）、`--e-border-radius`、`--e-content-h-padding`，以及 PrimeVue 的 `--p-*`；不要硬编码主题色。
 - 深色模式由 `html.p-dark` 切换（`src/utils/theme.ts`），自定义颜色统一引用 `variables.less` 中成对定义的 `--e-*` 语义变量（`--e-bg`、`--e-surface`、`--e-border-color`、`--e-accent-soft` 等），不要在组件里写死浅色值。
 - 响应式断点沿用 `variables.less` 中的 800px / 1300px。

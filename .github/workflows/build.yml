@@ -49,42 +49,22 @@ jobs:
                   path: coverage/
                   retention-days: 7
 
-            - name: Build public
+            - name: Build
               run: pnpm build
 
-            - name: Package public
-              id: package_public
+            - name: Package
+              id: package
               shell: bash
               run: |
                   VERSION=$(node -p "require('./package.json').version")
                   COUNT=$(git rev-list --count HEAD)
                   HASH=$(git rev-parse --short=7 HEAD)
-                  ARTIFACT_NAME="oaa-fe-v${VERSION}-${COUNT}-g${HASH}-public"
+                  ARTIFACT_NAME="oaa-fe-v${VERSION}-${COUNT}-g${HASH}"
                   echo "name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
                   zip -r "${ARTIFACT_NAME}.zip" dist
 
-            - name: Upload public artifact
+            - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ steps.package_public.outputs.name }}
-                  path: ${{ steps.package_public.outputs.name }}.zip
-
-            - name: Build internal
-              run: pnpm build:internal
-
-            - name: Package internal
-              id: package_internal
-              shell: bash
-              run: |
-                  VERSION=$(node -p "require('./package.json').version")
-                  COUNT=$(git rev-list --count HEAD)
-                  HASH=$(git rev-parse --short=7 HEAD)
-                  ARTIFACT_NAME="oaa-fe-v${VERSION}-${COUNT}-g${HASH}-internal"
-                  echo "name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
-                  zip -r "${ARTIFACT_NAME}.zip" dist
-
-            - name: Upload internal artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: ${{ steps.package_internal.outputs.name }}
-                  path: ${{ steps.package_internal.outputs.name }}.zip
+                  name: ${{ steps.package.outputs.name }}
+                  path: ${{ steps.package.outputs.name }}.zip
