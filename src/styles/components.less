@@ -1,0 +1,145 @@
+/*
+ * 全局组件与工具类
+ */
+
+// 页面 Banner
+.e-banner {
+    display: flex;
+    height: var(--e-banner-height);
+    padding: var(--e-banner-padding);
+    align-items: center;
+    flex-shrink: 0;
+
+    .e-title {
+        margin: 0;
+    }
+}
+
+// 页面标题
+.e-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 2.5rem 0;
+}
+
+@media screen and (max-width: 800px) {
+    .e-title {
+        font-size: 1.5rem;
+        margin: 1.5rem 0 1rem;
+    }
+}
+
+// 通用卡片
+.e-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background-color: var(--e-surface);
+    border: 1px solid var(--e-border-subtle);
+    box-shadow: var(--e-shadow-card);
+    border-radius: var(--e-border-radius);
+    padding: 16px 18px;
+}
+
+a.e-card:hover {
+    color: inherit;
+    transition: all 0.25s ease-in-out;
+    box-shadow: var(--e-shadow-card-hover);
+}
+
+// 表格空状态
+.e-table-empty {
+    text-align: center;
+    color: var(--p-text-muted-color);
+    padding: 24px;
+}
+
+// 带图标的空状态
+.e-empty {
+    text-align: center;
+    font-size: 18px;
+    padding: 5em 0;
+    color: var(--p-text-muted-color);
+
+    .icon {
+        display: block;
+        font-size: 48px;
+        color: var(--p-text-muted-color);
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .e-empty {
+        font-size: 16px;
+        padding: 3em 0;
+    }
+}
+
+// 弹窗内的纵向字段组
+.e-dialog-fields {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+@media screen and (max-width: 800px) {
+    .e-dialog-fields {
+        width: 100%;
+        align-items: stretch;
+    }
+}
+
+// 申请列表 / 审核列表的加载骨架卡片
+.e-skeleton-card {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--e-border-radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+
+    .s-head {
+        display: block;
+        margin-bottom: 14px;
+    }
+
+    .s-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .e-skeleton-card {
+        padding: 14px 16px;
+    }
+}
+
+// 移动端卡片列表，供用户 / 周期 / 面试官等管理页共用
+@media screen and (max-width: 800px) {
+    .e-mobile-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .e-mobile-card {
+        padding: 14px;
+        border: 1px solid var(--e-border-color);
+        border-radius: var(--e-border-radius);
+        background-color: var(--e-surface-subtle);
+    }
+
+    .e-mobile-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--e-border-subtle);
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+}

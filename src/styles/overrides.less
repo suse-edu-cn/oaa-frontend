@@ -1,0 +1,107 @@
+/*
+ * 第三方组件库覆写
+ */
+
+// 输入与选择器
+.p-inputtext,
+.p-select-label,
+.p-select-option,
+.p-datepicker-calendar-containerl,
+.p-datepicker-title,
+.p-autocomplete-option {
+    font-size: var(--p-inputtext-font) !important;
+}
+
+.p-datepicker-day-view {
+    font-size: 14px !important;
+}
+
+.p-select-option {
+    --p-select-option-padding: 6px 8px;
+}
+
+.p-autocomplete-option {
+    --p-autocomplete-option-padding: 7px 8px;
+}
+
+.p-autocomplete-fluid {
+    width: 100%;
+}
+
+// Toast
+.p-toast .p-toast-message-detail {
+    white-space: pre-line;
+}
+
+@media screen and (max-width: 800px) {
+    .p-toast {
+        max-width: calc(100vw - var(--e-mobile-overlay-inset));
+    }
+}
+
+// DataTable
+.p-datatable {
+    width: 100%;
+    max-width: 100%;
+}
+
+.p-datatable-table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media screen and (max-width: 800px) {
+    .p-datatable .p-paginator {
+        flex-wrap: wrap;
+        row-gap: 4px;
+        padding: 8px 4px;
+    }
+}
+
+// 弹窗框
+@media screen and (max-width: 800px) {
+    .p-dialog {
+        width: calc(100vw - var(--e-mobile-overlay-inset)) !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - var(--e-mobile-overlay-inset)) !important;
+        max-height: calc(100dvh - var(--e-mobile-overlay-inset));
+    }
+
+    .p-dialog .p-dialog-content {
+        overflow-y: auto;
+    }
+
+    .p-dialog .p-dialog-footer {
+        display: flex;
+        gap: 8px;
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+}
+
+// Markdown 编辑器
+@media screen and (max-width: 800px) {
+    .md-editor {
+        min-height: 50vh !important;
+    }
+}
+
+// 顶部加载条
+#nprogress .bar {
+    background: var(--e-color-theme);
+    height: 2px;
+}
+
+#nprogress .peg {
+    box-shadow:
+        0 0 10px var(--e-color-theme),
+        0 0 5px var(--e-color-theme);
+}
+
+.p-button-label {
+    font-size: 15px;
+}
