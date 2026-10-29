@@ -119,7 +119,7 @@ onMounted(() => {
         </div>
 
         <!-- 未找到 -->
-        <div v-else-if="notFound" class="empty">
+        <div v-else-if="notFound" class="e-empty">
             <i class="pi pi-times-circle icon"></i>
             <p>未找到该申请，可能已被删除</p>
         </div>
@@ -155,20 +155,6 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         gap: 6px;
-    }
-}
-
-// 未找到状态
-.empty {
-    text-align: center;
-    font-size: 18px;
-    padding: 5em 0;
-    color: var(--p-text-muted-color);
-
-    .icon {
-        font-size: 48px;
-        display: block;
-        color: var(--p-text-muted-color);
     }
 }
 </style>

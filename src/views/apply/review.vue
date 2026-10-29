@@ -272,7 +272,7 @@ onMounted(async () => {
 
         <!-- 加载中骨架屏，结构与申请卡片一致 -->
         <div v-if="applicationsLoading" class="skeleton-list">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
+            <div v-for="i in 3" :key="i" class="e-skeleton-card">
                 <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
                 <div class="s-fields">
                     <Skeleton
@@ -285,7 +285,7 @@ onMounted(async () => {
             </div>
         </div>
 
-        <div v-else-if="!lists[activeTab].length" class="empty">
+        <div v-else-if="!lists[activeTab].length" class="e-empty">
             <i class="pi pi-times-circle icon"></i>
             <p>暂无符合条件的申请</p>
         </div>
@@ -316,7 +316,7 @@ onMounted(async () => {
 
         <!-- 审核申请 -->
         <Dialog v-model:visible="reviewVisible" modal :header="dialogTitle" :style="{ width: '24rem' }">
-            <div class="dialog-fields">
+            <div class="e-dialog-fields">
                 <div>审核结果</div>
                 <Select v-model="reviewForm.decision" :options="decisionOptions" placeholder="请选择审核结果" fluid />
                 <template v-if="reviewForm.decision === '已调剂'">
@@ -383,45 +383,6 @@ onMounted(async () => {
     margin-top: 4px;
 }
 
-.dialog-fields {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.empty {
-    text-align: center;
-    font-size: 18px;
-    padding: 5em 0;
-    color: var(--p-text-muted-color);
-
-    .icon {
-        font-size: 48px;
-        display: block;
-        color: var(--p-text-muted-color);
-    }
-}
-
-// 加载中骨架屏，卡片间距与 ApplicationCard 保持一致
-.skeleton-card {
-    border: 1px solid var(--p-content-border-color);
-    border-radius: var(--e-border-radius);
-    padding: 16px 18px;
-    margin-bottom: 14px;
-
-    .s-head {
-        display: block;
-        margin-bottom: 14px;
-    }
-
-    .s-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-    }
-}
-
 @media screen and (max-width: 800px) {
     .filter-bar {
         flex-wrap: wrap;
@@ -461,19 +422,6 @@ onMounted(async () => {
     .pagination {
         justify-content: center;
         flex-wrap: wrap;
-    }
-
-    .dialog-fields {
-        align-items: stretch;
-    }
-
-    .empty {
-        font-size: 16px;
-        padding: 3em 0;
-    }
-
-    .skeleton-card {
-        padding: 14px 16px;
     }
 }
 </style>

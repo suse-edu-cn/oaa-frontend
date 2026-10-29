@@ -256,16 +256,16 @@ onMounted(async () => {
         </div>
 
         <!-- 移动端卡片列表 -->
-        <div v-if="isMobile" class="staff-list">
+        <div v-if="isMobile" class="e-mobile-list">
             <div v-if="tableLoading" class="e-table-empty">加载中…</div>
             <template v-else>
-                <div v-for="s in mobileStaff" :key="s.id" class="staff-card">
+                <div v-for="s in mobileStaff" :key="s.id" class="e-mobile-card">
                     <div class="staff-head">
                         <span class="name">{{ s.name }}</span>
                         <span class="dept">{{ s.department_name }}</span>
                     </div>
                     <p v-if="s.remark" class="remark">{{ s.remark }}</p>
-                    <div class="staff-actions">
+                    <div class="e-mobile-card-actions">
                         <Button icon="pi pi-pencil" label="编辑" severity="secondary" text @click="openEdit(s)" />
                         <Button icon="pi pi-trash" label="删除" severity="danger" text @click="openDelete(s)" />
                     </div>
@@ -334,7 +334,7 @@ onMounted(async () => {
             :header="dialogMode === 'create' ? '新建面试官' : '更新面试官'"
             :style="{ width: '24rem' }"
         >
-            <div class="dialog-fields">
+            <div class="e-dialog-fields">
                 <template v-if="dialogMode === 'create'">
                     <div>周期</div>
                     <Select
@@ -417,17 +417,10 @@ onMounted(async () => {
     }
 }
 
-.dialog-fields {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-
-    .dialog-static {
-        margin: 0;
-        line-height: 1.5;
-        font-size: 15px;
-    }
+.dialog-static {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 15px;
 }
 
 @media screen and (max-width: 800px) {
@@ -457,24 +450,6 @@ onMounted(async () => {
         margin-bottom: 12px;
     }
 
-    .dialog-fields {
-        width: 100%;
-        align-items: stretch;
-    }
-
-    .staff-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .staff-card {
-        padding: 14px;
-        border: 1px solid var(--e-border-color);
-        border-radius: var(--e-border-radius);
-        background-color: var(--e-surface-subtle);
-    }
-
     .staff-head {
         display: flex;
         align-items: baseline;
@@ -492,7 +467,7 @@ onMounted(async () => {
         }
     }
 
-    .staff-card .remark {
+    .remark {
         margin: 8px 0 0;
         font-size: 13px;
         line-height: 1.7;
@@ -500,20 +475,7 @@ onMounted(async () => {
         word-break: break-word;
     }
 
-    .staff-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid var(--e-border-subtle);
-
-        .p-button {
-            flex: 1;
-            justify-content: center;
-        }
-    }
-
-    .staff-list .pagination {
+    .pagination {
         justify-content: center;
         flex-wrap: wrap;
     }

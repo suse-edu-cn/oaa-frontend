@@ -234,7 +234,7 @@ onMounted(async () => {
 
         <!-- 部门新建 / 更新 -->
         <Dialog v-model:visible="deptDialogVisible" modal :header="deptDialogTitle" :style="{ width: '24rem' }">
-            <div class="dialog-fields">
+            <div class="e-dialog-fields">
                 <div>名称</div>
                 <InputText
                     id="dept-name"
@@ -263,7 +263,7 @@ onMounted(async () => {
 
         <!-- 职位新建 / 更新 -->
         <Dialog v-model:visible="roleDialogVisible" modal :header="roleDialogTitle" :style="{ width: '24rem' }">
-            <div class="dialog-fields">
+            <div class="e-dialog-fields">
                 <div>名称</div>
                 <InputText
                     id="role-name"
@@ -333,14 +333,6 @@ onMounted(async () => {
     }
 }
 
-// 弹窗表单
-.dialog-fields {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-}
-
 @media screen and (max-width: 800px) {
     .section-header {
         h2 {
@@ -356,11 +348,6 @@ onMounted(async () => {
     :deep(.p-datatable-tbody > tr > td),
     :deep(.p-datatable-thead > tr > th) {
         padding: 8px;
-    }
-
-    .dialog-fields {
-        width: 100%;
-        align-items: stretch;
     }
 }
 </style>

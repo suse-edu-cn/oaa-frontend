@@ -127,7 +127,7 @@ onMounted(() => {
         </div>
 
         <!-- 公告不存在 / 加载失败 -->
-        <div v-else-if="notFound || loadFailed" class="empty">
+        <div v-else-if="notFound || loadFailed" class="e-empty">
             <i class="pi pi-times-circle icon"></i>
             <p>{{ notFound ? '未找到该公告，可能已被删除' : '公告加载失败，请稍后重试' }}</p>
         </div>
@@ -234,20 +234,6 @@ onMounted(() => {
         justify-content: flex-end;
         gap: 0.75rem;
         margin-top: 1.5rem;
-    }
-}
-
-// 公告不存在 / 加载失败
-.empty {
-    text-align: center;
-    font-size: 18px;
-    padding: 5em 0;
-    color: var(--p-text-muted-color);
-
-    .icon {
-        font-size: 48px;
-        display: block;
-        color: var(--p-text-muted-color);
     }
 }
 

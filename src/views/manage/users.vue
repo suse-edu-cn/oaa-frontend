@@ -183,8 +183,8 @@ onMounted(async () => {
             </div>
 
             <div v-if="loading" class="e-table-empty">加载中......</div>
-            <template v-else>
-                <div v-for="u in mobileUsers" :key="u.user_id" class="user-card">
+            <div v-else class="e-mobile-list">
+                <div v-for="u in mobileUsers" :key="u.user_id" class="e-mobile-card">
                     <div class="user-head">
                         <div class="info">
                             <span class="name">{{ u.name }}</span>
@@ -217,7 +217,7 @@ onMounted(async () => {
                 <div v-if="!filteredUsers.length" class="e-table-empty">
                     {{ users.length ? '没有符合条件的用户' : '暂无用户数据' }}
                 </div>
-            </template>
+            </div>
 
             <Paginator
                 v-if="filteredUsers.length > mobileRows"
@@ -353,14 +353,6 @@ onMounted(async () => {
 
     .mobile-filter {
         margin-bottom: 12px;
-    }
-
-    .user-card {
-        padding: 14px;
-        margin-bottom: 12px;
-        border: 1px solid var(--e-border-color);
-        border-radius: var(--e-border-radius);
-        background-color: var(--e-surface-subtle);
     }
 
     .user-head {

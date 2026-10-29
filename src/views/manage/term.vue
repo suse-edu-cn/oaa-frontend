@@ -195,10 +195,10 @@ onMounted(async () => {
         </div>
 
         <!-- 移动端卡片列表 -->
-        <div v-if="isMobile" class="term-list">
+        <div v-if="isMobile" class="e-mobile-list">
             <div v-if="loading" class="e-table-empty">加载中......</div>
             <template v-else>
-                <div v-for="term in mobileTerms" :key="term.id" class="term-card">
+                <div v-for="term in mobileTerms" :key="term.id" class="e-mobile-card">
                     <div class="term-head">
                         <div class="title">{{ term.title }}</div>
                         <span class="status" :class="term.is_executed ? 'active' : 'inactive'">
@@ -218,7 +218,7 @@ onMounted(async () => {
                         <span class="label">身份更新</span>
                         <span>{{ fromIso(term.executed_at) || '—' }}</span>
                     </div>
-                    <div class="term-actions">
+                    <div class="e-mobile-card-actions">
                         <Button icon="pi pi-pencil" label="编辑" severity="secondary" text @click="openEdit(term)" />
                         <Button icon="pi pi-trash" label="删除" severity="danger" text @click="openDelete(term)" />
                     </div>
@@ -416,19 +416,6 @@ onMounted(async () => {
         width: 100%;
     }
 
-    .term-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .term-card {
-        padding: 14px;
-        border: 1px solid var(--e-border-color);
-        border-radius: var(--e-border-radius);
-        background-color: var(--e-surface-subtle);
-    }
-
     .term-head {
         display: flex;
         align-items: flex-start;
@@ -478,19 +465,6 @@ onMounted(async () => {
         span:last-child {
             min-width: 0;
             word-break: break-word;
-        }
-    }
-
-    .term-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid var(--e-border-subtle);
-
-        .p-button {
-            flex: 1;
-            justify-content: center;
         }
     }
 

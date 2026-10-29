@@ -62,7 +62,7 @@ onMounted(() => {
         </div>
 
         <div v-if="loading" class="skeleton-list">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
+            <div v-for="i in 3" :key="i" class="e-skeleton-card">
                 <Skeleton class="s-head" :width="`${42 + (i % 3) * 9}%`" height="22px" />
                 <div class="s-fields">
                     <Skeleton
@@ -75,7 +75,7 @@ onMounted(() => {
             </div>
         </div>
 
-        <div v-else-if="!applications.length" class="empty">
+        <div v-else-if="!applications.length" class="e-empty">
             <i class="pi pi-times-circle icon"></i>
             <p>当前暂无申请信息</p>
         </div>
@@ -93,52 +93,10 @@ onMounted(() => {
     margin-bottom: 1em;
 }
 
-// 无申请信息状态
-.empty {
-    text-align: center;
-    font-size: 18px;
-    padding: 5em 0;
-    color: var(--p-text-muted-color);
-
-    .icon {
-        font-size: 48px;
-        display: block;
-        color: var(--p-text-muted-color);
-    }
-}
-
-// 加载中骨架屏，卡片间距与 ApplicationCard 保持一致
-.skeleton-card {
-    border: 1px solid var(--p-content-border-color);
-    border-radius: var(--e-border-radius);
-    padding: 16px 18px;
-    margin-bottom: 14px;
-
-    .s-head {
-        display: block;
-        margin-bottom: 14px;
-    }
-
-    .s-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-    }
-}
-
 @media screen and (max-width: 800px) {
     .action-bar .p-button {
         width: 100%;
         justify-content: center;
-    }
-
-    .empty {
-        font-size: 16px;
-        padding: 3em 0;
-    }
-
-    .skeleton-card {
-        padding: 14px 16px;
     }
 }
 </style>

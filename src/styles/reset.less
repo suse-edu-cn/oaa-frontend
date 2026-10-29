@@ -114,6 +114,45 @@ a.e-card:hover {
     padding: 24px;
 }
 
+// 空状态
+.e-empty {
+    text-align: center;
+    font-size: 18px;
+    padding: 5em 0;
+    color: var(--p-text-muted-color);
+
+    .icon {
+        display: block;
+        font-size: 48px;
+        color: var(--p-text-muted-color);
+    }
+}
+
+.e-dialog-fields {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.e-skeleton-card {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--e-border-radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+
+    .s-head {
+        display: block;
+        margin-bottom: 14px;
+    }
+
+    .s-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+}
+
 // 消除初始样式
 a {
     text-decoration: none;
@@ -166,6 +205,47 @@ a:hover {
 
     .md-editor {
         min-height: 50vh !important;
+    }
+
+    .e-empty {
+        font-size: 16px;
+        padding: 3em 0;
+    }
+
+    .e-dialog-fields {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .e-skeleton-card {
+        padding: 14px 16px;
+    }
+
+    // 移动端卡片列表
+    .e-mobile-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .e-mobile-card {
+        padding: 14px;
+        border: 1px solid var(--e-border-color);
+        border-radius: var(--e-border-radius);
+        background-color: var(--e-surface-subtle);
+    }
+
+    .e-mobile-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--e-border-subtle);
+
+        .p-button {
+            flex: 1;
+            justify-content: center;
+        }
     }
 }
 // ====== 移动端 END ======
