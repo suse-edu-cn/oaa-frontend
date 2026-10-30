@@ -27,6 +27,7 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
     const ossOrigin = env.VITE_OSS_ORIGIN || 'https://obj.suseoaa.com'
     const ossVersion = 'v' + pkgInfo.version
     const ossBase = command === 'serve' ? '/' : `${ossOrigin}/oaa-fe/${ossVersion}/`
+    const pwaIcon = (file: string) => ossBase + file
     // 注：sw 的 urlPattern 会被序列化进 sw.js，此处在构建期写成正则字面量
     const ossOriginRe = ossOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -57,6 +58,7 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
                 // 插件默认注入的 registerSW.js 只在 load 时注册一次，发现不了新版本
                 injectRegister: null,
                 includeAssets: [],
+                includeManifestIcons: false,
                 manifest: {
                     name: '青蟹',
                     short_name: '青蟹',
@@ -68,9 +70,14 @@ export default defineConfig(({ command, mode, isSsrBuild }) => {
                     display: 'standalone',
                     start_url: '/',
                     icons: [
-                        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-                        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-                        { src: '/pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+                        { src: pwaIcon('pwa-192x192.png'), sizes: '192x192', type: 'image/png' },
+                        { src: pwaIcon('pwa-512x512.png'), sizes: '512x512', type: 'image/png' },
+                        {
+                            src: pwaIcon('pwa-maskable-512x512.png'),
+                            sizes: '512x512',
+                            type: 'image/png',
+                            purpose: 'maskable',
+                        },
                     ],
                 },
                 workbox: {
