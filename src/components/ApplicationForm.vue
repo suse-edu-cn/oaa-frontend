@@ -95,16 +95,20 @@ async function uploadAvatar(event: Event) {
 // 各志愿部门下可供申请的职位，空数组表示未按部门过滤，回退到全量职位列表
 const firstRoles = ref<RoleItem[]>([])
 const secondRoles = ref<RoleItem[]>([])
+// 选项请求进行中时禁用对应下拉
+const firstRolesLoading = ref(false)
+const secondRolesLoading = ref(false)
+const firstDeptsLoading = ref(false)
+const secondDeptsLoading = ref(false)
 
 // 获取部门下可供申请的职位
-async function fetchRoles(departmentId: number | null) {
+// 返回 null 表示请求失败，避免把失败当成空列表处理
+async function fetchRoles(departmentId: number | null): Promise<RoleItem[] | null> {
     if (!departmentId) return []
     const resp = await getRolesByDepartment(departmentId)
-    if (resp?.code == 200) {
-        return resp.data ?? []
-    }
+    if (resp?.code == 200) return resp.data ?? []
     toastApiError('获取职位列表失败', resp)
-    return []
+    return null
 }
 
 // 各志愿职位可供申请的部门，空数组表示未按职位过滤，回退到全量部门列表
@@ -116,15 +120,13 @@ const secondDeptOptions = computed(() => (secondDepts.value.length ? secondDepts
 const firstRoleOptions = computed(() => (firstRoles.value.length ? firstRoles.value : orgStore.roles))
 const secondRoleOptions = computed(() => (secondRoles.value.length ? secondRoles.value : orgStore.roles))
 
-// 获取职位可供申请的部门
-async function fetchDepts(roleId: number | null) {
+// 获取职位可供申请的部门，null 语义同上
+async function fetchDepts(roleId: number | null): Promise<DepartmentItem[] | null> {
     if (!roleId) return []
     const resp = await getDepartmentsByRole(roleId)
-    if (resp?.code == 200) {
-        return resp.data ?? []
-    }
+    if (resp?.code == 200) return resp.data ?? []
     toastApiError('获取部门列表失败', resp)
-    return []
+    return null
 }
 
 // 切换部门后刷新对应职位，并清空已选职位
@@ -133,39 +135,74 @@ async function onFirstDeptChange() {
     // 部门选项不再受职位约束，恢复全量可选
     firstDepts.value = []
     formData.value.firstRole = null
-    const roles = await fetchRoles(deptId)
-    // 期间用户又切换了部门时，丢弃过期结果
-    if (formData.value.firstDept === deptId) firstRoles.value = roles
+    // 先清空上一个部门的职位
+    firstRoles.value = []
+    firstRolesLoading.value = true
+    try {
+        const roles = await fetchRoles(deptId)
+        // 期间用户又切换了部门丢弃过期结果
+        if (formData.value.firstDept !== deptId) return
+        firstRoles.value = roles ?? []
+    } finally {
+        // 只有最新一次请求能解除禁用
+        if (formData.value.firstDept === deptId) firstRolesLoading.value = false
+    }
 }
 async function onSecondDeptChange() {
     const deptId = formData.value.secondDept
     secondDepts.value = []
     formData.value.secondRole = null
-    const roles = await fetchRoles(deptId)
-    if (formData.value.secondDept === deptId) secondRoles.value = roles
+    secondRoles.value = []
+    secondRolesLoading.value = true
+    try {
+        const roles = await fetchRoles(deptId)
+        if (formData.value.secondDept !== deptId) return
+        secondRoles.value = roles ?? []
+    } finally {
+        if (formData.value.secondDept === deptId) secondRolesLoading.value = false
+    }
 }
 
 // 切换职位后刷新可供申请的部门，过滤部门选项
 async function onFirstRoleChange() {
     const roleId = formData.value.firstRole
-    const depts = await fetchDepts(roleId)
-    // 期间用户又切换了职位时，丢弃过期结果
-    if (formData.value.firstRole !== roleId) return
-    firstDepts.value = depts
-    // 当前部门已不可申请该职位时清空，职位选项随之恢复全量
-    if (roleId && formData.value.firstDept && !depts.some((d) => d.id === formData.value.firstDept)) {
-        formData.value.firstDept = null
-        firstRoles.value = []
+    firstDeptsLoading.value = true
+    try {
+        const depts = await fetchDepts(roleId)
+        // 期间用户又切换了职位时，丢弃过期结果
+        if (formData.value.firstRole !== roleId) return
+        // 请求失败时只解除职位对部门的过滤，保留用户已选的部门
+        if (depts === null) {
+            firstDepts.value = []
+            return
+        }
+        firstDepts.value = depts
+        // 当前部门已不可申请该职位时清空，职位选项随之恢复全量
+        if (roleId && formData.value.firstDept && !depts.some((d) => d.id === formData.value.firstDept)) {
+            formData.value.firstDept = null
+            firstRoles.value = []
+        }
+    } finally {
+        if (formData.value.firstRole === roleId) firstDeptsLoading.value = false
     }
 }
 async function onSecondRoleChange() {
     const roleId = formData.value.secondRole
-    const depts = await fetchDepts(roleId)
-    if (formData.value.secondRole !== roleId) return
-    secondDepts.value = depts
-    if (roleId && formData.value.secondDept && !depts.some((d) => d.id === formData.value.secondDept)) {
-        formData.value.secondDept = null
-        secondRoles.value = []
+    secondDeptsLoading.value = true
+    try {
+        const depts = await fetchDepts(roleId)
+        if (formData.value.secondRole !== roleId) return
+        if (depts === null) {
+            secondDepts.value = []
+            return
+        }
+        secondDepts.value = depts
+        if (roleId && formData.value.secondDept && !depts.some((d) => d.id === formData.value.secondDept)) {
+            formData.value.secondDept = null
+            secondRoles.value = []
+        }
+    } finally {
+        if (formData.value.secondRole === roleId) secondDeptsLoading.value = false
     }
 }
 
@@ -178,11 +215,11 @@ async function loadPrefillOptions() {
         fetchDepts(firstRole),
         fetchDepts(secondRole),
     ])
-    // 期间用户已改动时丢弃过期结果
-    if (formData.value.firstDept === firstDept) firstRoles.value = firstRoleOpts
-    if (formData.value.secondDept === secondDept) secondRoles.value = secondRoleOpts
-    if (formData.value.firstRole === firstRole) firstDepts.value = firstDeptOpts
-    if (formData.value.secondRole === secondRole) secondDepts.value = secondDeptOpts
+    // 期间用户已改动时丢弃过期结果，请求失败保留上一次的可选项
+    if (formData.value.firstDept === firstDept && firstRoleOpts !== null) firstRoles.value = firstRoleOpts
+    if (formData.value.secondDept === secondDept && secondRoleOpts !== null) secondRoles.value = secondRoleOpts
+    if (formData.value.firstRole === firstRole && firstDeptOpts !== null) firstDepts.value = firstDeptOpts
+    if (formData.value.secondRole === secondRole && secondDeptOpts !== null) secondDepts.value = secondDeptOpts
 }
 
 // ================= 校验 =================
@@ -382,6 +419,7 @@ onMounted(async () => {
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择部门"
+                                :disabled="firstDeptsLoading"
                                 @change="onFirstDeptChange"
                             />
                             <Message severity="error" size="small" variant="simple">
@@ -398,6 +436,7 @@ onMounted(async () => {
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择职位"
+                                :disabled="firstRolesLoading"
                                 @change="onFirstRoleChange"
                             />
                             <Message severity="error" size="small" variant="simple">
@@ -418,6 +457,7 @@ onMounted(async () => {
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择部门"
+                                :disabled="secondDeptsLoading"
                                 @change="onSecondDeptChange"
                             />
                             <Message severity="error" size="small" variant="simple">
@@ -434,6 +474,7 @@ onMounted(async () => {
                                 option-label="name"
                                 option-value="id"
                                 placeholder="请选择职位"
+                                :disabled="secondRolesLoading"
                                 @change="onSecondRoleChange"
                             />
                             <Message severity="error" size="small" variant="simple">

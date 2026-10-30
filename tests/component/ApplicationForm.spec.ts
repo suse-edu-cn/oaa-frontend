@@ -29,6 +29,7 @@ import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 import type { ApplicationFormData, ApplicationFormPrefill } from '@/types'
 import { makeDepartment, makeRole } from '../helpers/factories'
+import { deferred } from '../helpers/deferred'
 import { mountWithPrimeVue } from '../helpers/mount'
 import { SelectStub } from '../helpers/primevueStubs'
 
@@ -212,6 +213,58 @@ describe('components/ApplicationForm', () => {
 
         expect(rolesMock).toHaveBeenCalledWith(2)
         expect(findRoleSelects(wrapper)[0].props('modelValue')).toBeNull()
+    })
+
+    it('职位列表返回前禁用职位下拉，避免选到上一个部门的职位', async () => {
+        const wrapper = await mountForm()
+        const gate = deferred<unknown>()
+        rolesMock.mockReturnValue(gate.promise as never)
+
+        const deptSelect = findDeptSelects(wrapper)[0]
+        deptSelect.vm.$emit('update:modelValue', 2)
+        deptSelect.vm.$emit('change')
+        await flushPromises()
+
+        // 旧部门的职位此时仍可能在列表里，只能先禁用它
+        expect(findRoleSelects(wrapper)[0].attributes('disabled')).toBeDefined()
+
+        gate.resolve({ code: 200, message: 'ok', data: [makeRole({ id: 21, name: '宣传部干事' })] })
+        await flushPromises()
+
+        const roleSelect = findRoleSelects(wrapper)[0]
+        expect(roleSelect.attributes('disabled')).toBeUndefined()
+        expect(roleSelect.props('options')).toMatchObject([{ id: 21 }])
+    })
+
+    it('职位对应部门请求失败时保留已选部门，不清空用户输入', async () => {
+        const wrapper = await mountForm()
+        departmentsMock.mockResolvedValue({ code: 500, message: '服务异常', data: null } as never)
+
+        const roleSelect = findRoleSelects(wrapper)[0]
+        roleSelect.vm.$emit('update:modelValue', 12)
+        roleSelect.vm.$emit('change')
+        await flushPromises()
+
+        expect(toastMock).toHaveBeenCalledWith('error', '获取部门列表失败', '服务异常')
+        expect(findDeptSelects(wrapper)[0].props('modelValue')).toBe(1)
+    })
+
+    it('部门列表返回前禁用部门下拉，避免选到与职位不匹配的部门', async () => {
+        const wrapper = await mountForm()
+        const gate = deferred<unknown>()
+        departmentsMock.mockReturnValue(gate.promise as never)
+
+        const roleSelect = findRoleSelects(wrapper)[0]
+        roleSelect.vm.$emit('update:modelValue', 12)
+        roleSelect.vm.$emit('change')
+        await flushPromises()
+
+        expect(findDeptSelects(wrapper)[0].attributes('disabled')).toBeDefined()
+
+        gate.resolve({ code: 200, message: 'ok', data: [] })
+        await flushPromises()
+
+        expect(findDeptSelects(wrapper)[0].attributes('disabled')).toBeUndefined()
     })
 
     it('上传成功后写入头像并提示', async () => {
