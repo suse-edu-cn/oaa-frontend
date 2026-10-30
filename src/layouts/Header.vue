@@ -83,7 +83,6 @@ const userItems: MenuItem[] = [
             <RouterLink to="/" class="brand">青蟹</RouterLink>
         </div>
         <div class="right">
-            <RouterLink to="#" class="competition">比赛中心</RouterLink>
             <div v-if="showAuthSkeleton" class="user-skeleton" aria-hidden="true">
                 <Skeleton shape="circle" size="2.25rem" />
                 <Skeleton width="4rem" height="1rem" />
@@ -219,10 +218,6 @@ header {
 
         .right {
             gap: 0.75rem;
-
-            .competition {
-                display: none;
-            }
 
             .user {
                 max-width: 10rem;

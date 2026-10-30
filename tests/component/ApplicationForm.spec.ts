@@ -115,6 +115,20 @@ describe('components/ApplicationForm', () => {
         expect(wrapper.text()).not.toContain('请选择申请周期')
     })
 
+    it('缺少必填项时点击提交，展示全部缺失项并提示原因', async () => {
+        const wrapper = await mountForm({})
+
+        await wrapper.find('.confirm-row input[type="checkbox"]').setValue(true)
+        const submit = wrapper.find('button')
+        expect(submit.attributes('disabled')).toBeUndefined()
+
+        await submit.trigger('click')
+        expect(wrapper.text()).toContain('请选择申请周期')
+        expect(wrapper.text()).toContain('请上传头像')
+        expect(wrapper.emitted('submit')).toBeUndefined()
+        expect(toastMock).toHaveBeenCalledWith('warn', '请完善申请信息', '请选择申请周期')
+    })
+
     it('修改手机号后立即显示错误，改回合法值后消失', async () => {
         const wrapper = await mountForm()
         const phone = wrapper.find<HTMLInputElement>('input[placeholder="请输入手机号"]')

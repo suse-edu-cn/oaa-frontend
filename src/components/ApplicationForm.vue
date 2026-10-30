@@ -1,6 +1,6 @@
 <!-- 申请表单：创建（/apply/new）与编辑（/apply/edit/:id）共用 -->
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref, useId, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, useId, watch } from 'vue'
 
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Skeleton, Textarea, ToggleSwitch } from 'primevue'
 
@@ -36,6 +36,9 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{ submit: [data: ApplicationFormData, termId: number | null] }>()
+
+// 提交失败时用于把视图带回表单顶部
+const formRoot = ref<HTMLElement | null>(null)
 
 const orgStore = useOrgStore()
 const termStore = useTermStore()
@@ -183,9 +186,8 @@ async function loadPrefillOptions() {
 }
 
 // ================= 校验 =================
-// 已交互过的字段
-const touched = reactive(new Set<string>())
-// 与 props.initial 同名会触发 vue/no-dupe-keys，故命名 baseline
+const touched = reactive(new Set<string>()) // 已交互过的字段
+const submitted = ref(false) // 是否点过提交
 const baseline = { ...formData.value }
 // 边填边显示其格式错误
 watch(
@@ -207,16 +209,24 @@ const allErrors = computed<Record<string, string>>(() =>
     )
 )
 
-// 页面显示格式错误
+// 页面显示错误
 const errors = computed(() =>
-    Object.fromEntries(Object.entries(allErrors.value).filter(([field]) => touched.has(field)))
+    Object.fromEntries(Object.entries(allErrors.value).filter(([field]) => submitted.value || touched.has(field)))
 )
-
-/** 所有必填项均已填写，且已确认信息属实 */
-const canSubmit = computed(() => confirmed.value && !Object.keys(allErrors.value).length)
 
 // ================= 提交 =================
 function onSubmit() {
+    if (props.submitting) return
+
+    // 提交时把校验结果整体交给用户
+    submitted.value = true
+    const missing = Object.values(allErrors.value)
+    if (missing.length) {
+        setToast('warn', '请完善申请信息', missing[0])
+        void nextTick(() => formRoot.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }))
+        return
+    }
+
     // 此处用于收窄类型
     const { firstDept, firstRole, secondDept, secondRole } = formData.value
     if (!firstDept || !firstRole || !secondDept || !secondRole) return
@@ -255,7 +265,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div ref="formRoot">
         <div class="form-body">
             <div class="form-main">
                 <!-- 周期 -->
@@ -486,7 +496,7 @@ onMounted(async () => {
         <Button
             :label="submitLabel"
             :icon="submitIcon"
-            :disabled="!canSubmit"
+            :disabled="!confirmed || submitting"
             :loading="submitting"
             @click="onSubmit"
         />&nbsp;
