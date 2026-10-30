@@ -169,6 +169,39 @@ describe('components/ApplicationForm', () => {
         expect(termId).toBe(1)
     })
 
+    it('文本字段带长度上限，并显示简历字数', async () => {
+        const wrapper = await mountForm()
+
+        expect(wrapper.find('input[placeholder="请输入学院"]').attributes('maxlength')).toBe('64')
+        expect(wrapper.find('input[placeholder="如：计科241"]').attributes('maxlength')).toBe('64')
+        expect(wrapper.find('input[placeholder="请输入政治面貌"]').attributes('maxlength')).toBe('32')
+        expect(wrapper.find('textarea[placeholder="个人经历、项目经历等"]').attributes('maxlength')).toBe('5000')
+        expect(wrapper.find('textarea[placeholder="希望加入的理由"]').attributes('maxlength')).toBe('5000')
+        expect(wrapper.text()).toContain('4 / 5000')
+    })
+
+    it('提交时去掉首尾空白', async () => {
+        const wrapper = await mountForm(
+            makeInitial({
+                college: '  计算机学院  ',
+                phone: ' 13800138000 ',
+                resume: '  简历  ',
+                reason: ' 理由 ',
+            })
+        )
+
+        await wrapper.find('.confirm-row input[type="checkbox"]').setValue(true)
+        await wrapper.find('button').trigger('click')
+
+        const [payload] = wrapper.emitted('submit')![0] as [ApplicationFormData, number | null]
+        expect(payload).toMatchObject({
+            college: '计算机学院',
+            phone: '13800138000',
+            resume: '简历',
+            reason: '理由',
+        })
+    })
+
     it('termDisabled 时不校验周期也能提交', async () => {
         const wrapper = await mountForm(makeInitial({ termId: null }), { termDisabled: true })
 

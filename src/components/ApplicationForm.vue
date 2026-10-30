@@ -8,7 +8,7 @@ import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
-import { getApplicationFormErrors } from '@/utils/applicationFormValidation'
+import { APPLICATION_FIELD_LIMITS, getApplicationFormErrors } from '@/utils/applicationFormValidation'
 import { fromDate, toDate } from '@/utils/date'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
@@ -42,6 +42,7 @@ const formRoot = ref<HTMLElement | null>(null)
 
 const orgStore = useOrgStore()
 const termStore = useTermStore()
+const LIMIT = APPLICATION_FIELD_LIMITS
 
 // 预填即为基线，此后的改动才视为已交互
 const p = props.initial
@@ -271,19 +272,19 @@ function onSubmit() {
     emit(
         'submit',
         {
-            college: formData.value.college,
-            major_class: formData.value.major_class,
+            college: formData.value.college.trim(),
+            major_class: formData.value.major_class.trim(),
             gender: formData.value.gender,
-            phone: formData.value.phone,
-            qq: formData.value.qq,
-            political_status: formData.value.political_status,
+            phone: formData.value.phone.trim(),
+            qq: formData.value.qq.trim(),
+            political_status: formData.value.political_status.trim(),
             birth_date: fromDate(birthDate.value),
             avatar: formData.value.avatar,
             first_choice: { department_id: firstDept, role_id: firstRole },
             second_choice: { department_id: secondDept, role_id: secondRole },
             allow_adjust: formData.value.allow_adjust,
-            resume: formData.value.resume,
-            reason: formData.value.reason,
+            resume: formData.value.resume.trim(),
+            reason: formData.value.reason.trim(),
         },
         formData.value.termId
     )
@@ -347,14 +348,18 @@ onMounted(async () => {
                     <div class="form-grid">
                         <div class="form-item">
                             <label>学院</label>
-                            <InputText v-model="formData.college" placeholder="请输入学院" />
+                            <InputText v-model="formData.college" placeholder="请输入学院" :maxlength="LIMIT.college" />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.college }}
                             </Message>
                         </div>
                         <div class="form-item">
                             <label>班级</label>
-                            <InputText v-model="formData.major_class" placeholder="如：计科241" />
+                            <InputText
+                                v-model="formData.major_class"
+                                placeholder="如：计科241"
+                                :maxlength="LIMIT.major_class"
+                            />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.major_class }}
                             </Message>
@@ -395,7 +400,11 @@ onMounted(async () => {
                     <div class="form-grid">
                         <div class="form-item">
                             <label>政治面貌</label>
-                            <InputText v-model="formData.political_status" placeholder="请输入政治面貌" />
+                            <InputText
+                                v-model="formData.political_status"
+                                placeholder="请输入政治面貌"
+                                :maxlength="LIMIT.political_status"
+                            />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.political_status }}
                             </Message>
@@ -493,14 +502,26 @@ onMounted(async () => {
                     <h2>申请材料</h2>
                     <div class="form-item">
                         <label>简历</label>
-                        <Textarea v-model="formData.resume" rows="5" placeholder="个人经历、项目经历等" />
+                        <Textarea
+                            v-model="formData.resume"
+                            rows="5"
+                            placeholder="个人经历、项目经历等"
+                            :maxlength="LIMIT.resume"
+                        />
+                        <div class="char-count">{{ formData.resume.length }} / {{ LIMIT.resume }}</div>
                         <Message severity="error" size="small" variant="simple">
                             {{ errors.resume }}
                         </Message>
                     </div>
                     <div class="form-item">
                         <label>申请理由</label>
-                        <Textarea v-model="formData.reason" rows="5" placeholder="希望加入的理由" />
+                        <Textarea
+                            v-model="formData.reason"
+                            rows="5"
+                            placeholder="希望加入的理由"
+                            :maxlength="LIMIT.reason"
+                        />
+                        <div class="char-count">{{ formData.reason.length }} / {{ LIMIT.reason }}</div>
                         <Message severity="error" size="small" variant="simple">
                             {{ errors.reason }}
                         </Message>
@@ -609,6 +630,14 @@ onMounted(async () => {
         // 校验提示固定占一行，出错时表单不跳动
         .p-message {
             min-height: 1.25em;
+        }
+
+        // 字数提示靠右贴住输入框，不额外占一行
+        .char-count {
+            align-self: flex-end;
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--p-text-muted-color);
         }
     }
 }

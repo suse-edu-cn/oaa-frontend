@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { getApplicationFormErrors, type ApplicationFormValues } from '@/utils/applicationFormValidation'
+import {
+    APPLICATION_FIELD_LIMITS,
+    getApplicationFormErrors,
+    type ApplicationFormValues,
+} from '@/utils/applicationFormValidation'
 
 function makeValues(overrides: Partial<ApplicationFormValues> = {}): ApplicationFormValues {
     return {
@@ -106,5 +110,60 @@ describe('utils/applicationFormValidation', () => {
 
     it('全部合法时返回空对象', () => {
         expect(getApplicationFormErrors(makeValues())).toEqual({})
+    })
+
+    it('只有空白的文本字段按未填写处理', () => {
+        const errors = getApplicationFormErrors(
+            makeValues({ college: '   ', major_class: ' ', political_status: '\t', resume: '\n', reason: '   ' })
+        )
+
+        expect(errors).toEqual({
+            college: '请填写学院',
+            major_class: '请填写班级',
+            political_status: '请填写政治面貌',
+            resume: '请填写简历',
+            reason: '请填写申请理由',
+        })
+    })
+
+    it('手机号与 QQ 允许首尾空白', () => {
+        const errors = getApplicationFormErrors(makeValues({ phone: ' 13800138000 ', qq: ' 123456 ' }))
+
+        expect(errors.phone).toBeUndefined()
+        expect(errors.qq).toBeUndefined()
+    })
+
+    it('长度等于上限时通过', () => {
+        const errors = getApplicationFormErrors(
+            makeValues({
+                college: 'x'.repeat(APPLICATION_FIELD_LIMITS.college),
+                major_class: 'x'.repeat(APPLICATION_FIELD_LIMITS.major_class),
+                political_status: 'x'.repeat(APPLICATION_FIELD_LIMITS.political_status),
+                resume: 'x'.repeat(APPLICATION_FIELD_LIMITS.resume),
+                reason: 'x'.repeat(APPLICATION_FIELD_LIMITS.reason),
+            })
+        )
+
+        expect(errors).toEqual({})
+    })
+
+    it('长度超出上限时提示，上限与后端列宽一致', () => {
+        const errors = getApplicationFormErrors(
+            makeValues({
+                college: 'x'.repeat(APPLICATION_FIELD_LIMITS.college + 1),
+                major_class: 'x'.repeat(APPLICATION_FIELD_LIMITS.major_class + 1),
+                political_status: 'x'.repeat(APPLICATION_FIELD_LIMITS.political_status + 1),
+                resume: 'x'.repeat(APPLICATION_FIELD_LIMITS.resume + 1),
+                reason: 'x'.repeat(APPLICATION_FIELD_LIMITS.reason + 1),
+            })
+        )
+
+        expect(errors).toEqual({
+            college: '学院不得超过 64 个字符',
+            major_class: '班级不得超过 64 个字符',
+            political_status: '政治面貌不得超过 32 个字符',
+            resume: '简历不得超过 5000 个字符',
+            reason: '申请理由不得超过 5000 个字符',
+        })
     })
 })
