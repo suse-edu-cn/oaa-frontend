@@ -31,7 +31,7 @@ import type { ApplicationFormData, ApplicationFormPrefill } from '@/types'
 import { makeDepartment, makeRole } from '../helpers/factories'
 import { deferred } from '../helpers/deferred'
 import { mountWithPrimeVue } from '../helpers/mount'
-import { SelectStub } from '../helpers/primevueStubs'
+import { DatePickerStub, SelectStub } from '../helpers/primevueStubs'
 
 const termMock = vi.mocked(getTermList)
 const rolesMock = vi.mocked(getRolesByDepartment)
@@ -167,6 +167,21 @@ describe('components/ApplicationForm', () => {
             allow_adjust: true,
         })
         expect(termId).toBe(1)
+    })
+
+    it('出生日期上限为今天，选到未来会提示', async () => {
+        const wrapper = await mountForm()
+        const picker = wrapper.findComponent(DatePickerStub)
+        const maxDate = picker.props('maxDate') as Date
+
+        expect(maxDate).toBeInstanceOf(Date)
+        expect(maxDate.getTime()).toBeLessThanOrEqual(Date.now())
+        expect(maxDate.getHours()).toBe(0)
+
+        picker.vm.$emit('update:modelValue', new Date('2099-01-01T00:00:00'))
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('出生日期不能晚于今天')
     })
 
     it('文本字段带长度上限，并显示简历字数', async () => {

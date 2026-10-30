@@ -5,6 +5,7 @@ import {
     getApplicationFormErrors,
     type ApplicationFormValues,
 } from '@/utils/applicationFormValidation'
+import { fromDate } from '@/utils/date'
 
 function makeValues(overrides: Partial<ApplicationFormValues> = {}): ApplicationFormValues {
     return {
@@ -87,6 +88,22 @@ describe('utils/applicationFormValidation', () => {
 
     it('出生日期为空时提示', () => {
         expect(getApplicationFormErrors(makeValues({ birth_date: '' })).birth_date).toBe('请选择出生日期')
+    })
+
+    it('出生日期不是合法日期时提示', () => {
+        expect(getApplicationFormErrors(makeValues({ birth_date: '2026-13-45' })).birth_date).toBe(
+            '请选择有效的出生日期'
+        )
+    })
+
+    it('出生日期晚于今天时提示', () => {
+        expect(getApplicationFormErrors(makeValues({ birth_date: '2099-01-01' })).birth_date).toBe(
+            '出生日期不能晚于今天'
+        )
+    })
+
+    it('出生日期为今天时通过', () => {
+        expect(getApplicationFormErrors(makeValues({ birth_date: fromDate(new Date()) })).birth_date).toBeUndefined()
     })
 
     it('termDisabled 时不校验申请周期', () => {

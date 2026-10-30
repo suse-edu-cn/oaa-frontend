@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { fromDate } from './date'
+
 /** 申请表单中参与校验的字段 */
 export interface ApplicationFormValues {
     termId: number | null
@@ -64,7 +66,13 @@ const applicationSchema = z.object({
         .trim()
         .min(1, { message: '请填写政治面貌' })
         .max(LIMIT.political_status, { message: `政治面貌不得超过 ${LIMIT.political_status} 个字符` }),
-    birth_date: z.string().min(10, { message: '请选择出生日期' }),
+    birth_date: z
+        .string()
+        .min(10, { message: '请选择出生日期' })
+        .refine((value) => !Number.isNaN(new Date(`${value}T00:00:00`).getTime()), {
+            message: '请选择有效的出生日期',
+        })
+        .refine((value) => value <= fromDate(new Date()), { message: '出生日期不能晚于今天' }),
     avatar: z.string().min(1, { message: '请上传头像' }),
     resume: z
         .string()

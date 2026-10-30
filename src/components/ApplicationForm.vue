@@ -375,7 +375,12 @@ onMounted(async () => {
                         </div>
                         <div class="form-item">
                             <label>出生日期</label>
-                            <DatePicker v-model="birthDate" date-format="yy-mm-dd" placeholder="请选择出生日期" />
+                            <DatePicker
+                                v-model="birthDate"
+                                date-format="yy-mm-dd"
+                                placeholder="请选择出生日期"
+                                :max-date="new Date(new Date().setHours(0, 0, 0, 0))"
+                            />
                             <Message severity="error" size="small" variant="simple">
                                 {{ errors.birth_date }}
                             </Message>

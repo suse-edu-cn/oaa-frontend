@@ -79,6 +79,7 @@ export const DatePickerStub = defineComponent({
     name: 'DatePicker',
     props: {
         modelValue: { type: Object as PropType<Date | null>, default: null },
+        maxDate: { type: Object as PropType<Date | null>, default: null },
         disabled: Boolean,
     },
     emits: ['update:modelValue'],
