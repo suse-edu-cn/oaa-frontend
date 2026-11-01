@@ -27,4 +27,14 @@ test.describe('公告', () => {
         // OSS 图片地址保持可解析
         await expect(page.locator('img[alt="海报"]')).toHaveAttribute('src', 'https://obj.suseoaa.com/oaa/poster.png')
     })
+
+    test('公告缺少标题时标题保持默认文案', async ({ page, api, signIn }) => {
+        const untitled = makeAnnouncement({ announcement_id: 2, title: '' })
+        api.scenario = { user: makeUser(), announcements: [untitled], announcement: untitled }
+        await signIn()
+
+        await page.goto('/announcement/2')
+        await expect(page.getByRole('heading', { name: '公告详情' })).toBeVisible()
+        await expect(page).toHaveTitle('公告详情 - 青蟹')
+    })
 })

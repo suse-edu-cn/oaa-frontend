@@ -27,7 +27,8 @@ async function loadAnnouncement() {
         const resp = await getAnnouncement(String(route.params.id))
         if (resp?.code == 200) {
             announcement.value = resp.data ?? null
-            document.title = announcement.value?.title + ' - 公告详情 - 青蟹' || '公告详情 - 青蟹'
+            const title = announcement.value?.title?.trim()
+            document.title = title ? `${title} - 公告详情 - 青蟹` : '公告详情 - 青蟹'
         } else if (resp?.code == 404) {
             router.replace('/404')
         } else {
