@@ -36,6 +36,16 @@ function toggleMobileNav() {
 }
 // 跳转后自动收起 drawer
 watch(() => route.fullPath, closeMobileNav)
+
+// 跳转后回到页面顶部
+const viewEl = ref<HTMLElement | null>(null)
+watch(
+    () => route.path,
+    () => {
+        if (viewEl.value) viewEl.value.scrollTop = 0
+        if (typeof window !== 'undefined') window.scrollTo(0, 0)
+    }
+)
 watch(canShowDrawer, (value) => {
     if (!value) closeMobileNav()
 })
@@ -62,7 +72,7 @@ watch(isDesktop, (value) => {
         </Transition>
         <Drawer v-if="canShowDrawer" :mobile-open="mobileNavOpen" @close="closeMobileNav" />
         <section class="e-view-wrapper">
-            <div class="e-view">
+            <div ref="viewEl" class="e-view">
                 <div class="e-view-content">
                     <RouterView />
                 </div>
