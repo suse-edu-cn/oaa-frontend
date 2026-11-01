@@ -328,6 +328,11 @@ describe('components/ApplicationForm', () => {
         expect(uploadMock).toHaveBeenCalledWith(file, 'application')
         expect(toastMock).toHaveBeenCalledWith('success', '头像上传成功', '')
         expect(wrapper.find('.form-image img').attributes('src')).toBe('https://obj.suseoaa.com/new.png')
+
+        await wrapper.find('.confirm-row input[type="checkbox"]').setValue(true)
+        await wrapper.find('button').trigger('click')
+        const [payload] = wrapper.emitted('submit')![0] as [ApplicationFormData, number | null]
+        expect(payload.avatar).toBe('oss://new-avatar.png')
     })
 
     it('上传失败时保持原头像', async () => {

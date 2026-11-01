@@ -5,12 +5,12 @@ import { computed, nextTick, onMounted, reactive, ref, useId, watch } from 'vue'
 import { Button, Checkbox, DatePicker, InputText, Message, Select, Skeleton, Textarea, ToggleSwitch } from 'primevue'
 
 import { getDepartmentsByRole, getRolesByDepartment } from '@/api/application'
+import ImageUploader from '@/components/ImageUploader.vue'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
 import { APPLICATION_FIELD_LIMITS, getApplicationFormErrors } from '@/utils/applicationFormValidation'
 import { fromDate, toDate } from '@/utils/date'
-import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 
 import type { DepartmentItem, ApplicationFormPrefill, ApplicationFormData, RoleItem } from '@/types'
@@ -71,25 +71,10 @@ const confirmId = useId()
 // ================= 周期 =================
 const terms = computed(() => termStore.terms)
 
-// 图片上传处理
-const fileInput = ref<HTMLInputElement | null>(null)
 const avatarUrl = ref(p.avatar_url ?? '')
-async function uploadAvatar(event: Event) {
-    const target = event.target as HTMLInputElement
-    const file = target.files?.[0]
-    if (!file) return
 
-    const uploaded = await uploadImage(file, 'application')
-    if (!uploaded) {
-        target.value = ''
-        return
-    }
-
-    formData.value.avatar = uploaded.uri
-    avatarUrl.value = uploaded.url || avatarUrl.value
+function onAvatarUploaded() {
     setToast('success', '头像上传成功', '')
-
-    target.value = ''
 }
 
 // ================= 志愿 =================
@@ -536,22 +521,20 @@ onMounted(async () => {
 
             <!-- 照片 -->
             <div class="form-image">
-                <div class="wrapper" @click="fileInput?.click()">
-                    <img v-if="avatarUrl" :src="avatarUrl" alt="照片" />
-                    <div v-else class="placeholder"><i class="pi pi-user"></i></div>
-                    <div class="overlay"><span class="pi pi-upload"></span></div>
-                </div>
+                <ImageUploader
+                    v-model:uri="formData.avatar"
+                    v-model:url="avatarUrl"
+                    scene="application"
+                    width="160px"
+                    height="180px"
+                    alt="照片"
+                    aria-label="上传本人真实照片"
+                    @uploaded="onAvatarUploaded"
+                />
                 <div class="tip">上传本人真实照片，大小不得超过 4MB</div>
                 <Message severity="error" size="small" variant="simple">
                     {{ errors.avatar }}
                 </Message>
-                <input
-                    ref="fileInput"
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.gif,.webp,.avif"
-                    style="display: none"
-                    @change="uploadAvatar"
-                />
             </div>
         </div>
 
@@ -654,48 +637,6 @@ onMounted(async () => {
     align-items: center;
     gap: 0.5rem;
     width: 160px;
-
-    .wrapper {
-        position: relative;
-        width: 160px;
-        height: 180px;
-
-        img,
-        .placeholder {
-            width: 100%;
-            height: 100%;
-            border-radius: var(--e-border-radius);
-            border: 1px solid var(--e-border-color);
-            object-fit: cover;
-        }
-
-        .placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: var(--p-text-muted-color);
-            background-color: var(--e-surface-subtle);
-        }
-
-        .overlay {
-            position: absolute;
-            inset: 0;
-            border-radius: var(--e-border-radius);
-            background-color: rgba(0, 0, 0, 0.25);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-            cursor: pointer;
-        }
-
-        &:hover .overlay {
-            opacity: 1;
-        }
-    }
 
     .tip {
         font-size: 14px;

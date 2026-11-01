@@ -1,4 +1,4 @@
-<!-- 图片裁剪上传弹窗 -->
+<!-- 图片裁剪弹窗 -->
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
 
@@ -7,31 +7,41 @@ import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
 
 import setToast from '@/utils/setToast'
-import { uploadImage } from '@/utils/uploader'
 
-import type { UploadResponse } from '@/types'
+const props = withDefaults(
+    defineProps<{
+        /** 裁剪框宽高比 */
+        aspect?: number
+        /** 输出图片的边长 */
+        outputSize?: number
+        /** 调用方正在上传 */
+        uploading?: boolean
+    }>(),
+    {
+        aspect: 1,
+        outputSize: 512,
+        uploading: false,
+    }
+)
 
-const props = defineProps<{
-    /** 图片上传场景 */
-    imgScene: string
-}>()
-
-const emit = defineEmits<{
-    uploaded: [UploadResponse]
-}>()
+const emit = defineEmits<{ cropped: [blob: Blob] }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const cropVisible = ref(false)
 const cropSrc = ref('')
 const cropImgEl = ref<HTMLImageElement | null>(null)
-const uploading = ref(false)
 let cropper: Cropper | null = null
 let cropFile: File | null = null
 
 function open() {
     fileInput.value?.click()
 }
-defineExpose({ open })
+
+function close() {
+    cropVisible.value = false
+}
+defineExpose({ open, close })
+
 function onFileChange(event: Event) {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
@@ -49,32 +59,25 @@ function initCropper() {
     if (!cropImgEl.value) return
     cropper?.destroy()
     cropper = new Cropper(cropImgEl.value, {
-        aspectRatio: 1,
+        aspectRatio: props.aspect,
         viewMode: 1,
         dragMode: 'move',
         autoCropArea: 1,
         background: false,
     })
 }
+
 async function onCropConfirm() {
-    if (!cropper || !cropFile) return
+    if (!cropper || !cropFile || props.uploading) return
 
-    uploading.value = true
-    try {
-        const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 })
-        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.9))
-        if (!blob) {
-            setToast('error', '图片上传失败', '裁剪生成图片失败，请重试')
-            return
-        }
-        const uploaded = await uploadImage(new File([blob], 'image.webp', { type: 'image/webp' }), props.imgScene)
-        if (!uploaded) return
-
-        emit('uploaded', uploaded)
-        cropVisible.value = false
-    } finally {
-        uploading.value = false
+    const canvas = cropper.getCroppedCanvas({ width: props.outputSize, height: props.outputSize })
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.9))
+    if (!blob) {
+        setToast('error', '图片上传失败', '裁剪生成图片失败，请重试')
+        return
     }
+
+    emit('cropped', blob)
 }
 
 // 弹窗关闭后，销毁cropper，释放临时图片
@@ -97,10 +100,17 @@ watch(cropVisible, (visible) => {
         @change="onFileChange"
     />
 
-    <Dialog v-model:visible="cropVisible" header="裁剪图片" modal :closable="!uploading" class="dialog-cropper">
+    <Dialog
+        v-model:visible="cropVisible"
+        header="裁剪图片"
+        modal
+        :closable="!uploading"
+        :close-on-escape="!uploading"
+        class="dialog-cropper"
+    >
         <img ref="cropImgEl" :src="cropSrc" class="crop-img" alt="待裁剪图片" @load="initCropper" />
         <template #footer>
-            <Button label="取消" severity="secondary" text :disabled="uploading" @click="cropVisible = false" />
+            <Button label="取消" severity="secondary" text :disabled="uploading" @click="close" />
             <Button label="确认并上传" icon="pi pi-upload" :loading="uploading" @click="onCropConfirm" />
         </template>
     </Dialog>

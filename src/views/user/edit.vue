@@ -10,14 +10,12 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { updateCurrentUser } from '@/api/user'
 import AuthChangePass from '@/components/AuthChangePass.vue'
-import ImageCropper from '@/components/ImageCropper.vue'
+import ImageUploader from '@/components/ImageUploader.vue'
 
 import { useAuthStore } from '@/stores/auth'
 import { toastApiError } from '@/utils/apiError'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
-
-import type { UploadResponse } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -58,7 +56,6 @@ async function onUpdateData() {
     }
 }
 
-const imageCropper = ref<InstanceType<typeof ImageCropper> | null>(null)
 const avatar = ref('')
 
 // 软导航进入时 userInfo 已就绪，硬刷新时其初始化晚于本组件 setup，故用 watch 响应式回填
@@ -78,10 +75,8 @@ watch(
     { immediate: true }
 )
 
-// 头像上传成功后回填表单与预览
-function onAvatarUploaded(uploaded: UploadResponse) {
-    updateData.value.avatar = uploaded.uri
-    avatar.value = uploaded.url || avatar.value
+// 头像上传成功后提示；uri / url 已由 ImageUploader 双向绑定回填
+function onAvatarUploaded() {
     setToast('success', '头像更新成功', '')
 }
 
@@ -135,15 +130,20 @@ onMounted(async () => {
             <div class="avatar">
                 <div>设置头像</div>
                 <br />
-                <div class="wrapper" @click="imageCropper?.open()">
-                    <img v-if="avatar" :src="avatar" alt="用户头像" />
-                    <div v-else class="avatar-placeholder"><i class="pi pi-user"></i></div>
-                    <div class="overlay">
-                        <span class="pi pi-upload"></span>
-                    </div>
-                </div>
+                <ImageUploader
+                    v-model:uri="updateData.avatar"
+                    v-model:url="avatar"
+                    scene="avatar"
+                    cropper
+                    round
+                    width="8rem"
+                    height="8rem"
+                    alt="用户头像"
+                    aria-label="更换头像"
+                    placeholder-size="3rem"
+                    @uploaded="onAvatarUploaded"
+                />
                 <div class="tip">头像支持 JPG、PNG、GIF、WEBP、AVIF 格式，大小不得超过 4MB</div>
-                <ImageCropper ref="imageCropper" img-scene="avatar" @uploaded="onAvatarUploaded" />
                 <InputText name="avatar" v-model="updateData.avatar" type="hidden" />
             </div>
 
@@ -218,55 +218,6 @@ form {
 
     .avatar {
         flex: 1;
-
-        .wrapper {
-            position: relative;
-            width: 8rem;
-            height: 8rem;
-            margin-bottom: 0.5rem;
-
-            img {
-                display: inline-block;
-                width: 8rem;
-                height: 8rem;
-                border-radius: 50%;
-                border: 1px solid var(--e-border-color);
-            }
-
-            .avatar-placeholder {
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                border: 1px solid var(--e-border-color);
-                background-color: var(--e-surface-subtle);
-                color: var(--p-text-muted-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3rem;
-            }
-
-            .overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                background-color: rgba(0, 0, 0, 0.25);
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                opacity: 0;
-                transition: opacity 0.3s;
-                cursor: pointer;
-            }
-
-            &:hover .overlay {
-                opacity: 1;
-            }
-        }
 
         .tip {
             margin-top: 1rem;

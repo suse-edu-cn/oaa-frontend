@@ -172,6 +172,7 @@ export const DialogStub = defineComponent({
         visible: Boolean,
         header: String,
         modal: Boolean,
+        closable: { type: Boolean, default: true },
     },
     emits: ['update:visible'],
     setup(props, { slots }) {

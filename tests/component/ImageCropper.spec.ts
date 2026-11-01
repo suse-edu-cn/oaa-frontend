@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 
-vi.mock('@/utils/request', () => ({ default: vi.fn() }))
 vi.mock('@/utils/setToast', () => ({ default: vi.fn() }))
 
 type FakeCanvas = {
@@ -39,19 +38,15 @@ vi.mock('cropperjs', () => ({
     },
 }))
 
-import request from '@/utils/request'
 import setToast from '@/utils/setToast'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 import { mountWithPrimeVue } from '../helpers/mount'
+import { ButtonStub, DialogStub } from '../helpers/primevueStubs'
 
-const requestMock = vi.mocked(request)
 const toastMock = vi.mocked(setToast)
 
-const UPLOAD_OK = { code: 200, message: 'ok', data: { uri: 'oss://avatar.png', url: 'https://obj/avatar.png' } }
-
 beforeEach(() => {
-    requestMock.mockReset()
     toastMock.mockReset()
     cropperState.instances.length = 0
     cropperState.blobCalls.length = 0
@@ -74,55 +69,40 @@ async function openCrop(wrapper: Wrapper) {
     await flushPromises()
 }
 
-async function confirmCrop(wrapper: Wrapper) {
-    const button = wrapper.findAll('button').find((item) => item.text() === '确认并上传')
+function findButton(wrapper: Wrapper, label: string) {
+    const button = wrapper.findAll('button').find((item) => item.text() === label)
     expect(button).toBeDefined()
-    await button!.trigger('click')
+    return button!
+}
+
+async function confirmCrop(wrapper: Wrapper) {
+    await findButton(wrapper, '确认并上传').trigger('click')
     await flushPromises()
 }
 
 describe('components/ImageCropper', () => {
-    it('裁剪结果以 WebP 0.9 编码上传，MIME 与扩展名一致', async () => {
-        requestMock.mockResolvedValue(UPLOAD_OK)
-        const wrapper = mountWithPrimeVue(ImageCropper, { props: { imgScene: 'avatar' } })
+    it('选择文件后打开弹窗，确认时以 WebP 0.9 编码并抛出 blob', async () => {
+        const wrapper = mountWithPrimeVue(ImageCropper)
 
         await selectFile(wrapper, new File(['raw'], 'avatar.jpg', { type: 'image/jpeg' }))
+        expect(wrapper.findComponent(DialogStub).props('visible')).toBe(true)
+
         await openCrop(wrapper)
         await confirmCrop(wrapper)
 
-        // 编码参数：WebP + 0.9
+        // 编码 WebP + 0.9
         expect(cropperState.blobCalls).toEqual([{ type: 'image/webp', quality: 0.9 }])
 
-        expect(requestMock).toHaveBeenCalledTimes(1)
-        const config = requestMock.mock.calls[0][0]
-        expect(config.url).toBe('/upload/image')
+        const [blob] = wrapper.emitted('cropped')![0] as [Blob]
+        expect(blob).toBeInstanceOf(Blob)
+        expect(blob.type).toBe('image/webp')
 
-        const body = config.data as FormData
-        const file = body.get('file') as File
-        // 回归：new File 不传 type 时为空串，会被 uploadImage 判为「格式错误」
-        expect(file.type).toBe('image/webp')
-        expect(file.name).toBe('image.webp')
-        expect(file.size).toBeGreaterThan(0)
-        expect(body.get('scene')).toBe('avatar')
-
-        expect(wrapper.emitted('uploaded')?.[0]).toEqual([{ uri: 'oss://avatar.png', url: 'https://obj/avatar.png' }])
-        expect(toastMock).not.toHaveBeenCalledWith('warn', '格式错误', expect.anything())
+        // 只抛事件
+        expect(wrapper.findComponent(DialogStub).props('visible')).toBe(true)
     })
 
-    it('上传失败时不抛事件，并提示后端消息', async () => {
-        requestMock.mockResolvedValue({ code: 500, message: '文件服务不可用', data: null })
-        const wrapper = mountWithPrimeVue(ImageCropper, { props: { imgScene: 'avatar' } })
-
-        await selectFile(wrapper, new File(['raw'], 'avatar.png', { type: 'image/png' }))
-        await openCrop(wrapper)
-        await confirmCrop(wrapper)
-
-        expect(wrapper.emitted('uploaded')).toBeUndefined()
-        expect(toastMock).toHaveBeenCalledWith('error', '上传失败', '文件服务不可用')
-    })
-
-    it('裁剪生成图片失败时提示重试且不发请求', async () => {
-        const wrapper = mountWithPrimeVue(ImageCropper, { props: { imgScene: 'avatar' } })
+    it('裁剪生成图片失败时提示重试且不抛事件', async () => {
+        const wrapper = mountWithPrimeVue(ImageCropper)
 
         await selectFile(wrapper, new File(['raw'], 'avatar.png', { type: 'image/png' }))
         await openCrop(wrapper)
@@ -133,8 +113,36 @@ describe('components/ImageCropper', () => {
 
         await confirmCrop(wrapper)
 
-        expect(requestMock).not.toHaveBeenCalled()
-        expect(wrapper.emitted('uploaded')).toBeUndefined()
+        expect(wrapper.emitted('cropped')).toBeUndefined()
         expect(toastMock).toHaveBeenCalledWith('error', '图片上传失败', '裁剪生成图片失败，请重试')
+    })
+
+    it('上传中禁用取消与关闭，确认不会重复触发', async () => {
+        const wrapper = mountWithPrimeVue(ImageCropper, { props: { uploading: true } })
+
+        await selectFile(wrapper, new File(['raw'], 'avatar.png', { type: 'image/png' }))
+        await openCrop(wrapper)
+
+        expect(wrapper.findComponent(DialogStub).props('closable')).toBe(false)
+        expect(findButton(wrapper, '取消').attributes('disabled')).toBeDefined()
+
+        const confirmButton = wrapper.findAllComponents(ButtonStub).find((item) => item.props('label') === '确认并上传')
+        expect(confirmButton?.props('loading')).toBe(true)
+
+        await confirmCrop(wrapper)
+        expect(wrapper.emitted('cropped')).toBeUndefined()
+    })
+
+    it('close() 关闭弹窗并销毁 cropper', async () => {
+        const wrapper = mountWithPrimeVue(ImageCropper)
+
+        await selectFile(wrapper, new File(['raw'], 'avatar.png', { type: 'image/png' }))
+        await openCrop(wrapper)
+
+        ;(wrapper.vm as unknown as { close: () => void }).close()
+        await flushPromises()
+
+        expect(wrapper.findComponent(DialogStub).props('visible')).toBe(false)
+        expect(cropperState.instances[0].destroyed).toBe(true)
     })
 })
