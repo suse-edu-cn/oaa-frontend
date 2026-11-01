@@ -144,6 +144,20 @@ describe('components/ImageUploader', () => {
         expect(wrapper.find('img').attributes('src')).toBe('https://obj.suseoaa.com/old.png')
     })
 
+    it('服务端未返回 url 时清空预览，避免预览与提交的 uri 不一致', async () => {
+        const wrapper = mountUploader({ url: 'https://obj.suseoaa.com/old.png' })
+        uploadMock.mockResolvedValue({ uri: 'oss://new.png', url: '' })
+
+        await chooseFile(wrapper)
+        await flushPromises()
+
+        // uri 已换成新图，预览不能还停在旧图
+        expect(wrapper.emitted('update:uri')![0]).toEqual(['oss://new.png'])
+        expect(wrapper.emitted('update:url')![0]).toEqual([''])
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(wrapper.find('.placeholder').exists()).toBe(true)
+    })
+
     it('cropper 模式下点击交给裁剪器，裁剪完成后由组件上传并关闭弹窗', async () => {
         const cropper = makeCropperStub()
         const wrapper = mountUploader({ cropper: true, scene: 'avatar' }, cropper)

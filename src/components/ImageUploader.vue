@@ -61,7 +61,7 @@ function openPicker() {
 
 function applyUploaded(uploaded: UploadResponse) {
     uri.value = uploaded.uri
-    url.value = uploaded.url || url.value
+    url.value = uploaded.url ?? ''
     emit('uploaded', uploaded)
 }
 
