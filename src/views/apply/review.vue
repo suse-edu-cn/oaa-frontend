@@ -187,8 +187,13 @@ async function onReviewConfirm() {
         data.result_role_id = reviewForm.value.roleId
     } else if (decision === '录取第一志愿' || decision === '录取第二志愿') {
         const choice = decision === '录取第一志愿' ? app.first_choice : app.second_choice
-        data.result_department_id = choice?.department_id ?? app.result?.department_id
-        data.result_role_id = choice?.role_id ?? app.result?.role_id
+        if (!choice?.department_id || !choice?.role_id) {
+            const label = decision === '录取第一志愿' ? '第一' : '第二'
+            setToast('error', '无法提交审核', `该申请缺少${label}志愿的部门或职位`)
+            return
+        }
+        data.result_department_id = choice.department_id
+        data.result_role_id = choice.role_id
     }
 
     reviewSaving.value = true

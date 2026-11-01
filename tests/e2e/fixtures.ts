@@ -149,6 +149,7 @@ export interface MockScenario {
     applicationDepartments?: DepartmentItem[]
     upload?: UploadResponse | null
     createApplication?: 'success' | 'fail'
+    createInterviewResult?: 'success' | 'fail'
 }
 
 interface ApiCall {
@@ -281,6 +282,11 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
     }
 
     if (method === 'POST' && path === '/interviewer/create') {
+        return fulfill(route, ok(null))
+    }
+
+    if (method === 'POST' && path === '/interviewer/result/create') {
+        if (scenario.createInterviewResult === 'fail') return fulfill(route, fail(500, '提交审核失败'))
         return fulfill(route, ok(null))
     }
 
