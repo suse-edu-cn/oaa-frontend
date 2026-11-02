@@ -60,11 +60,11 @@ describe('utils/initAuthStore', () => {
         expect(store.userInfo?.department).toBe('未设置职位')
     })
 
-    it('后端明确拒绝时清空 token', async () => {
+    it('后端 401 时清空 token', async () => {
         setAuthCookies({ token: 'token' })
         getCurrentUserMock.mockResolvedValue({
-            code: 500,
-            message: 'bad',
+            code: 401,
+            message: '登录已失效',
             data: null,
         } as unknown as ApiResponse<UserInfo>)
         const store = useAuthStore()
@@ -73,6 +73,24 @@ describe('utils/initAuthStore', () => {
 
         expect(Cookies.get('token')).toBeUndefined()
         expect(store.token).toBe('')
+        expect(store.isReady).toBe(false)
+        expect(store.isAuthed).toBe(false)
+    })
+
+    it('后端 5xx 时保留 token', async () => {
+        setAuthCookies({ token: 'token' })
+        getCurrentUserMock.mockResolvedValue({
+            code: 500,
+            message: '服务异常',
+            data: null,
+        } as unknown as ApiResponse<UserInfo>)
+        const store = useAuthStore()
+
+        await initAuthStore()
+
+        expect(Cookies.get('token')).toBe('token')
+        expect(store.token).toBe('token')
+        expect(store.userInfo).toBeNull()
         expect(store.isReady).toBe(true)
         expect(store.isAuthed).toBe(false)
     })
@@ -88,6 +106,23 @@ describe('utils/initAuthStore', () => {
         expect(store.token).toBe('token')
         expect(store.isReady).toBe(true)
         expect(store.isAuthed).toBe(false)
+    })
+
+    it('上次网络失败后可以重新加载用户信息', async () => {
+        setAuthCookies({ token: 'token' })
+        getCurrentUserMock.mockResolvedValueOnce(undefined)
+        const store = useAuthStore()
+
+        await initAuthStore()
+
+        expect(store.userInfo).toBeNull()
+
+        getCurrentUserMock.mockResolvedValueOnce({ code: 200, message: 'ok', data: makeUser({ user_id: 3 }) })
+        await initAuthStore()
+
+        expect(getCurrentUserMock).toHaveBeenCalledTimes(2)
+        expect(store.userInfo?.user_id).toBe(3)
+        expect(store.isReady).toBe(true)
     })
 
     it('并发调用共享同一次请求', async () => {
@@ -159,6 +194,29 @@ describe('utils/initAuthStore', () => {
 
         expect(warn).toHaveBeenCalled()
         expect(store.token).toBe('token')
+        expect(store.isReady).toBe(true)
+    })
+
+    it('初始化期间登录时丢弃旧会话结果', async () => {
+        setAuthCookies({ token: 'a-token', refreshToken: 'a-refresh' })
+        const gate = deferred<ApiResponse<UserInfo>>()
+        getCurrentUserMock.mockReturnValueOnce(gate.promise)
+        getCurrentUserMock.mockResolvedValueOnce({ code: 200, message: 'ok', data: makeUser({ user_id: 2 }) })
+        const store = useAuthStore()
+
+        const staleInit = initAuthStore()
+        store.beginLogin({ token: 'b-token', refreshToken: 'b-refresh' })
+        await initAuthStore()
+
+        expect(store.userInfo?.user_id).toBe(2)
+        expect(store.token).toBe('b-token')
+
+        // 旧会话的响应晚到，不得覆盖新会话
+        gate.resolve({ code: 200, message: 'ok', data: makeUser({ user_id: 1 }) })
+        await staleInit
+
+        expect(store.userInfo?.user_id).toBe(2)
+        expect(store.token).toBe('b-token')
         expect(store.isReady).toBe(true)
     })
 })

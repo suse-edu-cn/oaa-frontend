@@ -112,4 +112,79 @@ describe('stores/auth', () => {
         expect(Cookies.get('token')).toBeUndefined()
         expect(Cookies.get('refresh_token')).toBeUndefined()
     })
+
+    it('markReady 之后才算就绪，刷新轮换不打断就绪状态', () => {
+        const store = useAuthStore()
+
+        store.applyTokens({ token: 'access', refreshToken: 'refresh' })
+        expect(store.isReady).toBe(false)
+
+        store.markReady()
+        expect(store.isReady).toBe(true)
+
+        // 刷新 token 轮换属于同一会话
+        store.applyTokens({ token: 'rotated', refreshToken: 'rotated-refresh' })
+
+        expect(store.token).toBe('rotated')
+        expect(store.isReady).toBe(true)
+    })
+
+    it('beginLogin 开启新会话，需要重新初始化', () => {
+        setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh' })
+        const store = useAuthStore()
+        store.hydrate()
+        store.setUserInfo(makeUser({ user_id: 1 }))
+        store.markReady()
+
+        const epochBefore = store.epoch
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+
+        expect(store.epoch).toBe(epochBefore + 1)
+        expect(store.isReady).toBe(false)
+        expect(store.userInfo).toBeNull()
+        expect(store.isAuthed).toBe(false)
+    })
+
+    it('旧代际的 markReady 不会把新会话标成就绪', () => {
+        const store = useAuthStore()
+        store.applyTokens({ token: 'access', refreshToken: 'refresh' })
+        const staleEpoch = store.epoch
+
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+        store.markReady(staleEpoch)
+
+        expect(store.isReady).toBe(false)
+
+        store.markReady()
+        expect(store.isReady).toBe(true)
+    })
+
+    it('clearSession 让就绪状态失效并递增 epoch', () => {
+        const store = useAuthStore()
+        store.applyTokens({ token: 'access', refreshToken: 'refresh' })
+        store.markReady()
+        const epochBefore = store.epoch
+
+        store.clearSession()
+
+        expect(store.epoch).toBe(epochBefore + 1)
+        expect(store.isReady).toBe(false)
+        expect(store.token).toBe('')
+    })
+
+    it('hydrate 发现外部 token 变化时递增 epoch 并清空就绪状态', () => {
+        setAuthCookies({ token: 'old-token', refreshToken: 'old-refresh' })
+        const store = useAuthStore()
+        store.hydrate()
+        store.setUserInfo(makeUser({ user_id: 1 }))
+        store.markReady()
+        const epochBefore = store.epoch
+
+        setAuthCookies({ token: 'new-token', refreshToken: 'new-refresh' })
+        store.hydrate()
+
+        expect(store.epoch).toBe(epochBefore + 1)
+        expect(store.isReady).toBe(false)
+        expect(store.userInfo).toBeNull()
+    })
 })

@@ -43,8 +43,8 @@ describe('router/guard', () => {
     it('等级不足时跳转 403', async () => {
         setAuthCookies()
         const store = useAuthStore()
-        store.isReady = true
         store.token = 'token'
+        store.markReady()
         store.userInfo = makeUser({ role_level: 20 })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe('/403')
@@ -55,8 +55,8 @@ describe('router/guard', () => {
     it('等级足够时放行', async () => {
         setAuthCookies()
         const store = useAuthStore()
-        store.isReady = true
         store.token = 'token'
+        store.markReady()
         store.userInfo = makeUser({ role_level: 80 })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
@@ -64,12 +64,8 @@ describe('router/guard', () => {
 
     it('store 未就绪时先完成初始化再判断等级', async () => {
         setAuthCookies()
-        const store = useAuthStore()
-        store.isReady = false
         initMock.mockImplementation(async () => {
-            const current = useAuthStore()
-            current.isReady = true
-            current.userInfo = makeUser({ role_level: 80 })
+            useAuthStore().setUserInfo(makeUser({ role_level: 80 }))
         })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
@@ -79,8 +75,6 @@ describe('router/guard', () => {
 
     it('初始化期间登录态失效时跳转登录页而不是 403', async () => {
         setAuthCookies()
-        const store = useAuthStore()
-        store.isReady = false
         initMock.mockImplementation(async () => {
             // 模拟刷新 token 失败
             const current = useAuthStore()
@@ -95,8 +89,6 @@ describe('router/guard', () => {
 
     it('无等级要求的页面不触发用户信息初始化', async () => {
         setAuthCookies()
-        const store = useAuthStore()
-        store.isReady = false
 
         await expect(authGuard({ meta: {} })).resolves.toBe(true)
 
@@ -110,8 +102,8 @@ describe('router/guard', () => {
     it('用户信息缺失时 role_level 按 0 处理', async () => {
         setAuthCookies()
         const store = useAuthStore()
-        store.isReady = true
         store.token = 'token'
+        store.markReady()
         store.userInfo = null
 
         await expect(authGuard({ meta: { level: 20 } })).resolves.toBe('/403')
