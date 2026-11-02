@@ -12,7 +12,8 @@
 
 ## 环境要求
 
-- Node.js ≥ 24（CI 26）、pnpm ≥ 9（CI 11），见 `README.md`；只用 pnpm，不要用 npm / yarn。
+- Node.js ≥ 24（CI 26）、pnpm ≥ 9（CI 11）。只用 pnpm，不要用 npm / yarn。
+- `package.json` 目前没有 `engines` / `packageManager` 字段，本地与 CI 版本不一致时容易出现 lockfile 抖动；动依赖前先确认 `node -v` / `pnpm -v`。
 
 ## 常用命令
 
@@ -48,10 +49,10 @@ src/
 ├── router/            # 路由与守卫（鉴权、权限等级、标题、进度条）
 ├── layouts/           # Header / Drawer / Footer
 ├── views/             # 页面，按业务域分目录（home、user、manage、announcement、apply、settings、error）
-├── components/        # 可复用组件（ConfirmDialog、MarkdownEditor、ImageCropper 等）
+├── components/        # 可复用组件（ApplicationForm、ImageUploader、ImageCropper、MarkdownEditor 等）
 ├── api/               # 接口层，按后端模块拆分，业务端点只在这里出现一次
 ├── stores/            # Pinia：auth、org、term、settings
-├── utils/             # request、apiError、session、setToast、uploader、markdown、date、uriConverter、initAuthStore
+├── utils/             # request、apiError、session、setToast、uploader、applicationFormValidation、markdown、date、uriConverter、initAuthStore、theme、pwa、useMediaQuery
 ├── types/             # 接口类型，按后端模块拆分，由 types/index.ts 统一导出
 ├── styles/            # reset.less（入口 + 基础 reset）、components.less（全局 e-* 组件类）、overrides.less（第三方覆写）、markdown.less、variables.less
 └── env.d.ts           # 环境变量与全局常量类型
@@ -66,6 +67,7 @@ src/
 - `main.ts` 与 `entry-ssg.ts` 必须保持同步：新增 PrimeVue 插件、指令、全局组件时两边都要注册，否则预渲染页会缺样式或报错。
 - PrimeVue 组件统一从 `primevue` 桶导入（`import { Button, Dialog } from 'primevue'`）。Toast 需在 `App.vue` 中 `initToast(useToast())` 注入后才可用。
 - SSG 环境没有 `document`，涉及 DOM 的逻辑先判断 `import.meta.env.SSR`（参考 `src/router/index.ts`）。
+- 页面滚动容器是 `App.vue` 里的 `.e-view`（不是 window，首页除外）。路由切换后由 `App.vue` 监听 `route.path` 统一把 `.e-view` 与 window 复位到顶部；**不要**改用 `scrollBehavior`——它对内部滚动容器无效。
 
 ### 鉴权与请求
 
@@ -91,8 +93,25 @@ src/
 - 登录态只通过 `useAuthStore` 的 action 修改；组件和请求层不要直接改 `token` / `isAuthed` / cookie。`isAuthed` 是派生值，不可赋值。
 - 部门 / 职位等引用数据走 `useOrgStore`：`ensureLoaded()` 只请求一次，强制刷新用 `refresh()`。
 - 活动周期引用数据走 `useTermStore`：`ensureLoaded()` 会缓存并合并并发请求，周期增删改后调用 `refresh()`；页面 / 组件不要再各自调用 `getTermList()`。
-- 表单校验用 zod + `@primevue/forms` 的 `zodResolver`，错误文案用中文。
+- 表单校验用 zod + `@primevue/forms` 的 `zodResolver`，错误文案用中文；文本字段先 `trim` 再判空，提交时也要用同一份 `trim` 后的值，避免「校验通过但存进库的是带空格内容」。
+- 申请表单的字段上限与后端 `applications` 表列宽对齐，统一定义在 `APPLICATION_FIELD_LIMITS`：学院 / 班级 64、政治面貌 32、简历 / 申请理由 5000 字符。改后端列宽时同步改这里，不要散落魔法数字；出生日期不得晚于今天。
 - 上传统一走 `src/utils/uploader.ts`（`uploadImage` 限 4MB 常见图片格式，`uploadFile` 默认 100MB），不要另写上传请求。
+
+### 图片上传与裁剪
+
+- 图片统一走 `ImageUploader`，它负责预览、遮罩、可选裁剪、上传与上传态。`v-model:uri` 是提交给后端的对象存储路径，`v-model:url` 只用于预览，两者可能不同，不要混用。
+- `ImageCropper` 只做裁剪与编码（`cropped` 事件给出 WebP blob），**不要**再让它调用上传接口；上传统一由 `ImageUploader` 负责，失败时保持弹窗打开，用户可原地重试。
+- 上传中必须禁止再次选图：`ImageUploader` 用 `uploading` 状态 + 请求序号双重守卫。删掉守卫会出现并发上传，进而「预览是 A、提交是 B」。
+- 服务端未返回 `url` 时要把预览清空显示占位，不能保留旧图——否则预览与将要提交的 `uri` 不一致。上传失败则保持原图不变。
+- 新增上传场景只传 `scene`，不要在组件里写死 URL 或另建上传请求。
+
+### 可访问性
+
+- 每个 `<label>` 必须关联控件：用 `useId()` 生成前缀 + `fieldId(name)`，`label` 的 `:for` 与控件的 `id` 用同一个值；PrimeVue 的 `Select` / `DatePicker` / `ToggleSwitch` 用 `input-id`。
+- 校验错误要让读屏能读到：错误提示加 `:id="fieldId(x) + '-error'"`，控件加 `:aria-invalid` 与 `:aria-describedby`。
+- 可点击但不是链接的元素一律用 `<button type="button">`，不要用 `<div @click>`；补 `focus-visible` 描边，必要时加 `aria-label` / `aria-haspopup` / `aria-expanded`。
+- 一组控件（如日期区间）不要硬套 `<label for>`：用普通文本说明分组，各控件自己给 `aria-label`；纯展示的字段名用 `<span>` 而不是 `<label>`。
+- 改完表单或交互控件，用键盘（Tab / Enter / Space / Esc）实际走一遍。
 
 ### 样式约定
 
@@ -116,6 +135,7 @@ src/
 
 - 遵循 Conventional Commits，描述用中文，scope 用模块名（router、user、announcement 等）：`feat(router): 页面标题跟随路由切换`。
 - 改动较大时拆成多个提交，用 `[1/2]` 形式标注顺序。
+- `tests/` 的改动与源码放在一起提交：修 bug 的回归测试、重构后更新的用例都不能只提交源码。提交前用 `git status` 确认没有遗留未跟踪的 `*.spec.ts`。
 - pre-commit 由 husky + lint-staged 对暂存文件运行 oxfmt，提交前先执行 `pnpm format:write`。
 
 ## 验证清单
@@ -130,9 +150,32 @@ pnpm test
 
 涉及构建配置、SSG、PWA、路由或请求层（`src/utils/request.ts`、`src/api`）时，再执行 `pnpm build`，并确认 `dist/index.html` 中已注入首页 HTML。涉及登录态、权限、公告、申请等跨页面链路时，再执行 `pnpm test:e2e`。UI 改动需用 `pnpm dev` 实际过一遍：桌面与移动端布局、加载与空状态、Toast、权限跳转。
 
-测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。集成测试用 MSW 在网络层 mock，未匹配请求会直接失败；组件测试用 `tests/helpers/primevueStubs.ts` 的轻量 stub，不挂真实 PrimeVue；`tests/setup.ts` 负责 cookie 等测试间清理。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。覆盖率门槛已启用（70 / 70 / 65 / 70）。
+测试框架为 Vitest（jsdom + Vue Test Utils），配置见 `vitest.config.ts`，用例放在 `tests/` 下，统一 `*.spec.ts`，并显式 `import` vitest API（不开全局）。集成测试用 MSW 在网络层 mock，未匹配请求会直接失败；`tests/setup.ts` 负责 cookie 等测试间清理。新增工具函数、store、关键组件时同步补测试；修 bug 先写回归测试。测试不得依赖真实后端与当前时间。
 
-E2E 使用 Playwright（只装 Chromium），配置见 `playwright.config.ts`，用例在 `tests/e2e/`。`tests/e2e/fixtures.ts` 用 `page.route` 拦截全部 `/v2/**` 请求并记录调用，未 mock 的接口会返回 404 且测试结束时报错，**不要让它穿透到开发代理**；`api.scenario` 切换场景，`signIn()` 预置登录 cookie。涉及登录态、权限、公告、申请等跨页面链路时执行 `pnpm test:e2e`（首次需 `pnpm exec playwright install chromium`）。
+组件测试用 `tests/helpers/primevueStubs.ts` 的轻量 stub，不挂真实 PrimeVue。给 PrimeVue 控件新增 prop 时先在对应 stub 里声明（如 `inputId`、`maxDate`、`closable`），否则它只会落成根元素属性，`props()` 断言会拿到 `undefined`。
+
+覆盖率门槛（70 / 70 / 65 / 70）只统计 `vitest.config.ts` 里 `coverage.include` 列出的文件，视图 / 布局不在其中——数字达标不代表页面有保护，改页面要靠组件测试或 E2E 兜底。
+
+E2E 使用 Playwright（只装 Chromium），配置见 `playwright.config.ts`，用例在 `tests/e2e/`。`tests/e2e/fixtures.ts` 用 `page.route` 拦截全部 `/v2/**` 请求并记录调用，未 mock 的接口会返回 404 且测试结束时报错，**不要让它穿透到开发代理**；`api.scenario` 切换场景，`signIn()` 预置登录 cookie，`api.count()` / `api.lastBody()` 用于断言请求。现有场景覆盖首页冒烟、登录登出、路由权限、公告、申请提交、审核分页、会话续期与路由滚动。涉及登录态、权限、公告、申请等跨页面链路时执行 `pnpm test:e2e`（首次需 `pnpm exec playwright install chromium`）。
+
+## 构建与部署
+
+- 站点根只放三个固定 URL 文件：`index.html`、`sw.js`、`manifest.webmanifest`；其余静态资源（`_oaa/*`、`oaa.svg`、`apple-touch-icon.png`、`pwa-*.png`）都随 OSS 版本目录 `oaa-fe/v{version}/` 发布。
+- manifest 图标是构建期拼出的 OSS 绝对地址（`vite.config.ts` 的 `pwaIcon()`），Service Worker 只预缓存 `manifest.webmanifest`（`includeManifestIcons: false`）——跨域图标不能进 precache。动 PWA 配置时这两条要一起看，否则会出现「浏览器去站点根找图标」的 404。
+- `index.html` / `sw.js` / `manifest.webmanifest` 必须 `no-cache`，`_oaa/*` 与图标可长缓存；`manifest.webmanifest` 的 `Content-Type` 必须是 `application/manifest+json`，否则 Chrome 不认、PWA 安装失效。
+- 版本号来自 `package.json`，同时决定 OSS 目录、manifest 与设置页展示；发版先改版本号再构建。
+- 仓库里没有部署脚本，「设置响应头」目前是人工步骤，见 `README.md` 的部署表。
+
+## 已知行为与取舍
+
+以下是有意为之的行为，不要当成 bug「顺手修掉」：
+
+- `request` 默认超时 5 秒；上传单独放宽到 120 秒。
+- 刷新 token 失败（含网络失败）会清空登录态并跳登录页，`tests/integration/request.spec.ts` 对此有断言。
+- 前端密码校验只判非空，强度以后端为准。
+- token 存在 JS 可读的 cookie 里，站点未配置 CSP；XSS 面靠「不使用 `v-html`、markdown 默认关闭原生 HTML」控制，新增富文本渲染前先评估。
+- 公告正文由 md-editor-v3 渲染，默认 `html: false`；不要为了排版打开原生 HTML。
+- 首页文案里提到的 SSO / 比赛功能尚未实现。
 
 ## 硬性约束
 
