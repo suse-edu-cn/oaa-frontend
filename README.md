@@ -1,5 +1,3 @@
-<!-- # 青蟹 Web -->
-
 <div align="center">
 
 <img src="./public/apple-touch-icon.png" width="120">
@@ -15,10 +13,7 @@
 
 你说得对，但是 “青蟹” 是四川轻化工大学开放原子开源协会设计并制作的协会管理系统，包括协会介绍、人员管理、公告/比赛管理等多种常用功能。
 
-[公网地址](https://suseoaa.com) | [内网地址](https://fe.in.suseoaa.com)
-
-> [!WARNING]
-> 青蟹 Web 尚处于 v0.x 开发阶段，随时会产生 Breaking Changes，切勿直接部署到生产服务器。
+访问青蟹 Web：<https://suseoaa.com>
 
 “青蟹” 项目共分为 3 个部分，本仓库为其 Web 前端部分，基于 Vue 3 框架与 PrimeVue v4 组件库构建。关于其它部分，欢迎各位查阅：
 
@@ -35,7 +30,7 @@
 - [TODO] 统一身份认证系统
 - ......
 
-## 食用方法
+## 开发者食用方法
 请先确定计算机已经安装 Node.js 环境 (版本 >= 24) 和 pnpm 包管理器 (版本 >= 9)，然后 clone 本项目并安装相关依赖。
 
 ```bash
@@ -56,6 +51,6 @@ pnpm build          # 公网生产环境
 ```
 
 ## 其它
-本项目[图标](./public/oaa.svg)为 AI 生成，由 @HuangZhuoRui 与 @Neonsaya 提供，详情请见 commit [`c443197`](https://github.com/suse-edu-cn/oaa-frontend/commit/c443197f496f7dd05018ffc9057c63dc5e2c6000)。
+本项目部分内容使用了 AI 进行辅助开发，测试环境完全由 AI 完成。[青蟹图标](./public/oaa.svg)为 AI 生成，详情请见 commit [`c443197`](https://github.com/suse-edu-cn/oaa-frontend/commit/c443197f496f7dd05018ffc9057c63dc5e2c6000)。
 
 (C) SUSE OAA Project Dept. Licensed under [GPL-3.0](./LICENSE).
