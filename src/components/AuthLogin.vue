@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useId } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
 
@@ -15,6 +15,9 @@ import { initAuthStore } from '@/utils/initAuthStore'
 const router = useRouter()
 const authStore = useAuthStore()
 const emit = defineEmits<{ forgot: [] }>()
+
+const uid = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 const initialValues = ref({
     account: '',
@@ -69,9 +72,15 @@ async function onLogin() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-users" />
-                    <InputText v-model="loginData.account" name="account" size="large" class="input-box" />
+                    <InputText
+                        :id="fieldId('account')"
+                        v-model="loginData.account"
+                        name="account"
+                        size="large"
+                        class="input-box"
+                    />
                 </IconField>
-                <label for="on_label">用户名 / 邮箱 / 学号</label>
+                <label :for="fieldId('account')">用户名 / 邮箱 / 学号</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.account?.invalid">{{ $form.account.error?.message }}</span
@@ -84,6 +93,7 @@ async function onLogin() {
                 <IconField>
                     <InputIcon class="pi pi-lock" />
                     <InputText
+                        :id="fieldId('password')"
                         v-model="loginData.password"
                         name="password"
                         type="password"
@@ -91,7 +101,7 @@ async function onLogin() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">密码</label>
+                <label :for="fieldId('password')">密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.password?.invalid">{{ $form.password.error?.message }}</span

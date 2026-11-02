@@ -32,6 +32,8 @@ const router = useRouter()
 const isIndex = computed(() => route.path == '/')
 // 登录状态下拉菜单
 const userMenu = ref<{ toggle: (event: Event) => void } | null>(null)
+// 菜单展开状态
+const menuOpen = ref(false)
 
 // 启动阶段有 token 时才需要 skeleton
 const showAuthSkeleton = computed(() => authStore.hasSession && !authStore.isReady)
@@ -88,14 +90,28 @@ const userItems: MenuItem[] = [
                 <Skeleton width="4rem" height="1rem" />
             </div>
             <template v-else>
-                <div v-if="authStore.userInfo" class="user" @click="userMenu?.toggle($event)">
+                <button
+                    v-if="authStore.userInfo"
+                    type="button"
+                    class="user"
+                    aria-haspopup="menu"
+                    :aria-expanded="menuOpen"
+                    @click="userMenu?.toggle($event)"
+                >
                     <img v-if="authStore.userInfo.avatar?.url" :src="authStore.userInfo.avatar.url" alt="用户头像" />
                     <i v-else class="pi pi-user avatar-placeholder"></i>
                     <span class="username">{{ authStore.userInfo.username }}</span>
-                </div>
+                </button>
                 <RouterLink to="/auth" v-if="!authStore.isAuthed">登录</RouterLink>
             </template>
-            <Menu ref="userMenu" :model="userItems" class="header-menu" popup />
+            <Menu
+                ref="userMenu"
+                :model="userItems"
+                class="header-menu"
+                popup
+                @show="menuOpen = true"
+                @hide="menuOpen = false"
+            />
         </div>
     </header>
 </template>
@@ -188,7 +204,19 @@ header {
             align-items: center;
             gap: 0.4em;
             min-width: 0;
+            // 用 button 承载，保证键盘可操作；这里抹掉按钮默认样式
+            padding: 0;
+            border: none;
+            background: none;
+            color: inherit;
+            font: inherit;
             cursor: pointer;
+
+            &:focus-visible {
+                outline: 2px solid var(--e-color-theme);
+                outline-offset: 2px;
+                border-radius: var(--e-border-radius);
+            }
         }
 
         .username {

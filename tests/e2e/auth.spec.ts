@@ -21,7 +21,14 @@ test.describe('登录与登出', () => {
         await expect(page).toHaveURL(/\/user$/)
         await expect(page.locator('header .user')).toContainText('青蟹测试员')
 
-        await page.locator('header .user').click()
+        // 用户菜单现在是按钮，键盘可聚焦、可回车打开
+        const userMenuButton = page.getByRole('button', { name: /青蟹测试员/ })
+        await expect(userMenuButton).toBeVisible()
+        await expect(userMenuButton).toHaveAttribute('aria-expanded', 'false')
+
+        await userMenuButton.focus()
+        await userMenuButton.press('Enter')
+        await expect(page.getByRole('menuitem', { name: '登出' })).toBeVisible()
         await page.getByRole('menuitem', { name: '登出' }).click()
 
         await expect(page).toHaveURL(/\/auth$/)

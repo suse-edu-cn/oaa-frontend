@@ -194,9 +194,10 @@ onMounted(async () => {
                         <Button icon="pi pi-trash" severity="danger" text @click="openDelete(u)" />
                     </div>
                     <div class="user-field">
-                        <label>部门</label>
+                        <label :for="`dept-${u.user_id}`">部门</label>
                         <Select
                             v-model="drafts[u.user_id].department"
+                            :input-id="`dept-${u.user_id}`"
                             :options="orgStore.departments"
                             option-label="name"
                             option-value="name"
@@ -204,9 +205,10 @@ onMounted(async () => {
                         />
                     </div>
                     <div class="user-field">
-                        <label>职位</label>
+                        <label :for="`role-${u.user_id}`">职位</label>
                         <Select
                             v-model="drafts[u.user_id].role"
+                            :input-id="`role-${u.user_id}`"
                             :options="orgStore.roles"
                             option-label="name"
                             option-value="name"

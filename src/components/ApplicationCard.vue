@@ -79,59 +79,72 @@ function getDecisionClass(decision: string) {
                 <div class="info">
                     <div class="card-grid">
                         <div class="field" v-if="!reviewMode">
-                            <label>姓名</label><span>{{ application.name || '—' }}</span>
+                            <span class="field-label">姓名</span><span>{{ application.name || '—' }}</span>
                         </div>
                         <div class="field" v-if="!reviewMode">
-                            <label>状态</label>
+                            <span class="field-label">状态</span>
                             <span :class="['status', getDecisionClass(application.decision)]">
                                 {{ application.decision || '—' }}
                             </span>
                             <i
                                 v-if="!reviewMode"
                                 class="pi pi-info-circle"
+                                role="img"
+                                tabindex="0"
+                                aria-label="录取状态说明"
                                 v-tooltip.top="{ value: tooltip, class: 'apply-tooltip' }"
                             ></i>
                         </div>
                         <div class="field">
-                            <label>班级</label><span>{{ application.major_class || '—' }}</span>
+                            <span class="field-label">班级</span><span>{{ application.major_class || '—' }}</span>
                         </div>
                         <div class="field">
-                            <label>学院</label><span>{{ application.college || '—' }}</span>
+                            <span class="field-label">学院</span><span>{{ application.college || '—' }}</span>
                         </div>
                         <div class="field">
-                            <label>政治面貌</label><span>{{ application.political_status || '—' }}</span>
+                            <span class="field-label">政治面貌</span
+                            ><span>{{ application.political_status || '—' }}</span>
                         </div>
                         <div class="field">
-                            <label>生日</label><span>{{ application.birth_date || '—' }}</span>
+                            <span class="field-label">生日</span><span>{{ application.birth_date || '—' }}</span>
                         </div>
                         <div class="field">
-                            <label>QQ</label><span>{{ application.qq || '—' }}</span>
+                            <span class="field-label">QQ</span><span>{{ application.qq || '—' }}</span>
                         </div>
                         <div class="field">
-                            <label>手机号</label><span>{{ application.phone || '—' }}</span>
+                            <span class="field-label">手机号</span><span>{{ application.phone || '—' }}</span>
                         </div>
                     </div>
 
                     <!-- 志愿 -->
                     <div class="card-grid">
                         <div class="field">
-                            <label>第一志愿</label><span>{{ getOrgText(application.first_choice) }}</span>
+                            <span class="field-label">第一志愿</span
+                            ><span>{{ getOrgText(application.first_choice) }}</span>
                         </div>
                         <div class="field">
-                            <label>第二志愿</label><span>{{ getOrgText(application.second_choice) }}</span>
+                            <span class="field-label">第二志愿</span
+                            ><span>{{ getOrgText(application.second_choice) }}</span>
                         </div>
                         <div class="field">
-                            <label>服从调剂</label><span>{{ application.allow_adjust ? '是' : '否' }}</span>
+                            <span class="field-label">服从调剂</span
+                            ><span>{{ application.allow_adjust ? '是' : '否' }}</span>
                         </div>
                         <div class="field">
-                            <label>最终结果</label><span>{{ getOrgText(application.result) }}</span>
+                            <span class="field-label">最终结果</span><span>{{ getOrgText(application.result) }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div v-if="application.avatar?.url" class="avatar" @click="emit('preview', application.avatar.url)">
+                <button
+                    v-if="application.avatar?.url"
+                    type="button"
+                    class="avatar"
+                    aria-label="查看头像"
+                    @click="emit('preview', application.avatar.url)"
+                >
                     <img :src="application.avatar.url" alt="用户头像" class="img" />
-                </div>
+                </button>
             </div>
 
             <!-- 文字内容 -->
@@ -217,7 +230,7 @@ function getDecisionClass(decision: string) {
                 font-size: 15px;
                 line-height: 1.8;
 
-                label {
+                .field-label {
                     flex-shrink: 0;
                     width: 5em;
                     color: var(--p-text-muted-color);
@@ -255,7 +268,15 @@ function getDecisionClass(decision: string) {
         border: 1px solid var(--e-border-subtle);
         border-radius: var(--e-border-radius);
         overflow: hidden;
+        padding: 0;
+        background: none;
+        font: inherit;
         cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid var(--e-color-theme);
+            outline-offset: 2px;
+        }
 
         // hover 遮罩
         &::after {

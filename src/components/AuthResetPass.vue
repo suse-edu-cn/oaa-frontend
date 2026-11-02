@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
+import { onUnmounted, ref, useId } from 'vue'
 import { z } from 'zod'
 import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { Form } from '@primevue/forms'
@@ -19,6 +19,9 @@ withDefaults(
 )
 
 const emit = defineEmits<{ switchMode: [] }>()
+
+const uid = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 const initialValues = ref({
     account: '',
@@ -128,9 +131,15 @@ async function onReset() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-user" />
-                    <InputText v-model="resetData.account" name="account" size="large" class="input-box" />
+                    <InputText
+                        :id="fieldId('account')"
+                        v-model="resetData.account"
+                        name="account"
+                        size="large"
+                        class="input-box"
+                    />
                 </IconField>
-                <label for="on_label">用户名 / 学号 / 邮箱</label>
+                <label :for="fieldId('account')">用户名 / 学号 / 邮箱</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.account?.invalid">{{ $form.account.error?.message }}</span
@@ -143,9 +152,15 @@ async function onReset() {
                 <FloatLabel variant="on" class="code-field">
                     <IconField>
                         <InputIcon class="pi pi-unlock" />
-                        <InputText v-model="resetData.code" name="code" size="large" class="code-input" />
+                        <InputText
+                            :id="fieldId('code')"
+                            v-model="resetData.code"
+                            name="code"
+                            size="large"
+                            class="code-input"
+                        />
                     </IconField>
-                    <label for="on_label">验证码</label>
+                    <label :for="fieldId('code')">验证码</label>
                 </FloatLabel>
                 <Button
                     type="button"
@@ -167,6 +182,7 @@ async function onReset() {
                 <IconField>
                     <InputIcon class="pi pi-key" />
                     <InputText
+                        :id="fieldId('password')"
                         v-model="resetData.password"
                         name="password"
                         type="password"
@@ -174,7 +190,7 @@ async function onReset() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">新密码</label>
+                <label :for="fieldId('password')">新密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.password?.invalid">{{ $form.password.error?.message }}</span
@@ -187,6 +203,7 @@ async function onReset() {
                 <IconField>
                     <InputIcon class="pi pi-shield" />
                     <InputText
+                        :id="fieldId('confirmPassword')"
                         v-model="resetData.confirmPassword"
                         name="confirmPassword"
                         type="password"
@@ -194,7 +211,7 @@ async function onReset() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">确认新密码</label>
+                <label :for="fieldId('confirmPassword')">确认新密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.confirmPassword?.invalid">{{ $form.confirmPassword.error?.message }}</span

@@ -1,6 +1,6 @@
 <!-- 招新/换届周期管理页 /manage/term -->
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, useId, watch } from 'vue'
 import { Button, Column, DataTable, DatePicker, Dialog, InputNumber, InputText, Paginator, Select } from 'primevue'
 
 import { createTerm, deleteTerm, updateTerm } from '@/api/term'
@@ -15,6 +15,9 @@ import type { TermInfo, TermPeriod } from '@/types'
 
 // 周期类型
 const TERM_TYPES = ['招新', '换届'] as const
+
+const uid = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 const termStore = useTermStore()
 const terms = computed(() => termStore.terms)
@@ -288,23 +291,37 @@ onMounted(async () => {
         <Dialog v-model:visible="dialogVisible" modal :header="dialogTitle" :style="{ minWidth: '28rem' }">
             <div class="form-grid">
                 <div class="form-field">
-                    <label>年份</label>
-                    <InputNumber v-model="formYear" :disabled="dialogMode === 'edit'" :use-grouping="false" fluid />
+                    <label :for="fieldId('year')">年份</label>
+                    <InputNumber
+                        v-model="formYear"
+                        :input-id="fieldId('year')"
+                        :disabled="dialogMode === 'edit'"
+                        :use-grouping="false"
+                        fluid
+                    />
                 </div>
                 <div class="form-field">
-                    <label>类型</label>
-                    <Select v-model="formType" :options="[...TERM_TYPES]" :disabled="dialogMode === 'edit'" fluid />
+                    <label :for="fieldId('type')">类型</label>
+                    <Select
+                        v-model="formType"
+                        :input-id="fieldId('type')"
+                        :options="[...TERM_TYPES]"
+                        :disabled="dialogMode === 'edit'"
+                        fluid
+                    />
                 </div>
             </div>
             <div class="form-field">
-                <label>标题</label>
-                <InputText v-model="formTitle" fluid />
+                <label :for="fieldId('title')">标题</label>
+                <InputText v-model="formTitle" :id="fieldId('title')" fluid />
             </div>
             <div class="form-field">
-                <label>申请提交日期</label>
+                <span class="group-label">申请提交日期</span>
                 <div class="form-grid">
                     <DatePicker
                         v-model="formEditStart"
+                        :input-id="fieldId('editStart')"
+                        aria-label="申请提交开始日期"
                         date-format="yy-mm-dd"
                         showIcon
                         iconDisplay="input"
@@ -312,6 +329,8 @@ onMounted(async () => {
                     />
                     <DatePicker
                         v-model="formEditEnd"
+                        :input-id="fieldId('editEnd')"
+                        aria-label="申请提交结束日期"
                         date-format="yy-mm-dd"
                         showIcon
                         iconDisplay="input"
@@ -320,10 +339,12 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="form-field">
-                <label>面试审核日期</label>
+                <span class="group-label">面试审核日期</span>
                 <div class="form-grid">
                     <DatePicker
                         v-model="formQueryStart"
+                        :input-id="fieldId('queryStart')"
+                        aria-label="面试审核开始日期"
                         date-format="yy-mm-dd"
                         showIcon
                         iconDisplay="input"
@@ -331,6 +352,8 @@ onMounted(async () => {
                     />
                     <DatePicker
                         v-model="formQueryEnd"
+                        :input-id="fieldId('queryEnd')"
+                        aria-label="面试审核结束日期"
                         date-format="yy-mm-dd"
                         showIcon
                         iconDisplay="input"
@@ -376,7 +399,8 @@ onMounted(async () => {
     gap: 0.35rem;
     margin-bottom: 0.75rem;
 
-    label {
+    label,
+    .group-label {
         font-size: 14px;
     }
 }

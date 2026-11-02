@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useId } from 'vue'
 import { z } from 'zod'
 import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { Form } from '@primevue/forms'
@@ -11,6 +11,9 @@ import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
+
+const uid = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 // change 为修改密码表单，reset 为忘记原密码时的重置流程
 const mode = ref('change')
@@ -83,6 +86,7 @@ async function onChangePass() {
                 <IconField>
                     <InputIcon class="pi pi-lock" />
                     <InputText
+                        :id="fieldId('oldPassword')"
                         v-model="changeData.oldPassword"
                         name="oldPassword"
                         type="password"
@@ -90,7 +94,7 @@ async function onChangePass() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">旧密码</label>
+                <label :for="fieldId('oldPassword')">旧密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.oldPassword?.invalid">{{ $form.oldPassword.error?.message }}</span
@@ -103,6 +107,7 @@ async function onChangePass() {
                 <IconField>
                     <InputIcon class="pi pi-key" />
                     <InputText
+                        :id="fieldId('newPassword')"
                         v-model="changeData.newPassword"
                         name="newPassword"
                         type="password"
@@ -110,7 +115,7 @@ async function onChangePass() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">新密码</label>
+                <label :for="fieldId('newPassword')">新密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.newPassword?.invalid">{{ $form.newPassword.error?.message }}</span
@@ -123,6 +128,7 @@ async function onChangePass() {
                 <IconField>
                     <InputIcon class="pi pi-shield" />
                     <InputText
+                        :id="fieldId('confirmPassword')"
                         v-model="changeData.confirmPassword"
                         name="confirmPassword"
                         type="password"
@@ -130,7 +136,7 @@ async function onChangePass() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">确认新密码</label>
+                <label :for="fieldId('confirmPassword')">确认新密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.confirmPassword?.invalid">{{ $form.confirmPassword.error?.message }}</span

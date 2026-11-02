@@ -45,6 +45,7 @@ export const SelectStub = defineComponent({
         optionLabel: { type: String, default: 'label' },
         optionValue: { type: String, default: 'value' },
         placeholder: String,
+        inputId: String,
         disabled: Boolean,
     },
     emits: ['update:modelValue', 'change'],
@@ -62,6 +63,7 @@ export const SelectStub = defineComponent({
             h(
                 'select',
                 {
+                    id: props.inputId,
                     value: props.modelValue ?? '',
                     disabled: props.disabled,
                     'data-testid': 'select',
@@ -80,11 +82,12 @@ export const DatePickerStub = defineComponent({
     props: {
         modelValue: { type: Object as PropType<Date | null>, default: null },
         maxDate: { type: Object as PropType<Date | null>, default: null },
+        inputId: String,
         disabled: Boolean,
     },
     emits: ['update:modelValue'],
-    setup() {
-        return () => h('div', { 'data-testid': 'datepicker' })
+    setup(props) {
+        return () => h('div', { id: props.inputId, 'data-testid': 'datepicker' })
     },
 })
 
@@ -114,6 +117,7 @@ export const ToggleSwitchStub = defineComponent({
     name: 'ToggleSwitch',
     props: {
         modelValue: Boolean,
+        inputId: String,
         disabled: Boolean,
     },
     emits: ['update:modelValue'],
@@ -121,6 +125,7 @@ export const ToggleSwitchStub = defineComponent({
         return () =>
             h('input', {
                 type: 'checkbox',
+                id: props.inputId,
                 checked: props.modelValue,
                 disabled: props.disabled,
                 'data-testid': 'toggle',

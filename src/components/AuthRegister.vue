@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useId } from 'vue'
 import { z } from 'zod'
 
 import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
@@ -11,6 +11,9 @@ import { toastApiError } from '@/utils/apiError'
 import setToast from '@/utils/setToast'
 
 const emit = defineEmits<{ switchMode: [] }>()
+
+const uid = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 const initialValues = ref({
     student_id: '',
@@ -111,6 +114,7 @@ async function onRegister() {
                 <IconField>
                     <InputIcon class="pi pi-id-card" />
                     <InputText
+                        :id="fieldId('student_id')"
                         v-model="registerData.student_id"
                         name="student_id"
                         inputmode="numeric"
@@ -120,7 +124,7 @@ async function onRegister() {
                         @blur="fillGradeByStudentId"
                     />
                 </IconField>
-                <label for="on_label">学号</label>
+                <label :for="fieldId('student_id')">学号</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.student_id?.invalid">{{ $form.student_id.error?.message }}</span
@@ -133,6 +137,7 @@ async function onRegister() {
                 <IconField>
                     <InputIcon class="pi pi-calendar" />
                     <InputText
+                        :id="fieldId('grade')"
                         v-model="registerData.grade"
                         name="grade"
                         inputmode="numeric"
@@ -141,7 +146,7 @@ async function onRegister() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">入学年份</label>
+                <label :for="fieldId('grade')">入学年份</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.grade?.invalid">{{ $form.grade.error?.message }}</span
@@ -153,9 +158,15 @@ async function onRegister() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-user" />
-                    <InputText v-model="registerData.name" name="name" size="large" class="input-box" />
+                    <InputText
+                        :id="fieldId('name')"
+                        v-model="registerData.name"
+                        name="name"
+                        size="large"
+                        class="input-box"
+                    />
                 </IconField>
-                <label for="on_label">姓名</label>
+                <label :for="fieldId('name')">姓名</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.name?.invalid">{{ $form.name.error?.message }}</span
@@ -167,9 +178,15 @@ async function onRegister() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-users" />
-                    <InputText v-model="registerData.username" name="username" size="large" class="input-box" />
+                    <InputText
+                        :id="fieldId('username')"
+                        v-model="registerData.username"
+                        name="username"
+                        size="large"
+                        class="input-box"
+                    />
                 </IconField>
-                <label for="on_label">用户名</label>
+                <label :for="fieldId('username')">用户名</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.username?.invalid">{{ $form.username.error?.message }}</span
@@ -181,9 +198,15 @@ async function onRegister() {
             <FloatLabel variant="on">
                 <IconField>
                     <InputIcon class="pi pi-envelope" />
-                    <InputText v-model="registerData.email" name="email" size="large" class="input-box" />
+                    <InputText
+                        :id="fieldId('email')"
+                        v-model="registerData.email"
+                        name="email"
+                        size="large"
+                        class="input-box"
+                    />
                 </IconField>
-                <label for="on_label">邮箱</label>
+                <label :for="fieldId('email')">邮箱</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.email?.invalid">{{ $form.email.error?.message }}</span
@@ -196,6 +219,7 @@ async function onRegister() {
                 <IconField>
                     <InputIcon class="pi pi-lock" />
                     <InputText
+                        :id="fieldId('password')"
                         v-model="registerData.password"
                         name="password"
                         type="password"
@@ -203,7 +227,7 @@ async function onRegister() {
                         class="input-box"
                     />
                 </IconField>
-                <label for="on_label">密码</label>
+                <label :for="fieldId('password')">密码</label>
             </FloatLabel>
             <Message severity="error" size="small" variant="simple">
                 <span v-if="$form.password?.invalid">{{ $form.password.error?.message }}</span

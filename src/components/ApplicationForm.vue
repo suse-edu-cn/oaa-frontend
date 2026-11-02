@@ -66,7 +66,9 @@ const formData = ref({
 const birthDate = ref<Date | null>(toDate(p.birth_date))
 // 信息属实确认
 const confirmed = ref(false)
+const uid = useId()
 const confirmId = useId()
+const fieldId = (name: string) => `${uid}-${name}`
 
 // ================= 周期 =================
 const terms = computed(() => termStore.terms)
@@ -296,9 +298,10 @@ onMounted(async () => {
                     <h2>申请周期</h2>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>活动周期</label>
+                            <label :for="fieldId('termId')">活动周期</label>
                             <Skeleton v-if="optionsLoading" height="32px" width="100%" />
                             <Select
+                                :input-id="fieldId('termId')"
                                 v-else
                                 v-model="formData.termId"
                                 :options="terms"
@@ -320,82 +323,136 @@ onMounted(async () => {
                     <h2>个人信息</h2>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>姓名</label>
-                            <InputText :model-value="props.initial?.name || '—'" disabled />
+                            <label :for="fieldId('name')">姓名</label>
+                            <InputText :id="fieldId('name')" :model-value="props.initial?.name || '—'" disabled />
                             <Message variant="simple" />
                         </div>
                         <div class="form-item">
-                            <label>学号</label>
-                            <InputText :model-value="props.initial?.student_id || '—'" disabled />
+                            <label :for="fieldId('student_id')">学号</label>
+                            <InputText
+                                :id="fieldId('student_id')"
+                                :model-value="props.initial?.student_id || '—'"
+                                disabled
+                            />
                             <Message variant="simple" />
                         </div>
                     </div>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>学院</label>
-                            <InputText v-model="formData.college" placeholder="请输入学院" :maxlength="LIMIT.college" />
-                            <Message severity="error" size="small" variant="simple">
+                            <label :for="fieldId('college')">学院</label>
+                            <InputText
+                                :id="fieldId('college')"
+                                :aria-invalid="Boolean(errors.college)"
+                                :aria-describedby="fieldId('college') + '-error'"
+                                v-model="formData.college"
+                                placeholder="请输入学院"
+                                :maxlength="LIMIT.college"
+                            />
+                            <Message :id="fieldId('college') + '-error'" severity="error" size="small" variant="simple">
                                 {{ errors.college }}
                             </Message>
                         </div>
                         <div class="form-item">
-                            <label>班级</label>
+                            <label :for="fieldId('major_class')">班级</label>
                             <InputText
+                                :id="fieldId('major_class')"
+                                :aria-invalid="Boolean(errors.major_class)"
+                                :aria-describedby="fieldId('major_class') + '-error'"
                                 v-model="formData.major_class"
                                 placeholder="如：计科241"
                                 :maxlength="LIMIT.major_class"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('major_class') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.major_class }}
                             </Message>
                         </div>
                     </div>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>性别</label>
-                            <Select v-model="formData.gender" :options="['男', '女']" placeholder="请选择" />
-                            <Message severity="error" size="small" variant="simple">
+                            <label :for="fieldId('gender')">性别</label>
+                            <Select
+                                :input-id="fieldId('gender')"
+                                :aria-invalid="Boolean(errors.gender)"
+                                :aria-describedby="fieldId('gender') + '-error'"
+                                v-model="formData.gender"
+                                :options="['男', '女']"
+                                placeholder="请选择"
+                            />
+                            <Message :id="fieldId('gender') + '-error'" severity="error" size="small" variant="simple">
                                 {{ errors.gender }}
                             </Message>
                         </div>
                         <div class="form-item">
-                            <label>出生日期</label>
+                            <label :for="fieldId('birth_date')">出生日期</label>
                             <DatePicker
+                                :input-id="fieldId('birth_date')"
+                                :aria-invalid="Boolean(errors.birth_date)"
+                                :aria-describedby="fieldId('birth_date') + '-error'"
                                 v-model="birthDate"
                                 date-format="yy-mm-dd"
                                 placeholder="请选择出生日期"
                                 :max-date="new Date(new Date().setHours(0, 0, 0, 0))"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('birth_date') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.birth_date }}
                             </Message>
                         </div>
                     </div>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>手机号</label>
-                            <InputText v-model="formData.phone" placeholder="请输入手机号" />
-                            <Message severity="error" size="small" variant="simple">
+                            <label :for="fieldId('phone')">手机号</label>
+                            <InputText
+                                :id="fieldId('phone')"
+                                :aria-invalid="Boolean(errors.phone)"
+                                :aria-describedby="fieldId('phone') + '-error'"
+                                v-model="formData.phone"
+                                placeholder="请输入手机号"
+                            />
+                            <Message :id="fieldId('phone') + '-error'" severity="error" size="small" variant="simple">
                                 {{ errors.phone }}
                             </Message>
                         </div>
                         <div class="form-item">
-                            <label>QQ</label>
-                            <InputText v-model="formData.qq" placeholder="请输入 QQ 号" />
-                            <Message severity="error" size="small" variant="simple">
+                            <label :for="fieldId('qq')">QQ</label>
+                            <InputText
+                                :id="fieldId('qq')"
+                                :aria-invalid="Boolean(errors.qq)"
+                                :aria-describedby="fieldId('qq') + '-error'"
+                                v-model="formData.qq"
+                                placeholder="请输入 QQ 号"
+                            />
+                            <Message :id="fieldId('qq') + '-error'" severity="error" size="small" variant="simple">
                                 {{ errors.qq }}
                             </Message>
                         </div>
                     </div>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>政治面貌</label>
+                            <label :for="fieldId('political_status')">政治面貌</label>
                             <InputText
+                                :id="fieldId('political_status')"
+                                :aria-invalid="Boolean(errors.political_status)"
+                                :aria-describedby="fieldId('political_status') + '-error'"
                                 v-model="formData.political_status"
                                 placeholder="请输入政治面貌"
                                 :maxlength="LIMIT.political_status"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('political_status') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.political_status }}
                             </Message>
                         </div>
@@ -409,9 +466,12 @@ onMounted(async () => {
                     <h3>第一志愿</h3>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>部门</label>
+                            <label :for="fieldId('firstDept')">部门</label>
                             <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                :input-id="fieldId('firstDept')"
+                                :aria-invalid="Boolean(errors.firstDept)"
+                                :aria-describedby="fieldId('firstDept') + '-error'"
                                 v-else
                                 v-model="formData.firstDept"
                                 :options="firstDeptOptions"
@@ -421,14 +481,22 @@ onMounted(async () => {
                                 :disabled="firstDeptsLoading"
                                 @change="onFirstDeptChange"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('firstDept') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.firstDept }}
                             </Message>
                         </div>
                         <div class="form-item">
-                            <label>职位</label>
+                            <label :for="fieldId('firstRole')">职位</label>
                             <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                :input-id="fieldId('firstRole')"
+                                :aria-invalid="Boolean(errors.firstRole)"
+                                :aria-describedby="fieldId('firstRole') + '-error'"
                                 v-else
                                 v-model="formData.firstRole"
                                 :options="firstRoleOptions"
@@ -438,7 +506,12 @@ onMounted(async () => {
                                 :disabled="firstRolesLoading"
                                 @change="onFirstRoleChange"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('firstRole') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.firstRole }}
                             </Message>
                         </div>
@@ -447,9 +520,12 @@ onMounted(async () => {
                     <h3>第二志愿</h3>
                     <div class="form-grid">
                         <div class="form-item">
-                            <label>部门</label>
+                            <label :for="fieldId('secondDept')">部门</label>
                             <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                :input-id="fieldId('secondDept')"
+                                :aria-invalid="Boolean(errors.secondDept)"
+                                :aria-describedby="fieldId('secondDept') + '-error'"
                                 v-else
                                 v-model="formData.secondDept"
                                 :options="secondDeptOptions"
@@ -459,14 +535,22 @@ onMounted(async () => {
                                 :disabled="secondDeptsLoading"
                                 @change="onSecondDeptChange"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('secondDept') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.secondDept }}
                             </Message>
                         </div>
                         <div class="form-item">
-                            <label>职位</label>
+                            <label :for="fieldId('secondRole')">职位</label>
                             <Skeleton v-if="optionsLoading" height="2.5rem" width="100%" />
                             <Select
+                                :input-id="fieldId('secondRole')"
+                                :aria-invalid="Boolean(errors.secondRole)"
+                                :aria-describedby="fieldId('secondRole') + '-error'"
                                 v-else
                                 v-model="formData.secondRole"
                                 :options="secondRoleOptions"
@@ -476,14 +560,19 @@ onMounted(async () => {
                                 :disabled="secondRolesLoading"
                                 @change="onSecondRoleChange"
                             />
-                            <Message severity="error" size="small" variant="simple">
+                            <Message
+                                :id="fieldId('secondRole') + '-error'"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ errors.secondRole }}
                             </Message>
                         </div>
                     </div>
                     <div class="form-item">
-                        <label>是否服从调剂</label>
-                        <ToggleSwitch v-model="formData.allow_adjust" />
+                        <label :for="fieldId('allow_adjust')">是否服从调剂</label>
+                        <ToggleSwitch :input-id="fieldId('allow_adjust')" v-model="formData.allow_adjust" />
                     </div>
                 </div>
 
@@ -491,28 +580,34 @@ onMounted(async () => {
                 <div class="form-section">
                     <h2>申请材料</h2>
                     <div class="form-item">
-                        <label>简历</label>
+                        <label :for="fieldId('resume')">简历</label>
                         <Textarea
+                            :id="fieldId('resume')"
+                            :aria-invalid="Boolean(errors.resume)"
+                            :aria-describedby="fieldId('resume') + '-error'"
                             v-model="formData.resume"
                             rows="5"
                             placeholder="个人经历、项目经历等"
                             :maxlength="LIMIT.resume"
                         />
                         <div class="char-count">{{ formData.resume.length }} / {{ LIMIT.resume }}</div>
-                        <Message severity="error" size="small" variant="simple">
+                        <Message :id="fieldId('resume') + '-error'" severity="error" size="small" variant="simple">
                             {{ errors.resume }}
                         </Message>
                     </div>
                     <div class="form-item">
-                        <label>申请理由</label>
+                        <label :for="fieldId('reason')">申请理由</label>
                         <Textarea
+                            :id="fieldId('reason')"
+                            :aria-invalid="Boolean(errors.reason)"
+                            :aria-describedby="fieldId('reason') + '-error'"
                             v-model="formData.reason"
                             rows="5"
                             placeholder="希望加入的理由"
                             :maxlength="LIMIT.reason"
                         />
                         <div class="char-count">{{ formData.reason.length }} / {{ LIMIT.reason }}</div>
-                        <Message severity="error" size="small" variant="simple">
+                        <Message :id="fieldId('reason') + '-error'" severity="error" size="small" variant="simple">
                             {{ errors.reason }}
                         </Message>
                     </div>

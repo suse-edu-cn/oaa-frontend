@@ -193,4 +193,16 @@ describe('components/AuthRegister', () => {
             expect(registerMock).not.toHaveBeenCalled()
         })
     })
+
+    it('每个 label 都关联到存在的控件', () => {
+        const wrapper = mountRegister()
+
+        const labels = wrapper.findAll('label[for]')
+        expect(labels).toHaveLength(7)
+
+        for (const label of labels) {
+            const id = label.attributes('for')!
+            expect(wrapper.find(`[id="${id}"]`).exists(), `label for="${id}" 缺少对应控件`).toBe(true)
+        }
+    })
 })

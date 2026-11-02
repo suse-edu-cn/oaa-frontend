@@ -348,4 +348,28 @@ describe('components/ApplicationForm', () => {
         expect(wrapper.find('.form-image img').attributes('src')).toBe('https://obj.suseoaa.com/old.png')
         expect(toastMock).not.toHaveBeenCalledWith('success', '头像上传成功', '')
     })
+
+    it('每个 label 都关联到存在的控件', async () => {
+        const wrapper = await mountForm()
+
+        const labels = wrapper.findAll('label[for]')
+        expect(labels).toHaveLength(18)
+
+        for (const label of labels) {
+            const id = label.attributes('for')!
+            expect(wrapper.find(`[id="${id}"]`).exists(), `label for="${id}" 缺少对应控件`).toBe(true)
+        }
+    })
+
+    it('校验错误通过 aria-describedby / aria-invalid 关联到控件', async () => {
+        const wrapper = await mountForm()
+        const phone = wrapper.find('input[placeholder="请输入手机号"]')
+
+        await phone.setValue('123')
+
+        const describedBy = phone.attributes('aria-describedby')
+        expect(describedBy).toBeTruthy()
+        expect(wrapper.find(`[id="${describedBy}"]`).text()).toContain('请填写有效的手机号')
+        expect(phone.attributes('aria-invalid')).toBe('true')
+    })
 })
