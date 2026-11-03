@@ -193,6 +193,7 @@ const request = async function <T = any>(config: {
     params?: any
     token?: string
     timeout?: number
+    responseType?: 'json' | 'blob'
 }): Promise<T | undefined> {
     try {
         // 优先使用调用时提供的 token
@@ -225,6 +226,7 @@ const request = async function <T = any>(config: {
             params: config.params || {},
             headers: token ? { Authorization: `Bearer ${token}` } : {},
             timeout: config.timeout,
+            responseType: config.responseType,
             _token: token,
             _epoch: epoch,
         }
