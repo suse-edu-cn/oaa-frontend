@@ -1,4 +1,4 @@
-import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 
 import { useAuthStore } from '@/stores/auth'
 import { clearSessionCookies, readSession } from './session'
@@ -10,9 +10,17 @@ const instance = axios.create({
     timeout: 5000,
 })
 
-interface RetryableConfig extends InternalAxiosRequestConfig {
+/** 挂在 axios config 上的鉴权元信息，用于判断 401 是否仍属于当前会话 */
+interface AuthMeta {
     _retry?: boolean
+    _token?: string
+    _epoch?: number
 }
+
+type RetryableConfig = InternalAxiosRequestConfig & AuthMeta
+
+/** ok 刷新成功，stale 会话已变，rejected 后端 401 拒绝，failed 暂时由网络或 5xx 失败 */
+type RefreshResult = 'ok' | 'stale' | 'rejected' | 'failed'
 
 export interface RequestAuthConfig {
     /** 当前路由，用于判断是否在公开页 / 登录页 */
@@ -40,23 +48,24 @@ function isTokenExpired(token: string): boolean {
     return exp !== null && Date.now() / 1000 >= exp
 }
 
-// 并发的 401 共享刷新避免竞态
-let refreshing: Promise<boolean> | null = null
-// 刷新入口
-function ensureFreshToken(): Promise<boolean> {
-    refreshing = refreshing || doRefresh()
-    return refreshing.finally(() => {
-        refreshing = null
+// 按 epoch 隔离同一次会话的并发 401 共享刷新
+let refreshTask: { epoch: number; promise: Promise<RefreshResult> } | null = null
+
+function ensureFreshToken(epoch: number): Promise<RefreshResult> {
+    if (refreshTask?.epoch === epoch) return refreshTask.promise
+
+    const promise = doRefresh(epoch).finally(() => {
+        if (refreshTask?.epoch === epoch) refreshTask = null
     })
+    refreshTask = { epoch, promise }
+    return promise
 }
 
-async function doRefresh(): Promise<boolean> {
+async function doRefresh(epoch: number): Promise<RefreshResult> {
     const authStore = useAuthStore()
 
     const refreshToken = authStore.refreshToken || readSession().refreshToken
-    if (!refreshToken) {
-        return false
-    }
+    if (!refreshToken) return 'rejected'
 
     try {
         const resp = await instance.request<ApiResponse<{ token: string; refresh_token: string }>>({
@@ -65,14 +74,17 @@ async function doRefresh(): Promise<boolean> {
             data: { refresh_token: refreshToken },
         })
 
+        if (authStore.epoch !== epoch) return 'stale'
         if (resp.data.code == 200) {
             const { token, refresh_token } = resp.data.data
             authStore.applyTokens({ token, refreshToken: refresh_token })
-            return true
+            return 'ok'
         }
-        return false
-    } catch {
-        return false
+        return resp.data.code === 401 || resp.data.code === 403 ? 'rejected' : 'failed'
+    } catch (error) {
+        if (authStore.epoch !== epoch) return 'stale'
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined
+        return status === 401 || status === 403 ? 'rejected' : 'failed'
     }
 }
 
@@ -98,6 +110,13 @@ function handleAuthExpired(): void {
     authConfig.redirectToAuth()
 }
 
+/** 会话失效，仅限仍处于发起时的 epoch */
+function expireSession(epoch: number): void {
+    if (useAuthStore().epoch !== epoch) return
+    clearAuth()
+    handleAuthExpired()
+}
+
 // /auth/* 以及已经重试过的请求不再触发刷新
 function shouldRefresh(config?: InternalAxiosRequestConfig): boolean {
     if (!config) return false
@@ -105,25 +124,48 @@ function shouldRefresh(config?: InternalAxiosRequestConfig): boolean {
     return !(config as RetryableConfig)._retry
 }
 
-async function refreshAndRetry(config: InternalAxiosRequestConfig): Promise<AxiosResponse | null> {
-    const ok = await ensureFreshToken()
-    if (!ok) {
-        clearAuth()
-        handleAuthExpired()
-        return null
-    }
+/** 用当前会话的 token 重放一次 */
+function replayWithCurrentToken(config: RetryableConfig): Promise<AxiosResponse> {
+    const authStore = useAuthStore()
+    config._retry = true
+    config._token = authStore.token
+    config._epoch = authStore.epoch
+    config.headers.Authorization = `Bearer ${authStore.token}`
+    return instance.request(config)
+}
 
-    const retryConfig = config as RetryableConfig
-    retryConfig._retry = true
-    retryConfig.headers.Authorization = `Bearer ${useAuthStore().token}`
-    return instance.request(retryConfig)
+async function refreshAndRetry(config: RetryableConfig): Promise<AxiosResponse | null> {
+    const authStore = useAuthStore()
+    const requestToken = config._token ?? ''
+
+    // 如果请求发出后会话已更换
+    if (requestToken !== authStore.token) {
+        return authStore.token ? replayWithCurrentToken(config) : null
+    }
+    // 匿名请求的 401 与任何会话无关
+    if (!requestToken) return null
+
+    const epoch = authStore.epoch
+    const result = await ensureFreshToken(epoch)
+
+    if (result === 'stale') {
+        return authStore.token ? replayWithCurrentToken(config) : null
+    }
+    if (result === 'ok') {
+        return replayWithCurrentToken(config)
+    }
+    if (result === 'rejected') {
+        expireSession(epoch)
+    }
+    // rejected / failed
+    return null
 }
 
 instance.interceptors.response.use(
     // 检测 401
     async (response) => {
         if (response.data?.code === 401 && shouldRefresh(response.config)) {
-            return (await refreshAndRetry(response.config)) ?? response
+            return (await refreshAndRetry(response.config as RetryableConfig)) ?? response
         }
         return response
     },
@@ -134,14 +176,14 @@ instance.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        return (await refreshAndRetry(config)) ?? Promise.reject(error)
+        return (await refreshAndRetry(config as RetryableConfig)) ?? Promise.reject(error)
     }
 )
 
 /**
- * 统一请求入口
+ * 统一 API 请求入口
  *
- * 不抛异常，网络 / 超时失败时返回 undefined，调用方需判空
+ * 网络 / 超时失败时返回 undefined，调用方需自行判空
  * 失败提示交给 utils/apiError.ts 的 toastApiError
  */
 const request = async function <T = any>(config: {
@@ -155,6 +197,7 @@ const request = async function <T = any>(config: {
     try {
         // 优先使用调用时提供的 token
         let token = config.token || ''
+        let epoch = 0
         if (!token) {
             try {
                 const authStore = useAuthStore()
@@ -162,21 +205,30 @@ const request = async function <T = any>(config: {
                 token = authStore.token
                 // token 过期时静默刷新
                 if (token && isTokenExpired(token)) {
-                    const ok = await ensureFreshToken()
-                    if (ok) token = useAuthStore().token
+                    const expireEpoch = authStore.epoch
+                    const result = await ensureFreshToken(expireEpoch)
+                    if (result === 'rejected') {
+                        expireSession(expireEpoch)
+                        return undefined
+                    }
+                    token = authStore.token || token
                 }
+                epoch = authStore.epoch
             } catch (e) {
                 console.warn(e)
             }
         }
-        const response = await instance.request<T>({
+        const axiosConfig: AxiosRequestConfig & AuthMeta = {
             url: config.url,
             method: config.method || 'GET',
             data: config.data || {},
             params: config.params || {},
             headers: token ? { Authorization: `Bearer ${token}` } : {},
             timeout: config.timeout,
-        })
+            _token: token,
+            _epoch: epoch,
+        }
+        const response = await instance.request<T>(axiosConfig)
         return response.data
     } catch (error: unknown) {
         // HTTP 错误仍把后端响应体交给调用方

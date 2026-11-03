@@ -339,7 +339,7 @@ describe('utils/request', () => {
         expect(toastMock).not.toHaveBeenCalled()
     })
 
-    it('刷新网络失败时同样清理登录态', async () => {
+    it('刷新网络失败时保留登录态，等下次请求重试', async () => {
         server.use(
             http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
             http.post('*/v2/auth/refresh', () => HttpResponse.error())
@@ -349,9 +349,138 @@ describe('utils/request', () => {
         const resp = await request<ApiResponse<null>>({ url: '/user/me' })
 
         expect(resp?.code).toBe(401)
-        expect(Cookies.get('token')).toBeUndefined()
-        expect(store.token).toBe('')
-        expect(toastMock).toHaveBeenCalledWith('error', '登录已过期', '请重新登录')
+        expect(Cookies.get('token')).toBe('old-token')
+        expect(store.token).toBe('old-token')
+        expect(toastMock).not.toHaveBeenCalled()
+        expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('刷新返回 5xx 时同样保留登录态', async () => {
+        server.use(
+            http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
+            http.post('*/v2/auth/refresh', () =>
+                HttpResponse.json({ code: 500, message: '服务异常', data: null }, { status: 500 })
+            )
+        )
+        const store = authStoreWithToken()
+
+        const resp = await request<ApiResponse<null>>({ url: '/user/me' })
+
+        expect(resp?.code).toBe(401)
+        expect(store.token).toBe('old-token')
+        expect(Cookies.get('token')).toBe('old-token')
+        expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('登录后旧请求的刷新失败不会清空新 token', async () => {
+        const gate = deferred<void>()
+        let refreshCalls = 0
+        server.use(
+            http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
+            http.post('*/v2/auth/refresh', async () => {
+                refreshCalls += 1
+                await gate.promise
+                return HttpResponse.json({ code: 401, message: 'refresh expired', data: null })
+            })
+        )
+        const store = authStoreWithToken('old-token')
+
+        const pending = request({ url: '/user/me' })
+        await vi.waitFor(() => expect(refreshCalls).toBe(1))
+
+        // 刷新还没返回，用户已经登录成功
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+        gate.resolve(undefined)
+        await pending
+
+        expect(refreshCalls).toBe(1)
+        expect(store.token).toBe('new-token')
+        expect(store.refreshToken).toBe('new-refresh')
+        expect(Cookies.get('token')).toBe('new-token')
+        expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('迟到的旧刷新成功不会覆盖新会话的 token', async () => {
+        const gate = deferred<void>()
+        let refreshCalls = 0
+        server.use(
+            http.get('*/v2/user/me', () => HttpResponse.json({ code: 401, message: 'expired', data: null })),
+            http.post('*/v2/auth/refresh', async () => {
+                refreshCalls += 1
+                await gate.promise
+                return ok({ token: 'old-session-rotated', refresh_token: 'old-session-refresh' })
+            })
+        )
+        const store = authStoreWithToken('old-token')
+
+        const pending = request({ url: '/user/me' })
+        await vi.waitFor(() => expect(refreshCalls).toBe(1))
+
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+        gate.resolve(undefined)
+        await pending
+
+        expect(store.token).toBe('new-token')
+        expect(store.refreshToken).toBe('new-refresh')
+        expect(Cookies.get('token')).toBe('new-token')
+    })
+
+    it('会话已更换时用当前 token 重放旧请求', async () => {
+        const gate = deferred<void>()
+        const authorizations: string[] = []
+        server.use(
+            http.get('*/v2/user/me', async ({ request: req }) => {
+                authorizations.push(req.headers.get('Authorization') ?? '')
+                if (authorizations.length === 1) {
+                    await gate.promise
+                    return HttpResponse.json({ code: 401, message: 'expired', data: null })
+                }
+                return ok({ user_id: 1 })
+            })
+        )
+        const store = authStoreWithToken('old-token')
+
+        const pending = request<ApiResponse<{ user_id: number }>>({ url: '/user/me' })
+        await vi.waitFor(() => expect(authorizations).toHaveLength(1))
+
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+        gate.resolve(undefined)
+
+        const resp = await pending
+
+        expect(resp?.code).toBe(200)
+        expect(authorizations[1]).toBe('Bearer new-token')
+        expect(Cookies.get('token')).toBe('new-token')
+    })
+
+    it('登录前发出的匿名请求 401 后不会清空新会话', async () => {
+        Cookies.remove('token', { path: '/' })
+        Cookies.remove('refresh_token', { path: '/' })
+        const gate = deferred<void>()
+        const authorizations: string[] = []
+        server.use(
+            http.get('*/v2/announcement/list', async ({ request: req }) => {
+                authorizations.push(req.headers.get('Authorization') ?? '')
+                if (authorizations.length === 1) {
+                    await gate.promise
+                    return HttpResponse.json({ code: 401, message: 'anonymous', data: null })
+                }
+                return ok([])
+            })
+        )
+        const store = useAuthStore()
+
+        const pending = request({ url: '/announcement/list' })
+        await vi.waitFor(() => expect(authorizations).toHaveLength(1))
+
+        store.beginLogin({ token: 'new-token', refreshToken: 'new-refresh' })
+        gate.resolve(undefined)
+        await pending
+
+        expect(authorizations[0]).toBe('')
+        expect(authorizations[1]).toBe('Bearer new-token')
+        expect(store.token).toBe('new-token')
+        expect(routerPush).not.toHaveBeenCalled()
     })
 
     it('/auth/* 的 401 不触发刷新', async () => {
