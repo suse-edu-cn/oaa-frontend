@@ -2,19 +2,32 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
-import { Button, Dialog, Paginator, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
+import { Button, Checkbox, Dialog, Paginator, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
-import { createInterviewResult, updateInterviewResult } from '@/api/interview'
+import {
+    createInterviewResult,
+    exportInterviewResults,
+    getInterviewExportFields,
+    updateInterviewResult,
+} from '@/api/interview'
 import ApplicationCard from '@/components/ApplicationCard.vue'
 import Lightbox from '@/components/ImageLightbox.vue'
 import { useOrgStore } from '@/stores/org'
 import { useTermStore } from '@/stores/term'
 import { toastApiError } from '@/utils/apiError'
+import { saveBlob, sanitizeFilename } from '@/utils/download'
 import setToast from '@/utils/setToast'
 import { useMediaQuery } from '@/utils/useMediaQuery'
 
-import type { ApplicationItem, ApplicationListParams, ApiResult, InterviewResultSubmitData, RoleItem } from '@/types'
+import type {
+    ApplicationItem,
+    ApplicationListParams,
+    ApiResult,
+    InterviewExportField,
+    InterviewResultSubmitData,
+    RoleItem,
+} from '@/types'
 
 const orgStore = useOrgStore()
 const termStore = useTermStore()
@@ -212,6 +225,111 @@ async function onReviewConfirm() {
     }
 }
 
+// ================= 导出申请表 =================
+const exportVisible = ref(false)
+const exportFields = ref<InterviewExportField[]>([])
+const exportChecked = ref<boolean[]>([])
+const exportTotalFields = ref(0)
+const exportFieldsLoading = ref(false)
+const exportSaving = ref(false)
+const exportTermId = ref<number | null>(null)
+const exportDeptId = ref<number | null>(null)
+const exportStatus = ref<'all' | 'reviewed' | 'unreviewed'>('all')
+const exportStatusOptions: { label: string; value: 'all' | 'reviewed' | 'unreviewed' }[] = [
+    { label: '所有', value: 'all' },
+    { label: '已审核', value: 'reviewed' },
+    { label: '未审核', value: 'unreviewed' },
+]
+let exportFieldRequests = 0
+
+async function loadExportFields() {
+    const seq = ++exportFieldRequests
+    exportFieldsLoading.value = true
+    try {
+        const resp = await getInterviewExportFields()
+        if (seq !== exportFieldRequests) return
+        if (resp?.code == 200) {
+            const fields = [...(resp.data?.fields ?? [])].sort((a, b) => a.index - b.index)
+            exportFields.value = fields
+            // 以后端 total_fields 为准
+            exportTotalFields.value = Math.max(resp.data?.total_fields ?? 0, ...fields.map((f) => f.index + 1), 0)
+            const allBits = resp.data?.all_bits ?? ''
+            // 位状态以 all_bits 为准，默认全选
+            exportChecked.value = fields.map((field) => allBits[field.index] !== '0')
+        } else {
+            toastApiError('获取导出字段失败', resp)
+        }
+    } finally {
+        if (seq === exportFieldRequests) exportFieldsLoading.value = false
+    }
+}
+
+function openExport() {
+    exportTermId.value = termId.value
+    exportDeptId.value = null
+    exportStatus.value = 'all'
+    exportFields.value = []
+    exportChecked.value = []
+    exportTotalFields.value = 0
+    exportVisible.value = true
+    loadExportFields()
+}
+
+// 按字段下标拼 01 位状态串
+// e.g. index 0 未选、1 选中、2 未选 => 010...
+const exportFieldsBits = computed(() => {
+    const bits = Array.from({ length: exportTotalFields.value }, () => '0')
+    exportFields.value.forEach((field, i) => {
+        if (exportChecked.value[i]) bits[field.index] = '1'
+    })
+    return bits.join('')
+})
+
+const exportCanSubmit = computed(
+    () =>
+        !exportFieldsLoading.value &&
+        !exportSaving.value &&
+        Boolean(exportTermId.value) &&
+        exportChecked.value.some(Boolean)
+)
+
+async function readBlobError(blob: Blob): Promise<ApiResult<unknown>> {
+    try {
+        return JSON.parse(await blob.text()) as ApiResult<unknown>
+    } catch {
+        return undefined
+    }
+}
+
+async function onExport() {
+    if (!exportTermId.value || exportSaving.value) return
+
+    const term = terms.value.find((item) => item.id === exportTermId.value)
+    exportSaving.value = true
+    try {
+        const resp = await exportInterviewResults({
+            term_id: exportTermId.value,
+            fields: exportFieldsBits.value,
+            ...(exportDeptId.value ? { department_id: exportDeptId.value } : {}),
+            ...(exportStatus.value === 'all' ? {} : { has_result: exportStatus.value === 'reviewed' }),
+        })
+        if (resp instanceof Blob) {
+            // responseType 为 blob 时，业务失败返回的 JSON 也会包成 Blob
+            if (resp.type.includes('json')) {
+                toastApiError('导出申请表失败', await readBlobError(resp))
+                return
+            }
+            saveBlob(resp, `${sanitizeFilename(term?.title || '面试结果')}_面试结果.xlsx`)
+            exportVisible.value = false
+            setToast('success', '导出成功', '文件已开始下载')
+            return
+        }
+        toastApiError('导出申请表失败', resp)
+    } finally {
+        exportSaving.value = false
+    }
+}
+
 // ================= 展示辅助 =================
 // 图片预览 lightbox
 const previewVisible = ref(false)
@@ -262,6 +380,7 @@ onMounted(async () => {
                 placeholder="全部部门"
                 show-clear
             />
+            <Button label="导出申请表" icon="pi pi-download" class="export-button" @click="openExport" />
         </div>
 
         <div ref="listTop">
@@ -355,6 +474,68 @@ onMounted(async () => {
                 <Button label="提交" :disabled="!reviewCanSave" :loading="reviewSaving" @click="onReviewConfirm" />
             </template>
         </Dialog>
+
+        <!-- 导出申请表 -->
+        <Dialog v-model:visible="exportVisible" modal header="导出申请表" :style="{ width: '34rem' }">
+            <div class="e-dialog-fields export-dialog">
+                <label for="export-term">招新/换届周期</label>
+                <Select
+                    v-model="exportTermId"
+                    input-id="export-term"
+                    :options="terms"
+                    option-label="title"
+                    option-value="id"
+                    placeholder="请选择活动周期"
+                    fluid
+                />
+                <label for="export-dept">部门</label>
+                <Select
+                    v-model="exportDeptId"
+                    input-id="export-dept"
+                    :options="orgStore.departments"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="全部部门"
+                    show-clear
+                    fluid
+                />
+                <label for="export-status">审核状态</label>
+                <Select
+                    v-model="exportStatus"
+                    input-id="export-status"
+                    :options="exportStatusOptions"
+                    option-label="label"
+                    option-value="value"
+                    fluid
+                />
+
+                <div class="export-fields-title">导出字段</div>
+                <!-- 字段数据加载骨架 -->
+                <div v-if="exportFieldsLoading" class="export-skeleton">
+                    <Skeleton v-for="i in 10" :key="i" height="18px" :width="`${55 + (i % 3) * 15}%`" />
+                </div>
+                <div v-else-if="!exportFields.length" class="e-empty export-empty">
+                    <p>暂无可导出字段</p>
+                    <Button label="重新加载" size="small" severity="secondary" @click="loadExportFields" />
+                </div>
+                <div v-else class="export-fields">
+                    <div v-for="(field, i) in exportFields" :key="field.index" class="export-field">
+                        <Checkbox v-model="exportChecked[i]" :input-id="`export-field-${field.index}`" binary />
+                        <label :for="`export-field-${field.index}`">{{ field.label }}</label>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="取消" severity="secondary" @click="exportVisible = false" />
+                <Button
+                    label="导出"
+                    icon="pi pi-download"
+                    :disabled="!exportCanSubmit"
+                    :loading="exportSaving"
+                    @click="onExport"
+                />
+            </template>
+        </Dialog>
     </main>
 </template>
 
@@ -373,6 +554,44 @@ onMounted(async () => {
     .p-select {
         width: 240px;
     }
+
+    .export-button {
+        margin-left: auto;
+    }
+}
+
+.export-dialog {
+    width: 100%;
+}
+
+.export-fields-title {
+    font-size: 14px;
+    color: var(--p-text-muted-color);
+}
+
+.export-skeleton,
+.export-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+    width: 100%;
+}
+
+.export-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    label {
+        font-size: 14px;
+        cursor: pointer;
+    }
+}
+
+.export-empty {
+    width: 100%;
+    padding: 1em 0;
 }
 
 .status-tabs {
@@ -408,6 +627,16 @@ onMounted(async () => {
         .p-select {
             width: 100%;
         }
+
+        .export-button {
+            width: 100%;
+            margin-left: 0;
+        }
+    }
+
+    .export-skeleton,
+    .export-fields {
+        grid-template-columns: 1fr;
     }
 
     .status-tabs {

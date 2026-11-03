@@ -1,7 +1,10 @@
 import request from '@/utils/request'
 import type {
+    ApiDownloadResult,
     ApiResponse,
     ApiResult,
+    InterviewExportFields,
+    InterviewExportParams,
     InterviewResultSubmitData,
     InterviewStaffCreateData,
     InterviewStaffItem,
@@ -59,5 +62,24 @@ export function updateInterviewResult(data: InterviewResultSubmitData): Promise<
         url: '/interviewer/result/update',
         method: 'POST',
         data,
+    })
+}
+
+// 可导出的申请表字段 /interviewer/result/fields
+export function getInterviewExportFields(): Promise<ApiResult<InterviewExportFields>> {
+    return request<ApiResponse<InterviewExportFields>>({
+        url: '/interviewer/result/fields',
+        method: 'GET',
+    })
+}
+
+// 导出申请表 Excel /interviewer/result/export
+export function exportInterviewResults(params: InterviewExportParams): Promise<ApiDownloadResult> {
+    return request<Blob | ApiResponse<unknown>>({
+        url: '/interviewer/result/export',
+        method: 'GET',
+        params,
+        responseType: 'blob',
+        timeout: 120 * 1000,
     })
 }

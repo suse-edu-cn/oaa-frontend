@@ -33,3 +33,26 @@ export interface InterviewResultSubmitData {
     result_department_id?: number | null
     result_role_id?: number | null
 }
+
+/** 导出字段元数据条目，/interviewer/result/fields */
+export interface InterviewExportField {
+    index: number
+    label: string
+}
+
+/** 导出字段元数据，/interviewer/result/fields */
+export interface InterviewExportFields {
+    total_fields: number
+    /** 全选时的位状态串 */
+    all_bits: string
+    fields: InterviewExportField[]
+}
+
+/** 导出申请表查询参数，/interviewer/result/export */
+export interface InterviewExportParams {
+    term_id: number
+    department_id?: number
+    has_result?: boolean
+    /** 01 位状态串，第 i 位对应 field.index，0 -> 未选中，1 -> 选中 */
+    fields: string
+}

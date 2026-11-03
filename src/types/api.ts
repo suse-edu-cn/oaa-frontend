@@ -14,3 +14,6 @@ export interface UploadResponse {
 
 /** request 的统一返回：网络 / 超时失败时为 undefined，业务失败仍带 code */
 export type ApiResult<T> = ApiResponse<T> | undefined
+
+/** 下载类请求的返回：成功为文件内容，失败为后端 JSON 响应体 */
+export type ApiDownloadResult = Blob | ApiResponse<unknown> | undefined

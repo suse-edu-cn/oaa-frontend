@@ -28,6 +28,8 @@ import {
     createInterviewResult,
     createInterviewStaff,
     deleteInterviewStaff,
+    exportInterviewResults,
+    getInterviewExportFields,
     getInterviewStaffList,
     updateInterviewResult,
     updateInterviewStaff,
@@ -64,6 +66,8 @@ type Case = {
         method: 'GET' | 'POST'
         data?: unknown
         params?: unknown
+        responseType?: 'json' | 'blob'
+        timeout?: number
     }
 }
 
@@ -290,6 +294,22 @@ const cases: Case[] = [
         name: 'interview/updateInterviewResult',
         run: () => updateInterviewResult(payload),
         expected: { url: '/interviewer/result/update', method: 'POST', data: payload },
+    },
+    {
+        name: 'interview/getInterviewExportFields',
+        run: () => getInterviewExportFields(),
+        expected: { url: '/interviewer/result/fields', method: 'GET' },
+    },
+    {
+        name: 'interview/exportInterviewResults',
+        run: () => exportInterviewResults({ term_id: 9, department_id: 3, has_result: false, fields: '0110' }),
+        expected: {
+            url: '/interviewer/result/export',
+            method: 'GET',
+            params: { term_id: 9, department_id: 3, has_result: false, fields: '0110' },
+            responseType: 'blob',
+            timeout: 120000,
+        },
     },
 ]
 

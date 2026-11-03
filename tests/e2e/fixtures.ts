@@ -5,6 +5,7 @@ import type {
     AnnouncementItem,
     ApplicationItem,
     DepartmentItem,
+    InterviewExportFields,
     InterviewStaffItem,
     RoleItem,
     TermInfo,
@@ -23,6 +24,15 @@ export const DEFAULT_ROLES: RoleItem[] = [
     { id: 1, name: '干事', level: 20, is_active: true },
     { id: 2, name: '部长', level: 50, is_active: true },
 ]
+
+// 字段标签由后端 /interviewer/result/fields 返回，测试里只生成占位标签
+export function makeExportFields(count = 22): InterviewExportFields {
+    return {
+        total_fields: count,
+        all_bits: '1'.repeat(count),
+        fields: Array.from({ length: count }, (_, index) => ({ index, label: `导出字段 ${index}` })),
+    }
+}
 
 export const DEFAULT_UPLOAD: UploadResponse = {
     uri: 'oss://application/avatar.png',
@@ -147,6 +157,7 @@ export interface MockScenario {
     roles?: RoleItem[]
     applicationRoles?: RoleItem[]
     applicationDepartments?: DepartmentItem[]
+    exportFields?: InterviewExportFields
     upload?: UploadResponse | null
     createApplication?: 'success' | 'fail'
     createInterviewResult?: 'success' | 'fail'
@@ -288,6 +299,22 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
     if (method === 'POST' && path === '/interviewer/result/create') {
         if (scenario.createInterviewResult === 'fail') return fulfill(route, fail(500, '提交审核失败'))
         return fulfill(route, ok(null))
+    }
+
+    if (method === 'GET' && path === '/interviewer/result/fields') {
+        return fulfill(route, ok(scenario.exportFields ?? makeExportFields()))
+    }
+
+    if (method === 'GET' && path === '/interviewer/result/export') {
+        return route.fulfill({
+            status: 200,
+            headers: {
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition': 'attachment; filename="export.xlsx"',
+            },
+            // 用例只验证下载链路，不解析文件内容
+            body: Buffer.from('fake-xlsx'),
+        })
     }
 
     if (method === 'GET' && path === '/application/role') {
