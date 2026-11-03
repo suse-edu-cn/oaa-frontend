@@ -60,6 +60,8 @@ describe('router/guard', () => {
         store.userInfo = makeUser({ role_level: 80 })
 
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
+
+        expect(initMock).not.toHaveBeenCalled()
     })
 
     it('store 未就绪时先完成初始化再判断等级', async () => {
@@ -99,13 +101,32 @@ describe('router/guard', () => {
         await expect(authGuard({ meta: { level: 50 } })).resolves.toBe('/auth')
     })
 
-    it('用户信息缺失时 role_level 按 0 处理', async () => {
+    it('用户信息缺失时先补加载，再按真实等级判断', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = null
+        initMock.mockImplementation(async () => {
+            useAuthStore().setUserInfo(makeUser({ role_level: 80 }))
+        })
+
+        await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
+
+        expect(initMock).toHaveBeenCalledTimes(1)
+        expect(useAuthStore().userInfo?.role_level).toBe(80)
+    })
+
+    it('补加载后仍拿不到用户信息时放行，而不是按 0 级跳 403', async () => {
         setAuthCookies()
         const store = useAuthStore()
         store.token = 'token'
         store.markReady()
         store.userInfo = null
 
-        await expect(authGuard({ meta: { level: 20 } })).resolves.toBe('/403')
+        await expect(authGuard({ meta: { level: 50 } })).resolves.toBe(true)
+
+        expect(initMock).toHaveBeenCalledTimes(1)
+        expect(toastMock).not.toHaveBeenCalled()
     })
 })
