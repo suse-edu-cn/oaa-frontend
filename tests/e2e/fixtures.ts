@@ -272,9 +272,12 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
 
     if (method === 'GET' && path === '/application/list') {
         const hasResult = url.searchParams.get('has_result')
+        const name = url.searchParams.get('name')?.trim()
         const applications = scenario.applications ?? []
-        const list =
-            hasResult === null ? applications : applications.filter((item) => String(isReviewed(item)) === hasResult)
+        const list = applications.filter(
+            (item) =>
+                (hasResult === null || String(isReviewed(item)) === hasResult) && (!name || item.name.includes(name))
+        )
         return fulfill(route, ok(list))
     }
 

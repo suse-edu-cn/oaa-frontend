@@ -97,4 +97,6 @@ export interface ApplicationListParams {
     term_id: number
     department_id?: number
     has_result?: boolean
+    /** 申请人姓名搜索 */
+    name?: string
 }

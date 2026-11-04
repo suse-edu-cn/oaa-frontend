@@ -1,4 +1,4 @@
-import { expect, makeApplication, makeExportFields, makeTerm, makeUser, test } from './fixtures'
+import { expect, makeApplication, makeTerm, makeUser, test } from './fixtures'
 
 test.describe('审核申请', () => {
     test('三个 Tab 按 has_result 拉取并用卡片渲染，已审核走修改审核', async ({ page, api, signIn }) => {
@@ -57,5 +57,25 @@ test.describe('审核申请', () => {
         await expect(page.getByRole('dialog').getByText('审核申请')).toBeVisible()
         await expect(page.getByText('审核结果')).toBeVisible()
         await expect(page.getByText('修改审核')).toHaveCount(0)
+    })
+
+    test('按姓名搜索并防抖', async ({ page, api, signIn }) => {
+        api.scenario = {
+            user: makeUser({ role_level: 50 }),
+            terms: [makeTerm()],
+            applications: [makeApplication({ id: 1, name: '张三' }), makeApplication({ id: 2, name: '李四' })],
+        }
+        await signIn()
+
+        await page.goto('/apply/review')
+        await expect(page.getByRole('heading', { name: '审核申请' })).toBeVisible()
+        await expect.poll(() => api.count('GET', '/application/list')).toBe(3)
+        await expect(page.getByText('张三')).toBeVisible()
+        await expect(page.getByText('李四')).toBeVisible()
+
+        // 清空后恢复全部列表
+        await search.fill('')
+        await expect.poll(() => api.count('GET', '/application/list')).toBe(9)
+        await expect(page.getByText('李四')).toBeVisible()
     })
 })

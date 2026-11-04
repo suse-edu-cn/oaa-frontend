@@ -1,8 +1,22 @@
 <!-- 申请表审核页 /apply/review -->
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { Button, Checkbox, Dialog, Select, Skeleton, Tab, TabList, Tabs, Tag, Textarea } from 'primevue'
+import {
+    Button,
+    Checkbox,
+    Dialog,
+    IconField,
+    InputIcon,
+    InputText,
+    Select,
+    Skeleton,
+    Tab,
+    TabList,
+    Tabs,
+    Tag,
+    Textarea,
+} from 'primevue'
 
 import { getApplicationList, getRolesByDepartment } from '@/api/application'
 import {
@@ -54,6 +68,24 @@ const deptId = ref<number | null>(null)
 // 周期未就绪时也算加载中，避免先闪空状态
 const applicationsLoading = computed(() => termsLoading.value || loading.value)
 
+// 搜索申请人
+const searchInput = ref('')
+const searchName = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(searchInput, (value) => {
+    if (searchTimer) clearTimeout(searchTimer)
+    const next = value.trim()
+    searchTimer = setTimeout(() => {
+        searchTimer = null
+        searchName.value = next
+    }, 300)
+})
+
+onBeforeUnmount(() => {
+    if (searchTimer) clearTimeout(searchTimer)
+})
+
 function applyList(target: TabValue, resp: ApiResult<ApplicationItem[]> | undefined) {
     if (resp?.code == 200) lists.value[target] = resp.data ?? []
 }
@@ -63,6 +95,7 @@ async function loadApplications() {
 
     const params: ApplicationListParams = { term_id: termId.value }
     if (deptId.value) params.department_id = deptId.value
+    if (searchName.value) params.name = searchName.value
 
     const seq = ++listRequests
     loading.value = true
@@ -83,7 +116,7 @@ async function loadApplications() {
         if (seq === listRequests) loading.value = false
     }
 }
-watch([termId, deptId], loadApplications)
+watch([termId, deptId, searchName], loadApplications)
 
 // ================= 审核 =================
 const decisionOptions = ['录取第一志愿', '录取第二志愿', '已调剂', '未通过', '待定']
@@ -352,14 +385,20 @@ onMounted(async () => {
             <Button label="导出申请表" icon="pi pi-download" class="export-button" @click="openExport" />
         </div>
 
-        <Tabs v-model:value="activeTab" class="status-tabs">
-            <TabList>
-                <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
-                    {{ tab.label }}
-                    <Tag :value="lists[tab.value].length" class="tab-count" severity="secondary" />
-                </Tab>
-            </TabList>
-        </Tabs>
+        <div class="list-toolbar">
+            <Tabs v-model:value="activeTab" class="status-tabs">
+                <TabList>
+                    <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+                        {{ tab.label }}
+                        <Tag :value="lists[tab.value].length" class="tab-count" severity="secondary" />
+                    </Tab>
+                </TabList>
+            </Tabs>
+            <IconField class="search-field">
+                <InputIcon class="pi pi-search" />
+                <InputText v-model="searchInput" placeholder="搜索申请人" aria-label="搜索申请人" fluid />
+            </IconField>
+        </div>
 
         <!-- 加载中骨架屏，结构与申请卡片一致 -->
         <div v-if="applicationsLoading" class="skeleton-list">
@@ -551,12 +590,25 @@ onMounted(async () => {
     padding: 1em 0;
 }
 
-.status-tabs {
+.list-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
     margin-bottom: 1.5em;
+}
+
+.status-tabs {
+    flex: 1;
+    min-width: 0;
 
     .tab-count {
         margin-left: 6px;
     }
+}
+
+.search-field {
+    flex: 0 1 260px;
+    width: 260px;
 }
 
 @media screen and (max-width: 800px) {
@@ -589,6 +641,18 @@ onMounted(async () => {
     .export-skeleton,
     .export-fields {
         grid-template-columns: 1fr;
+    }
+
+    .list-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 1.25em;
+    }
+
+    .search-field {
+        flex: 1 1 auto;
+        width: 100%;
     }
 
     .status-tabs {
