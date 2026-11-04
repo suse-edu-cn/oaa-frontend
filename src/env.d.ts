@@ -15,5 +15,5 @@ declare const __BUILD_INFO__: {
     repo: string
     hash: string
     build: string
-    date: string
+    time: string
 }

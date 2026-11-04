@@ -10,6 +10,15 @@ const settingsStore = useSettingsStore()
 
 // vite 注入的版本信息
 const buildInfo = __BUILD_INFO__
+
+// 构建时间格式处理
+buildInfo.time = (() => {
+    const date = new Date(buildInfo.date)
+    if (Number.isNaN(date.getTime())) return ''
+    const pad = (value: number) => String(value).padStart(2, '0')
+    const day = `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
+    return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+})()
 </script>
 
 <template>
@@ -70,7 +79,7 @@ const buildInfo = __BUILD_INFO__
                 </div>
                 <div class="item">
                     <span>构建时间</span>
-                    <span>{{ new Date(buildInfo.date).toLocaleString('zh-CN', { hour12: false }) }}</span>
+                    <span>{{ buildInfo.time }}</span>
                 </div>
             </div>
         </Dialog>

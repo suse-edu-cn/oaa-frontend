@@ -11,7 +11,7 @@ const buildInfo = {
     version: pkgInfo.version,
     repo: pkgInfo.repository.url,
     hash: 'unknown',
-    build: 'unknown',
+    time: 'unknown',
     date: new Date().toISOString(),
 }
 try {
