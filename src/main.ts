@@ -46,3 +46,10 @@ initAuthStore()
 if (import.meta.env.PROD) registerServiceWorker()
 
 app.mount('#app')
+
+console.log(
+    `%coaa-frontend%cv${__BUILD_INFO__.version}`,
+    'background-color: #10b981; color: #fff; padding: 5px 9px; margin: 4px 0; border-radius: 4px 0 0 4px; font-size: 14px; font-family: "JetBrains Mono", monospace;',
+    'background-color: #607d8b; color: #fff; padding: 5px 9px; margin: 4px 0; border-radius: 0 4px 4px 0; font-size: 14px; font-family: "JetBrains Mono", monospace;'
+)
+console.log('人心中每个微小的改变，都足以在一生的尺度上产生巨浪。')
