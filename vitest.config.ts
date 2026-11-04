@@ -19,7 +19,7 @@ export default defineConfig({
             repo: '',
             hash: 'test',
             build: '0',
-            date: '2026-01-01T00:00:00.000Z',
+            time: '2026/01/01 00:00:00',
             env: 'test',
         }),
     },

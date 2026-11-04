@@ -6,13 +6,19 @@ import { execSync, spawnSync } from 'child_process'
 
 import pkgInfo from './package.json' with { type: 'json' }
 
+// 统一构建时间格式
+function formatBuildTime(date: Date): string {
+    const pad = (value: number) => String(value).padStart(2, '0')
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 // 获取编译版本
 const buildInfo = {
     version: pkgInfo.version,
     repo: pkgInfo.repository.url,
     hash: 'unknown',
-    time: 'unknown',
-    date: new Date().toISOString(),
+    build: 'unknown',
+    time: formatBuildTime(new Date()),
 }
 try {
     buildInfo.hash = execSync('git rev-parse --short=7 HEAD').toString().trim()
