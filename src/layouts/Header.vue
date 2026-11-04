@@ -182,6 +182,7 @@ header {
 
         img {
             flex-shrink: 0;
+            object-fit: cover;
             width: 2.25em;
             height: 2.25em;
             border-radius: 50%;
