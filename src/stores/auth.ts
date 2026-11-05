@@ -26,6 +26,8 @@ export const useAuthStore = defineStore('auth', () => {
     const isReady = computed(() => readyToken.value === token.value)
     // 是否已登录
     const isAuthed = computed(() => Boolean(token.value && userInfo.value))
+    // 是否为面试官
+    const isInterviewer = computed(() => userInfo.value?.is_interviewer === true)
 
     /** 从 cookie 恢复 token */
     function hydrate(): void {
@@ -80,6 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
         epoch,
         isReady,
         isAuthed,
+        isInterviewer,
         hasSession,
         token,
         refreshToken,

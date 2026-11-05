@@ -11,6 +11,7 @@ export interface UserInfo {
     department: string
     role: string
     role_level: number
+    is_interviewer: boolean
 }
 
 /** 用户列表 /user/list */

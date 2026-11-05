@@ -4,7 +4,7 @@ test.describe('审核申请', () => {
     test('三个 Tab 按 has_result 拉取并用卡片渲染，已审核走修改审核', async ({ page, api, signIn }) => {
         const term = makeTerm()
         api.scenario = {
-            user: makeUser({ role_level: 50 }),
+            user: makeUser({ role_level: 20, is_interviewer: true }),
             terms: [term],
             applications: [
                 makeApplication({ id: 1, name: '待审核同学' }),
@@ -61,7 +61,7 @@ test.describe('审核申请', () => {
 
     test('按姓名搜索并防抖', async ({ page, api, signIn }) => {
         api.scenario = {
-            user: makeUser({ role_level: 50 }),
+            user: makeUser({ role_level: 20, is_interviewer: true }),
             terms: [makeTerm()],
             applications: [makeApplication({ id: 1, name: '张三' }), makeApplication({ id: 2, name: '李四' })],
         }

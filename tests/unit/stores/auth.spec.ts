@@ -96,6 +96,17 @@ describe('stores/auth', () => {
         expect(store.userInfo?.user_id).toBe(10)
     })
 
+    it('isInterviewer 只在 is_interviewer 为 true 时成立', () => {
+        const store = useAuthStore()
+        expect(store.isInterviewer).toBe(false)
+
+        store.setUserInfo(makeUser({ is_interviewer: false }))
+        expect(store.isInterviewer).toBe(false)
+
+        store.setUserInfo(makeUser({ is_interviewer: true }))
+        expect(store.isInterviewer).toBe(true)
+    })
+
     it('clearSession 清空内存与全部 cookie', () => {
         const store = useAuthStore()
         store.applyTokens({ token: 'access', refreshToken: 'refresh' })

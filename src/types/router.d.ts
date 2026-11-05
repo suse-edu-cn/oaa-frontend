@@ -6,5 +6,7 @@ declare module 'vue-router' {
         title?: string
         /** 访问该路由所需的最低权限等级 */
         level?: number
+        /** 是否仅面试官可访问 */
+        requiresInterviewer?: boolean
     }
 }

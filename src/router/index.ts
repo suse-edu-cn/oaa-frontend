@@ -81,7 +81,7 @@ const router = createRouter({
         {
             path: '/apply/review',
             component: () => import('@/views/apply/review.vue'),
-            meta: { title: '审核申请', level: 50 },
+            meta: { title: '审核申请', level: 20, requiresInterviewer: true },
         },
         {
             path: '/apply/staff',

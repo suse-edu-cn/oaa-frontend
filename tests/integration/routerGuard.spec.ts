@@ -129,4 +129,65 @@ describe('router/guard', () => {
         expect(initMock).toHaveBeenCalledTimes(1)
         expect(toastMock).not.toHaveBeenCalled()
     })
+
+    it('等级达标但不是面试官时跳转 403', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = makeUser({ role_level: 20, is_interviewer: false })
+
+        await expect(authGuard({ meta: { level: 20, requiresInterviewer: true } })).resolves.toBe('/403')
+
+        expect(toastMock).toHaveBeenCalledWith('warn', '无访问权限', '仅面试官可访问该页面')
+    })
+
+    it('面试官且等级达标时放行', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = makeUser({ role_level: 20, is_interviewer: true })
+
+        await expect(authGuard({ meta: { level: 20, requiresInterviewer: true } })).resolves.toBe(true)
+
+        expect(toastMock).not.toHaveBeenCalled()
+    })
+
+    it('等级达到 80 时非面试官也可访问审核页', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = makeUser({ role_level: 80, is_interviewer: false })
+
+        await expect(authGuard({ meta: { level: 20, requiresInterviewer: true } })).resolves.toBe(true)
+
+        expect(toastMock).not.toHaveBeenCalled()
+    })
+
+    it('面试官等级不足时仍按等级跳转 403', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = makeUser({ role_level: 20, is_interviewer: true })
+
+        await expect(authGuard({ meta: { level: 50, requiresInterviewer: true } })).resolves.toBe('/403')
+
+        expect(toastMock).toHaveBeenCalledWith('warn', '无访问权限', '你当前的权限等级不足以访问该页面')
+    })
+
+    it('拿不到用户信息时不放行面试官页面', async () => {
+        setAuthCookies()
+        const store = useAuthStore()
+        store.token = 'token'
+        store.markReady()
+        store.userInfo = null
+
+        await expect(authGuard({ meta: { level: 20, requiresInterviewer: true } })).resolves.toBe('/403')
+
+        expect(initMock).toHaveBeenCalledTimes(1)
+        expect(toastMock).toHaveBeenCalledWith('warn', '无访问权限', '仅面试官可访问该页面')
+    })
 })

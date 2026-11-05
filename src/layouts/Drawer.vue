@@ -22,13 +22,22 @@ interface DrawerItem extends MenuItem {
     to?: string
     /** 可见所需最低等级，默认取目标路由的 meta.level */
     level?: number
+    /** 是否仅面试官可见 */
+    interviewer?: boolean
     items?: DrawerItem[]
 }
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 按照权限划分用户是否可见部分选项
 const roleLevel = computed(() => authStore.userInfo?.role_level ?? 0)
+const canInterview = computed(
+    () =>
+        authStore.isInterviewer ||
+        (typeof authStore.userInfo?.role_level === 'number' && authStore.userInfo?.role_level >= 80)
+)
 
 const menuGroups: DrawerItem[] = [
     {
@@ -92,6 +101,8 @@ const menuGroups: DrawerItem[] = [
                 label: '审核申请',
                 icon: 'pi pi-block-quote',
                 to: '/apply/review',
+                level: 20,
+                interviewer: true,
             },
             {
                 label: '面试管理',
@@ -131,11 +142,13 @@ function filterByLevel(items: DrawerItem[]): DrawerItem[] {
 
         if (item.items) {
             if (item.level !== undefined && roleLevel.value < item.level) continue
+            if (item.interviewer && !canInterview.value) continue
             const children = filterByLevel(item.items)
             if (children.length) visible.push({ ...item, items: children })
             continue
         }
 
+        if (item.interviewer && !canInterview.value) continue
         if (roleLevel.value >= requiredLevel(item)) visible.push(item)
     }
 

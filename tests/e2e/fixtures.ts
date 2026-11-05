@@ -50,6 +50,7 @@ export function makeUser(overrides: Partial<UserInfo> = {}): UserInfo {
         department: '项目实践部',
         role: '干事',
         role_level: 20,
+        is_interviewer: false,
         ...overrides,
     }
 }
