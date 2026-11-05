@@ -277,6 +277,11 @@ function openExport() {
     loadExportFields()
 }
 
+// 清空字段勾选
+function resetExportFields() {
+    exportChecked.value = exportFields.value.map(() => false)
+}
+
 // 按字段下标拼 01 位状态串
 // e.g. index 0 未选、1 选中、2 未选 => 010...
 const exportFieldsBits = computed(() => {
@@ -522,6 +527,13 @@ onMounted(async () => {
                 </div>
             </div>
             <template #footer>
+                <Button
+                    label="重置"
+                    severity="secondary"
+                    class="export-reset-button"
+                    :disabled="exportFieldsLoading || !exportChecked.some(Boolean)"
+                    @click="resetExportFields"
+                />
                 <Button label="取消" severity="secondary" @click="exportVisible = false" />
                 <Button
                     label="导出"
@@ -588,6 +600,11 @@ onMounted(async () => {
 .export-empty {
     width: 100%;
     padding: 1em 0;
+}
+
+// 重置放在弹窗左下角，取消 / 导出保持右侧
+.export-reset-button {
+    margin-right: auto;
 }
 
 .list-toolbar {

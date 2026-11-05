@@ -1,4 +1,4 @@
-import { expect, makeApplication, makeTerm, makeUser, test } from './fixtures'
+import { expect, makeApplication, makeExportFields, makeTerm, makeUser, test } from './fixtures'
 
 test.describe('审核申请', () => {
     test('三个 Tab 按 has_result 拉取并用卡片渲染，已审核走修改审核', async ({ page, api, signIn }) => {
@@ -84,5 +84,32 @@ test.describe('审核申请', () => {
         await search.fill('')
         await expect.poll(() => api.count('GET', '/application/list')).toBe(9)
         await expect(page.getByText('李四')).toBeVisible()
+    })
+
+    test('导出弹窗重置按钮取消所有字段勾选', async ({ page, api, signIn }) => {
+        api.scenario = {
+            user: makeUser({ role_level: 20, is_interviewer: true }),
+            terms: [makeTerm()],
+            applications: [makeApplication()],
+            exportFields: makeExportFields(3),
+        }
+        await signIn()
+
+        await page.goto('/apply/review')
+        await expect(page.getByRole('heading', { name: '审核申请' })).toBeVisible()
+        await page.getByRole('button', { name: '导出申请表' }).click()
+
+        const dialog = page.getByRole('dialog')
+        const checkboxes = dialog.getByRole('checkbox')
+        await expect(checkboxes).toHaveCount(3)
+        await expect(checkboxes.nth(0)).toBeChecked()
+        await expect(checkboxes.nth(1)).toBeChecked()
+        await expect(checkboxes.nth(2)).toBeChecked()
+
+        await dialog.getByRole('button', { name: '重置' }).click()
+        await expect(checkboxes.nth(0)).not.toBeChecked()
+        await expect(checkboxes.nth(1)).not.toBeChecked()
+        await expect(checkboxes.nth(2)).not.toBeChecked()
+        await expect(dialog.getByRole('button', { name: '导出', exact: true })).toBeDisabled()
     })
 })
