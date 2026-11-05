@@ -73,6 +73,13 @@ test.describe('审核申请', () => {
         await expect(page.getByText('张三')).toBeVisible()
         await expect(page.getByText('李四')).toBeVisible()
 
+        // 连续输入只应触发一批请求，验证防抖
+        const search = page.getByPlaceholder('搜索申请人')
+        await search.pressSequentially('张三', { delay: 50 })
+        await expect.poll(() => api.count('GET', '/application/list')).toBe(6)
+        await expect(page.getByText('张三')).toBeVisible()
+        await expect(page.getByText('李四')).toHaveCount(0)
+
         // 清空后恢复全部列表
         await search.fill('')
         await expect.poll(() => api.count('GET', '/application/list')).toBe(9)

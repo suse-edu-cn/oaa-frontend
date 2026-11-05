@@ -81,7 +81,7 @@ const cases: Case[] = [
     {
         name: 'auth/logout',
         run: () => logout(),
-        expected: { url: '/auth/logout', method: 'POST', data: { device: 'web' } },
+        expected: { url: '/auth/logout', method: 'POST', data: { device: import.meta.env.DEV ? 'web-dev' : 'web' } },
     },
     {
         name: 'auth/register',

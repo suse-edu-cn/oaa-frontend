@@ -20,6 +20,8 @@ test.describe('登录与登出', () => {
         // 登录后
         await expect(page).toHaveURL(/\/user$/)
         await expect(page.locator('header .user')).toContainText('青蟹测试员')
+        // E2E 跑在开发服务器上，登录设备应为独立标识
+        expect(api.lastBody('POST', '/auth/login')).toMatchObject({ account: 'tester', device: 'web-dev' })
 
         // 用户菜单现在是按钮，键盘可聚焦、可回车打开
         const userMenuButton = page.getByRole('button', { name: /青蟹测试员/ })
@@ -33,6 +35,7 @@ test.describe('登录与登出', () => {
 
         await expect(page).toHaveURL(/\/auth$/)
         await expect(page.getByText('已登出')).toBeVisible()
+        expect(api.lastBody('POST', '/auth/logout')).toEqual({ device: 'web-dev' })
 
         // 登出后
         await page.goto('/user')

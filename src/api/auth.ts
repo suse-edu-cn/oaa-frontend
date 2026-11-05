@@ -24,7 +24,8 @@ export function logout(): Promise<ApiResult<null>> {
     return request<ApiResponse<null>>({
         url: '/auth/logout',
         method: 'POST',
-        data: { device: 'web' },
+        // 开发环境 -> web-dev，生产环境 -> web
+        data: { device: import.meta.env.DEV ? 'web-dev' : 'web' },
     })
 }
 

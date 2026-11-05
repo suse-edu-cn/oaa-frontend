@@ -28,7 +28,7 @@ const initialValues = ref({
 const loginData = ref({
     account: '',
     password: '',
-    device: 'web',
+    device: import.meta.env.DEV ? 'web-dev' : 'web',
     isAccepted: false,
 })
 
