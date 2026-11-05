@@ -32,7 +32,6 @@
 | `pnpm format` | oxfmt 检查格式（不改文件） |
 | `pnpm format:write` | oxfmt 写入格式修复 |
 | `pnpm deploy` | 构建并发布（对象存储 + Nginx），见 README「部署」 |
-| `pnpm deploy:dry-run` | 打印部署命令，不构建、不改远端 |
 | `pnpm deploy:no-build` | 复用现有 dist 重试部署 |
 | `pnpm deploy:validate` | 只校验 dist 产物 |
 | `pnpm deploy:check` | 只检查线上部署结果 |
@@ -170,7 +169,7 @@ E2E 使用 Playwright（只装 Chromium），配置见 `playwright.config.ts`，
 - `index.html` / `sw.js` / `manifest.webmanifest` 必须 `no-cache`，`_oaa/*` 与图标可长缓存；`manifest.webmanifest` 的 `Content-Type` 必须是 `application/manifest+json`，否则 Chrome 不认、PWA 安装失效。
 - 版本号来自 `package.json`，同时决定 OSS 目录、manifest 与设置页展示；发版先改版本号再构建。
 - 部署脚本在 `scripts/deploy/`，配置读 `scripts/deploy/deploy.local.json`（已 gitignore，含密钥）；命令与 Nginx 响应头要求见 `README.md` 的「部署」一节。「设置响应头」仍是人工步骤，`pnpm deploy:check` 只告警不代改。
-- `pnpm deploy` 与 pnpm 内置 `deploy` 命令同名，`--dry-run` 这类 pnpm 参数会被吞掉（`pnpm deploy --dry-run` 会真实部署）；试运行请用 `pnpm deploy:dry-run`。
+- `pnpm deploy` 与 pnpm 内置 `deploy` 命令同名，`--dry-run` 这类 pnpm 参数会被吞掉；部署脚本没有试运行模式，`pnpm deploy --dry-run` 仍会真实部署。
 - `sw.js` 用 `inlineWorkboxRuntime: true` 内联 Workbox 运行时，站点根因此仍只有三个文件；改 PWA 配置时别把 `workbox-*.js` 又外置出去。
 
 ## 已知行为与取舍

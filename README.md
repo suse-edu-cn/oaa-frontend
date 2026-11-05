@@ -38,17 +38,22 @@ git clone https://github.com/suse-edu-cn/oaa-frontend
 pnpm install
 ```
 
-接下来启动 dev server。本项目有 `development` 和 `development-public` 两个开发环境，默认使用前者，其会连接到实验室内网的后端服务，而后者连接公网后端。请根据实际情况选择启动命令。
+接下来启动 dev server。修改完成后可进行 lint 和 format，然后再构建生产页面。
 ```bash
-pnpm dev        # 内网开发环境
-pnpm dev:public # 公网开发环境
+pnpm dev
+pnpm format
+pnpm lint
+pnpm build
 ```
 
-生产构建也有分内网与公网环境，默认为公网环境。
+如果你是青蟹 Web 开发者，请在实验室内网环境下配置 `scripts/deploy/deploy.local.json`，配置好 ssh、scp 与 mc，然后运行：
 ```bash
-pnpm build:internal # 内网生产环境
-pnpm build          # 公网生产环境
+pnpm deploy
 ```
+即可将构建好的生产页面部署到青蟹的前端服务器。
+
+> ![NOTE]
+> 实验室内部正在研发前端网页部署基建工具，部署相关功能可能在未来迎来大改，比如接入相关 SDK。拥有权限的同学可在内部 Git 系统搜索项目代号 `4nim0sity` 查看相关项目开发进度。
 
 ## 其它
 本项目部分内容使用了 AI 进行辅助开发，测试环境完全由 AI 完成。[青蟹图标](./public/oaa.svg)为 AI 生成，详情请见 commit [`c443197`](https://github.com/suse-edu-cn/oaa-frontend/commit/c443197f496f7dd05018ffc9057c63dc5e2c6000)。

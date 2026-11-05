@@ -8,14 +8,23 @@ export function die(tag, message) {
     process.exit(1)
 }
 
-export function run(tag, cmd, args, { dryRun = false, cwd } = {}) {
-    if (dryRun) {
-        console.log(`[dry-run] ${cmd} ${args.join(' ')}`)
-        return
-    }
-    const result = spawnSync(cmd, args, { stdio: 'inherit', cwd })
+// quiet 丢掉子进程 stdout，stderr 保留用于报错
+export function run(tag, cmd, args, { cwd, quiet = false } = {}) {
+    const result = spawnSync(cmd, args, { stdio: quiet ? ['inherit', 'ignore', 'inherit'] : 'inherit', cwd })
     if (result.error) die(tag, `执行 ${cmd} 失败: ${result.error.message}`)
     if (result.status !== 0) die(tag, `${cmd} 退出码 ${result.status ?? 'null'}`)
+}
+
+// 成功时完全静默
+export function runSilent(tag, cmd, args, { cwd } = {}) {
+    const result = spawnSync(cmd, args, { cwd, encoding: 'utf8' })
+    if (result.error) die(tag, `执行 ${cmd} 失败: ${result.error.message}`)
+    if (result.status !== 0) {
+        const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim()
+        if (output) console.error(output)
+        die(tag, `${cmd} 退出码 ${result.status ?? 'null'}`)
+    }
+    return result.stdout ?? ''
 }
 
 export function runCapture(tag, cmd, args, { cwd } = {}) {
@@ -36,10 +45,12 @@ export function hasCommand(cmd) {
     return !result.error && result.status === 0
 }
 
-export function runBuild(root) {
+// pnpm 在 Windows 上运行程序需要处理
+export function runBuild(root, { logLevel = 'warn' } = {}) {
     if (process.platform === 'win32') {
-        run('deploy', process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'pnpm build'], { cwd: root })
+        const args = ['/d', '/s', '/c', `pnpm --loglevel silent run build --logLevel ${logLevel}`]
+        run('deploy', process.env.ComSpec || 'cmd.exe', args, { cwd: root })
         return
     }
-    run('deploy', 'pnpm', ['build'], { cwd: root })
+    run('deploy', 'pnpm', ['--loglevel', 'silent', 'run', 'build', '--logLevel', logLevel], { cwd: root })
 }

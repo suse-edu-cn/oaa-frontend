@@ -7,7 +7,7 @@
 //   - sw.js 200，若它引用了外部 workbox 文件，该文件也必须存在
 //   - 入口文件的 Cache-Control / manifest 的 Content-Type 不达标时告警
 
-// 使用：node scripts/deploy/post-deploy-check.mjs [--dry-run]
+// 使用：node scripts/deploy/post-deploy-check.mjs
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -17,16 +17,10 @@ import { die } from './run.mjs'
 import { externalWorkboxFiles } from './sw-runtime.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const dryRun = process.argv.includes('--dry-run')
 const cfg = loadDeployConfig()
 const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
 const version = `v${pkg.version}`
 const timeout = 15000
-
-if (dryRun) {
-    console.log(`[dry-run] 部署后检查 ${cfg.siteUrl ?? '(未配置 site)'} version=${version}`)
-    process.exit(0)
-}
 
 const siteUrl = cfg.siteUrl
 if (!siteUrl) die('post-deploy-check', '缺少 deploy.local.json 中的 site 配置')
