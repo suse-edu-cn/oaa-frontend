@@ -1,0 +1,15 @@
+{
+    "object": {
+        "endpoint": "https://obj.suseoaa.com",
+        "accessKey": "access-key",
+        "secretKey": "secret-key",
+        "bucket": "oaa-fe",
+        "alias": "obj-service"
+    },
+    "nginx": {
+        "host": "deploy@10.0.0.1",
+        "root": "/var/web/oaa-fe",
+        "reloadCmd": "sudo -n nginx -s reload"
+    },
+    "site": "https://suseoaa.com"
+}

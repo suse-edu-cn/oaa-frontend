@@ -28,7 +28,11 @@
         "type-check": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.vitest.json",
         "format": "oxfmt --check",
         "format:write": "oxfmt",
-        "prepare": "husky"
+        "prepare": "husky",
+        "deploy": "node scripts/deploy/deploy.mjs",
+        "deploy:dry-run": "node scripts/deploy/deploy.mjs --dry-run",
+        "deploy:no-build": "node scripts/deploy/deploy.mjs --no-build",
+        "deploy:validate": "node scripts/deploy/validate-dist.mjs"
     },
     "dependencies": {
         "@primeuix/themes": "^3.1.0",
