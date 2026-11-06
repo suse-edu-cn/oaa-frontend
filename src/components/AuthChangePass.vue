@@ -33,7 +33,11 @@ const changeData = ref({
 const changeSchema = z
     .object({
         oldPassword: z.string().min(1, { message: '请填写旧密码' }),
-        newPassword: z.string().min(1, { message: '请填写新密码' }),
+        newPassword: z
+            .string()
+            .min(1, { message: '请填写新密码' })
+            .min(8, { message: '密码至少需要 8 位' })
+            .regex(/^(?=.*[A-Za-z])(?=.*\d)/, { message: '密码必须同时包含字母和数字' }),
         confirmPassword: z.string().min(1, { message: '请再次输入新密码' }),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {

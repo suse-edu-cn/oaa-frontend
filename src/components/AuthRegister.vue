@@ -53,7 +53,11 @@ const registerSchema = z.object({
     name: z.string().min(1, { message: '请填写姓名' }),
     username: z.string().min(1, { message: '请填写用户名' }),
     email: z.email({ message: '邮箱格式不正确' }),
-    password: z.string().min(1, { message: '请填写密码' }),
+    password: z
+        .string()
+        .min(1, { message: '请填写密码' })
+        .min(8, { message: '密码至少需要 8 位' })
+        .regex(/^(?=.*[A-Za-z])(?=.*\d)/, { message: '密码必须同时包含字母和数字' }),
 })
 const validateRegister = zodResolver(registerSchema)
 const registerResolver = () => validateRegister({ values: registerData.value })

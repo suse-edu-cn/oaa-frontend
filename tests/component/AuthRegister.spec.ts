@@ -33,7 +33,7 @@ async function fillForm(wrapper: ReturnType<typeof mountRegister>, studentId: st
     await inputByName(wrapper, 'name').setValue('张三')
     await inputByName(wrapper, 'username').setValue('zhangsan')
     await inputByName(wrapper, 'email').setValue('zhangsan@example.com')
-    await inputByName(wrapper, 'password').setValue('12345678')
+    await inputByName(wrapper, 'password').setValue('abc12345')
 }
 
 async function submit(wrapper: ReturnType<typeof mountRegister>) {
@@ -128,7 +128,7 @@ describe('components/AuthRegister', () => {
                 name: '张三',
                 username: 'zhangsan',
                 email: 'zhangsan@example.com',
-                password: '12345678',
+                password: 'abc12345',
             })
         })
 
@@ -192,6 +192,16 @@ describe('components/AuthRegister', () => {
 
             expect(registerMock).not.toHaveBeenCalled()
         })
+    })
+
+    it('密码不足 8 位或缺少字母数字时不发起注册', async () => {
+        for (const password of ['abc123', 'abcdefgh', '12345678']) {
+            const wrapper = mountRegister()
+            await fillForm(wrapper, '26101000000')
+            await inputByName(wrapper, 'password').setValue(password)
+            await submit(wrapper)
+            expect(registerMock).not.toHaveBeenCalled()
+        }
     })
 
     it('每个 label 都关联到存在的控件', () => {
