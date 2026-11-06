@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Dialog, Select } from 'primevue'
+import { Dialog } from 'primevue'
 
+import SettingItem from '@/components/SettingItem.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { THEME_OPTIONS } from '@/utils/theme'
 
@@ -16,44 +17,32 @@ const buildInfo = __BUILD_INFO__
     <main>
         <h1 class="e-title">设置</h1>
         <div class="settings-list">
+            <!-- 外观 -->
             <div class="setting-catalog">外观</div>
             <div class="setting-card">
-                <div class="section">
-                    <i class="pi pi-palette"></i>
-                    <span class="key">主题</span>
-                    <span class="value theme">
-                        <Select
-                            :model-value="settingsStore.themeMode"
-                            :options="THEME_OPTIONS"
-                            option-label="label"
-                            option-value="value"
-                            size="small"
-                            aria-label="主题模式"
-                            @update:model-value="settingsStore.setThemeMode"
-                        />
-                    </span>
-                </div>
+                <SettingItem
+                    variant="dropdown"
+                    icon="pi pi-palette"
+                    label="主题"
+                    :options="THEME_OPTIONS"
+                    :model-value="settingsStore.themeMode"
+                    @update:model-value="settingsStore.setThemeMode"
+                />
             </div>
+
+            <!-- 关于工作台 -->
             <div class="setting-catalog">关于工作台</div>
             <div class="setting-card">
-                <a
+                <SettingItem
+                    variant="link"
+                    icon="pi pi-lightbulb"
+                    label="使用反馈"
                     :href="buildInfo.repo + '/issues/new/choose'"
-                    class="section clickable"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <i class="pi pi-lightbulb"></i>
-                    <span class="key">使用反馈</span>
-                    <span class="value">
-                        <i class="pi pi-arrow-right"></i>
-                    </span>
-                </a>
+                />
                 <div class="divider"></div>
-                <div class="section clickable" @click="showBuildDialog = true">
-                    <i class="pi pi-code"></i>
-                    <span class="key">工作台版本</span>
-                    <span class="value"> v{{ buildInfo.version }} </span>
-                </div>
+                <SettingItem icon="pi pi-code" label="工作台版本" @click="showBuildDialog = true">
+                    v{{ buildInfo.version }}
+                </SettingItem>
             </div>
         </div>
 
@@ -96,45 +85,6 @@ const buildInfo = __BUILD_INFO__
     border: 1px solid var(--p-menu-separator-border-color);
     border-radius: var(--e-border-radius);
 
-    .section {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 16px 24px;
-        font-size: 15px;
-        border-radius: var(--e-border-radius);
-
-        i {
-            font-size: 18px;
-            margin-right: 0.5em;
-            color: var(--p-menu-submenu-label-color);
-        }
-
-        .key {
-            color: var(--p-menu-submenu-label-color);
-        }
-
-        .value {
-            color: var(--p-menu-item-color);
-            margin-left: auto;
-        }
-
-        .value.theme {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-        }
-    }
-
-    .section.clickable {
-        transition: all 0.3s;
-        cursor: pointer;
-
-        &:hover {
-            background-color: var(--p-menu-item-focus-background);
-        }
-    }
-
     .divider {
         height: 1px;
         margin: 0 24px;
@@ -164,25 +114,8 @@ const buildInfo = __BUILD_INFO__
 }
 
 @media screen and (max-width: 800px) {
-    .setting-card {
-        .section {
-            flex-wrap: wrap;
-            padding: 14px 16px;
-        }
-
-        .divider {
-            margin: 0 16px;
-        }
-    }
-
-    .setting-card .value.theme {
-        width: 100%;
-        margin-left: 0;
-        margin-top: 10px;
-
-        .p-select {
-            width: 100%;
-        }
+    .setting-card .divider {
+        margin: 0 16px;
     }
 
     .build-info .item {

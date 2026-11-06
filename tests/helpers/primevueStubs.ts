@@ -1,4 +1,4 @@
-import { defineComponent, h, type PropType } from 'vue'
+import { defineComponent, h, ref, type PropType } from 'vue'
 
 // 只保留业务代码用到的 v-model / 事件契约，避免把 PrimeVue 内部 DOM 带进测试
 
@@ -206,6 +206,58 @@ export const SkeletonStub = defineComponent({
     },
 })
 
+// popup
+// 业务代码通过 ref 调 toggle / show 展开，这里用按钮模拟菜单项
+export const MenuStub = defineComponent({
+    name: 'Menu',
+    props: {
+        model: { type: Array as PropType<Record<string, unknown>[]>, default: () => [] },
+        popup: Boolean,
+    },
+    emits: ['show', 'hide'],
+    setup(props, { emit, expose }) {
+        const open = ref(false)
+
+        function setOpen(value: boolean) {
+            open.value = value
+            emit(value ? 'show' : 'hide')
+        }
+
+        expose({
+            toggle: () => setOpen(!open.value),
+            show: () => setOpen(true),
+            hide: () => setOpen(false),
+        })
+
+        function runCommand(item: Record<string, unknown>) {
+            const command = item.command as ((event: unknown) => void) | undefined
+            command?.({})
+            setOpen(false)
+        }
+
+        return () =>
+            open.value
+                ? h(
+                      'ul',
+                      { 'data-testid': 'menu' },
+                      props.model.map((item) =>
+                          h('li', {}, [
+                              h(
+                                  'button',
+                                  {
+                                      type: 'button',
+                                      'data-testid': 'menu-item',
+                                      onClick: () => runCommand(item),
+                                  },
+                                  String(item.label)
+                              ),
+                          ])
+                      )
+                  )
+                : null
+    },
+})
+
 // 纯布局包装组件，只透传 slot 保证输入框仍然可查询
 export const FloatLabelStub = defineComponent({
     name: 'FloatLabel',
@@ -232,6 +284,7 @@ export const primevueStubs = {
     Button: ButtonStub,
     Message: MessageStub,
     Dialog: DialogStub,
+    Menu: MenuStub,
     Skeleton: SkeletonStub,
     FloatLabel: FloatLabelStub,
     IconField: IconFieldStub,
