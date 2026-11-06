@@ -12,8 +12,8 @@
 
 ## 环境要求
 
-- Node.js ≥ 24（CI 26）、pnpm ≥ 9（CI 11）。只用 pnpm，不要用 npm / yarn。
-- `package.json` 目前没有 `engines` / `packageManager` 字段，本地与 CI 版本不一致时容易出现 lockfile 抖动；动依赖前先确认 `node -v` / `pnpm -v`。
+- Node.js ≥ 24（CI 用 26）、pnpm ≥ 11（CI 与本地均以 `package.json` 的 `packageManager` 为准）。只用 pnpm，不要用 npm / yarn。
+- `package.json` 已声明 `engines`（`node >= 24`、`pnpm >= 11`）与 `packageManager`；CI 不再单独写死 pnpm 版本，升级/调整 pnpm 只改 `packageManager` 一处。本地 `pnpm` 版本与之不一致时，先切换或安装对应版本再执行 `pnpm install`，避免 lockfile 抖动。
 
 ## 常用命令
 
