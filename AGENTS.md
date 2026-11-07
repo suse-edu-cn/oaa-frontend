@@ -38,7 +38,7 @@
 
 ## 环境变量与构建模式
 
-三种模式（配置在 `.env.*`，只放公开配置，**不要写密钥**）：`development` 用 `VITE_API_URL=/v2` 经 `VITE_PROXY_API_TARGET` 代理到 `https://v2-api.suseoaa.com`；`production` 直连 `https://v2-api.suseoaa.com/v2`；`test` 供 Vitest 使用。
+公开配置统一放在仓库根目录的 `.env`（`development` / `production` / `test` 各模式共用，**不要写密钥**）：`VITE_API_URL=/v2/` 同源请求；`VITE_PROXY_API_TARGET` 只在开发服务器生效，代理到 `https://suseoaa.com/v2`。
 
 新增变量同步补到 `src/env.d.ts` 的 `ImportMetaEnv`；`base` 由 `VITE_OSS_ORIGIN` 拼成 `.../oaa-fe/v{version}/`，产物在 `_oaa/`。`vite.config.ts` 用 `define` 注入 `__BUILD_INFO__`，类型见 `env.d.ts`，设置页版本信息来自它。
 

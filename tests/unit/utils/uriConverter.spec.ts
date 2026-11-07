@@ -5,7 +5,7 @@ import { uriToUrl, urlToUri } from '@/utils/uriConverter'
 const OSS_ORIGIN = 'https://obj.suseoaa.com'
 
 describe('utils/uriConverter', () => {
-    it('从 .env.test 读取 OSS 域名', () => {
+    it('从 .env 读取 OSS 域名', () => {
         expect(import.meta.env.VITE_OSS_ORIGIN).toBe(OSS_ORIGIN)
     })
 
