@@ -71,6 +71,7 @@ const userItems: MenuItem[] = [
 
 <template>
     <header :class="{ index: isIndex }">
+        <!-- 左侧标题 & 移动端菜单 -->
         <div class="left">
             <button
                 v-if="showDrawerToggle"
@@ -84,6 +85,8 @@ const userItems: MenuItem[] = [
             </button>
             <RouterLink to="/" class="brand">青蟹</RouterLink>
         </div>
+
+        <!-- 右侧链接 & 用户信息 -->
         <div class="right">
             <div v-if="showAuthSkeleton" class="user-skeleton" aria-hidden="true">
                 <Skeleton shape="circle" size="2.25rem" />
@@ -111,7 +114,18 @@ const userItems: MenuItem[] = [
                 popup
                 @show="menuOpen = true"
                 @hide="menuOpen = false"
-            />
+            >
+                <!-- 用户登录时，下拉菜单显示用户信息 -->
+                <template #start v-if="authStore.userInfo">
+                    <div class="menu-card" role="group" aria-label="当前用户信息">
+                        <div class="username">{{ authStore.userInfo.username }}</div>
+                        <div class="secondary">
+                            {{ authStore.userInfo.name }} {{ authStore.userInfo.department + authStore.userInfo.role }}
+                        </div>
+                        <div class="secondary">{{ authStore.userInfo.email }}</div>
+                    </div>
+                </template>
+            </Menu>
         </div>
     </header>
 </template>
@@ -234,6 +248,25 @@ header {
     }
 }
 
+// 下拉菜单用户信息卡片
+.menu-card {
+    min-width: 240px;
+    padding: 10px 14px;
+    line-height: 1.6;
+    font-size: 13px;
+    border-bottom: 1px solid var(--e-border-color);
+
+    .username {
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 2;
+    }
+
+    .secondary {
+        color: var(--p-text-muted-color);
+    }
+}
+
 @media screen and (max-width: 800px) {
     header {
         &.index {
@@ -258,6 +291,11 @@ header {
 
 <style lang="less">
 .header-menu {
+    // 菜单挂在 body 上，PrimeVue 用内联 inset-inline-start 按按钮左边缘定位；
+    // 这里改为右边缘对齐 header 右侧内容区（用户按钮右边缘）
+    // inset-inline-start: auto !important;
+    // inset-inline-end: var(--e-content-h-padding) !important;
+
     .p-menu-item-link {
         padding: 8px 10px;
         font-size: 15px;

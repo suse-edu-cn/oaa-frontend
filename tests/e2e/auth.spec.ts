@@ -31,6 +31,11 @@ test.describe('登录与登出', () => {
         await userMenuButton.focus()
         await userMenuButton.press('Enter')
         await expect(page.getByRole('menuitem', { name: '登出' })).toBeVisible()
+        // 菜单顶部展示当前用户的昵称、姓名与邮箱
+        const userCard = page.getByRole('group', { name: '当前用户信息' })
+        await expect(userCard).toContainText('青蟹测试员')
+        await expect(userCard).toContainText('测试用户')
+        await expect(userCard).toContainText('tester@example.com')
         await page.getByRole('menuitem', { name: '登出' }).click()
 
         await expect(page).toHaveURL(/\/auth$/)
