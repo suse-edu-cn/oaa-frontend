@@ -33,7 +33,7 @@ test.describe('应用管理', () => {
         await page.getByRole('button', { name: '新建应用' }).click()
 
         const createDialog = page.getByRole('dialog', { name: '新建应用' })
-        await createDialog.getByLabel('client_id').fill('suse_cli')
+        await createDialog.getByLabel('应用 ID').fill('suse_cli')
         await createDialog.getByLabel('应用名称').fill('命令行工具')
         await createDialog.getByLabel('回调地址').fill('https://cli.suseoaa.com/callback')
         await createDialog.getByLabel('授权范围').fill('openid   email')
@@ -53,6 +53,8 @@ test.describe('应用管理', () => {
             })
 
         await secretDialog.getByRole('button', { name: '我已保存，关闭' }).click()
+        // 等关闭动画结束、弹窗从 DOM 移除后再断言列表，避免同一文本匹配到弹窗与表格两处
+        await expect(secretDialog).toBeHidden()
         await expect(page.getByRole('button', { name: '命令行工具', exact: true })).toBeVisible()
         await expect(page.getByText('suse_cli', { exact: true })).toBeVisible()
     })
@@ -62,7 +64,7 @@ test.describe('应用管理', () => {
         await page.getByRole('button', { name: '编辑应用' }).click()
 
         const dialog = page.getByRole('dialog', { name: '编辑应用' })
-        await expect(dialog.getByLabel('client_id')).toBeDisabled()
+        await expect(dialog.getByLabel('应用 ID')).toBeDisabled()
         await dialog.getByLabel('应用名称').fill('OJ 平台 2')
         await dialog.getByLabel('回调地址').fill('https://oj2.suseoaa.com')
         await dialog.getByRole('button', { name: '保存' }).click()
