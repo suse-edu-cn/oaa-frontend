@@ -84,6 +84,11 @@ const menuGroups: DrawerItem[] = [
                 icon: 'pi pi-calendar',
                 to: '/manage/term',
             },
+            {
+                label: '应用管理',
+                icon: 'pi pi-th-large',
+                to: '/manage/app',
+            },
         ],
     },
     {

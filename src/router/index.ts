@@ -39,6 +39,11 @@ const router = createRouter({
             component: () => import('@/views/manage/term.vue'),
             meta: { title: '招新/换届管理', level: 80 },
         },
+        {
+            path: '/manage/app',
+            component: () => import('@/views/manage/app.vue'),
+            meta: { title: '应用管理', level: 80 },
+        },
 
         // 公告
         {

@@ -13,6 +13,8 @@ import {
     publishAnnouncement,
     updateAnnouncement,
 } from '@/api/announcement'
+import * as appApi from '@/api/app'
+import { createApp, deleteApp, getAppDetail, getAppList, updateApp } from '@/api/app'
 import * as applicationApi from '@/api/application'
 import {
     createApplication,
@@ -46,6 +48,7 @@ const requestMock = vi.mocked(request)
 
 const apiModules = {
     announcement: announcementApi,
+    app: appApi,
     application: applicationApi,
     auth: authApi,
     interview: interviewApi,
@@ -220,6 +223,33 @@ const cases: Case[] = [
         name: 'announcement/deleteAnnouncement',
         run: () => deleteAnnouncement(7),
         expected: { url: '/announcement/delete', method: 'POST', data: { announcement_id: 7 } },
+    },
+
+    // app
+    {
+        name: 'app/createApp',
+        run: () => createApp(payload),
+        expected: { url: '/app/create', method: 'POST', data: payload },
+    },
+    {
+        name: 'app/getAppList',
+        run: () => getAppList(),
+        expected: { url: '/app/list', method: 'GET' },
+    },
+    {
+        name: 'app/getAppDetail',
+        run: () => getAppDetail('suse_oj'),
+        expected: { url: '/app/detail', method: 'GET', params: { client_id: 'suse_oj' } },
+    },
+    {
+        name: 'app/updateApp',
+        run: () => updateApp(payload),
+        expected: { url: '/app/update', method: 'POST', data: payload },
+    },
+    {
+        name: 'app/deleteApp',
+        run: () => deleteApp('suse_oj'),
+        expected: { url: '/app/delete', method: 'POST', data: { client_id: 'suse_oj' } },
     },
 
     // application

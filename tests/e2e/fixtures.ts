@@ -3,6 +3,7 @@ import type { BrowserContext, Route } from '@playwright/test'
 
 import type {
     AnnouncementItem,
+    AppItem,
     ApplicationItem,
     DepartmentItem,
     InterviewExportFields,
@@ -74,6 +75,20 @@ export function makeAnnouncement(overrides: Partial<AnnouncementItem> = {}): Ann
         published_at: '2026-09-01T10:00:00+08:00',
         created_at: '2026-08-30T10:00:00+08:00',
         updated_at: '2026-09-01T10:00:00+08:00',
+        ...overrides,
+    }
+}
+
+export function makeApp(overrides: Partial<AppItem> = {}): AppItem {
+    return {
+        client_id: 'suse_oj',
+        mask_secret: 'oaa_sec_6fd3********************ebe3',
+        name: 'OJ 平台',
+        redirect_uris: 'https://oj.suseoaa.com',
+        scope: 'openid profile email',
+        is_active: true,
+        created_at: '2026-11-09T21:22:37.358+08:00',
+        updated_at: '2026-11-09T21:22:37.358+08:00',
         ...overrides,
     }
 }
@@ -150,6 +165,11 @@ export interface MockScenario {
     logout?: 'success' | 'fail'
     announcements?: AnnouncementItem[]
     announcement?: AnnouncementItem | null
+    apps?: AppItem[]
+    app?: AppItem | null
+    createApp?: 'success' | 'fail'
+    updateApp?: 'success' | 'fail'
+    deleteApp?: 'success' | 'fail'
     applications?: ApplicationItem[]
     interviewers?: InterviewStaffItem[]
     users?: UserInfo[]
@@ -254,6 +274,53 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
             scenario.userMeUnauthorized === true ? Number.POSITIVE_INFINITY : Number(scenario.userMeUnauthorized ?? 0)
         if (!user || api.counters.userMe <= limit) return fulfill(route, fail(401, '登录已失效'))
         return fulfill(route, ok(user))
+    }
+
+    if (method === 'GET' && path === '/app/list') {
+        return fulfill(route, ok(scenario.apps ?? []))
+    }
+
+    if (method === 'GET' && path === '/app/detail') {
+        const clientId = url.searchParams.get('client_id')
+        const found = (scenario.apps ?? []).find((item) => item.client_id === clientId) ?? scenario.app
+        if (!found) return fulfill(route, fail(404, '应用不存在'))
+        return fulfill(route, ok(found))
+    }
+
+    if (method === 'POST' && path === '/app/create') {
+        if (scenario.createApp === 'fail') return fulfill(route, fail(500, '创建应用失败'))
+        const body = (json ?? {}) as Partial<AppItem>
+        const created: AppItem = {
+            client_id: body.client_id ?? 'suse_oj',
+            mask_secret: 'oaa_sec_test********************cret',
+            name: body.name ?? 'OJ 平台',
+            redirect_uris: body.redirect_uris ?? '',
+            scope: body.scope ?? '',
+            is_active: true,
+            created_at: '2026-11-09T21:22:37.358+08:00',
+            updated_at: '2026-11-09T21:22:37.358+08:00',
+        }
+        scenario.apps = [...(scenario.apps ?? []), created]
+        return fulfill(
+            route,
+            ok({ client_id: created.client_id, client_secret: 'oaa_sec_test_secret', name: created.name })
+        )
+    }
+
+    if (method === 'POST' && path === '/app/update') {
+        if (scenario.updateApp === 'fail') return fulfill(route, fail(500, '更新应用失败'))
+        const body = (json ?? {}) as Partial<AppItem>
+        scenario.apps = (scenario.apps ?? []).map((item) =>
+            item.client_id === body.client_id ? { ...item, ...body, updated_at: '2026-11-10T10:00:00+08:00' } : item
+        )
+        return fulfill(route, ok(null))
+    }
+
+    if (method === 'POST' && path === '/app/delete') {
+        if (scenario.deleteApp === 'fail') return fulfill(route, fail(500, '删除应用失败'))
+        const body = (json ?? {}) as Partial<AppItem>
+        scenario.apps = (scenario.apps ?? []).filter((item) => item.client_id !== body.client_id)
+        return fulfill(route, ok(null))
     }
 
     if (method === 'GET' && path === '/announcement/list') {
