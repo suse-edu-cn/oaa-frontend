@@ -59,6 +59,35 @@ test.describe('审核申请', () => {
         await expect(page.getByText('修改审核')).toHaveCount(0)
     })
 
+    test('当前不在任何活动周期内时，已审核申请不显示修改审核', async ({ page, api, signIn }) => {
+        // 周期早已结束，仍可查看与首次审核，但不再提供修改入口
+        const endedTerm = makeTerm({
+            edit_period: { start_at: '2000-01-01', end_at: '2000-01-31' },
+            query_period: { start_at: '2000-02-01', end_at: '2000-02-29' },
+        })
+        api.scenario = {
+            user: makeUser({ role_level: 20, is_interviewer: true }),
+            terms: [endedTerm],
+            applications: [
+                makeApplication({ id: 1, name: '待审核同学' }),
+                makeApplication({
+                    id: 2,
+                    name: '已审核同学',
+                    decision: '录取第一志愿',
+                    result: { department_id: 1, role_id: 1 },
+                    operator_user_id: 2,
+                }),
+            ],
+        }
+        await signIn()
+
+        await page.goto('/apply/review')
+        await expect(page.getByText('已审核同学')).toBeVisible()
+        await expect(page.getByRole('button', { name: '修改审核' })).toHaveCount(0)
+        // 待定申请仍可首次审核
+        await expect(page.getByRole('button', { name: '审核申请' })).toBeVisible()
+    })
+
     test('按姓名搜索并防抖', async ({ page, api, signIn }) => {
         api.scenario = {
             user: makeUser({ role_level: 20, is_interviewer: true }),

@@ -3,6 +3,7 @@
 import { Button, Card, Tag } from 'primevue'
 
 import { useOrgStore } from '@/stores/org'
+import { useTermStore } from '@/stores/term'
 import { fromIso } from '@/utils/date'
 import type { ApplicationItem, OrgRef } from '@/types'
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const orgStore = useOrgStore()
+const termStore = useTermStore()
 const tooltip =
     '当前录取状态，“待定”意为当前录取工作尚未开始，请耐心等待。录取完成结果共有 4 种：录取第一志愿、录取第二志愿、已调剂、未通过。'
 
@@ -167,7 +169,7 @@ function getDecisionClass(decision: string) {
             <div :class="['card-footer', reviewMode ? 'review' : '']">
                 <div class="info">提交时间：{{ fromIso(application.created_at) }}</div>
                 <Button
-                    v-if="reviewMode"
+                    v-if="reviewMode && (termStore.isInTerm || getDecisionClass(application.decision) === 'pending')"
                     :label="getDecisionClass(application.decision) !== 'pending' ? '修改审核' : '审核申请'"
                     @click="emit('review', application)"
                 />

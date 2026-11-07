@@ -206,6 +206,30 @@ export const SkeletonStub = defineComponent({
     },
 })
 
+// 只渲染 header / content / footer 三个插槽，便于断言卡片内部结构
+export const CardStub = defineComponent({
+    name: 'Card',
+    setup(_, { slots }) {
+        return () =>
+            h('div', { 'data-testid': 'card' }, [
+                ...(slots.header ? slots.header() : []),
+                ...(slots.content ? slots.content() : []),
+                ...(slots.footer ? slots.footer() : []),
+            ])
+    },
+})
+
+export const TagStub = defineComponent({
+    name: 'Tag',
+    props: {
+        value: { type: [String, Number], default: '' },
+        severity: String,
+    },
+    setup(props) {
+        return () => h('span', { 'data-testid': 'tag' }, String(props.value))
+    },
+})
+
 // popup
 // 业务代码通过 ref 调 toggle / show 展开，这里用按钮模拟菜单项
 export const MenuStub = defineComponent({
@@ -286,6 +310,8 @@ export const primevueStubs = {
     Dialog: DialogStub,
     Menu: MenuStub,
     Skeleton: SkeletonStub,
+    Card: CardStub,
+    Tag: TagStub,
     FloatLabel: FloatLabelStub,
     IconField: IconFieldStub,
 }

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 import { getTermList } from '@/api/term'
 import { toastApiError } from '@/utils/apiError'
+import { fromDate } from '@/utils/date'
 import type { TermInfo } from '@/types'
 
 /**
@@ -15,8 +16,18 @@ export const useTermStore = defineStore('term', () => {
     const terms = ref<TermInfo[]>([])
     const loaded = ref(false)
     const loading = ref(false)
+    const isInTerm = ref(false)
     // 并发调用共享请求
     let inflight: Promise<boolean> | null = null
+
+    /**
+     * 重新判定当前是否处于任一周期内
+     * 周期区间取申请提交期开始 ~ 面试审核期结束，与首页进行中周期的判定一致
+     */
+    function refreshIsInTerm() {
+        const today = fromDate(new Date())
+        isInTerm.value = terms.value.some((t) => today >= t.edit_period.start_at && today <= t.query_period.end_at)
+    }
 
     async function fetchTerms(): Promise<boolean> {
         loading.value = true
@@ -25,6 +36,7 @@ export const useTermStore = defineStore('term', () => {
             if (resp?.code == 200) {
                 terms.value = resp.data ?? []
                 loaded.value = true
+                refreshIsInTerm()
                 return true
             }
             toastApiError('获取活动周期列表失败', resp)
@@ -53,5 +65,5 @@ export const useTermStore = defineStore('term', () => {
         return run(true)
     }
 
-    return { terms, loaded, loading, ensureLoaded, refresh }
+    return { terms, loaded, loading, isInTerm, ensureLoaded, refresh }
 })

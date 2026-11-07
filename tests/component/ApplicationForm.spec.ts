@@ -28,7 +28,7 @@ import ApplicationForm from '@/components/ApplicationForm.vue'
 import { uploadImage } from '@/utils/uploader'
 import setToast from '@/utils/setToast'
 import type { ApplicationFormData, ApplicationFormPrefill } from '@/types'
-import { makeDepartment, makeRole } from '../helpers/factories'
+import { makeDepartment, makeRole, makeTerm } from '../helpers/factories'
 import { deferred } from '../helpers/deferred'
 import { mountWithPrimeVue } from '../helpers/mount'
 import { DatePickerStub, SelectStub } from '../helpers/primevueStubs'
@@ -93,7 +93,7 @@ beforeEach(() => {
     termMock.mockResolvedValue({
         code: 200,
         message: 'ok',
-        data: [{ id: 1, title: '2026 秋季招新' }],
+        data: [makeTerm({ id: 1 })],
     } as never)
     rolesMock.mockResolvedValue({ code: 200, message: 'ok', data: [makeRole()] })
     departmentsMock.mockResolvedValue({ code: 200, message: 'ok', data: [makeDepartment()] })
