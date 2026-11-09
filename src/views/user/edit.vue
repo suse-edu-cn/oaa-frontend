@@ -1,12 +1,11 @@
 <!-- 编辑个人信息页 /user/edit -->
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, useId, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { z } from 'zod'
 
 import { Button, Dialog, IconField, InputIcon, InputText, Message, Skeleton } from 'primevue'
 import { Form } from '@primevue/forms'
-import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { updateCurrentUser } from '@/api/user'
 import AuthChangePass from '@/components/AuthChangePass.vue'
@@ -20,13 +19,14 @@ import setToast from '@/utils/setToast'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const uid = useId()
+const fieldId = (name: string) => uid + '-' + name
 
 const infoSchema = z.object({
     username: z.string().min(1, { message: '请填写用户名' }),
     email: z.email({ message: '请填写有效的邮箱' }),
     avatar: z.string().min(1, { message: '请上传有效的头像' }),
 })
-const resolver = zodResolver(infoSchema)
 const updateData = ref({
     student_id: '',
     name: '',
@@ -34,20 +34,33 @@ const updateData = ref({
     email: '',
     avatar: '',
 })
+const errors = ref<Record<string, string>>({})
 const showChangePass = ref(false)
 // 用户信息就绪前不渲染表单，避免空白表单被回填覆盖
 const loading = ref(true)
 
 async function onUpdateData() {
-    if (!infoSchema.safeParse(updateData.value).success) {
-        return
+    // 校验与提交共用同一份 trim 后的值
+    const values = {
+        username: updateData.value.username.trim(),
+        email: updateData.value.email.trim(),
+        avatar: updateData.value.avatar.trim(),
     }
 
-    const resp = await updateCurrentUser({
-        username: updateData.value.username,
-        email: updateData.value.email,
-        avatar: updateData.value.avatar,
-    })
+    const parsed = infoSchema.safeParse(values)
+    if (!parsed.success) {
+        const next: Record<string, string> = {}
+        for (const issue of parsed.error.issues) {
+            const field = String(issue.path[0])
+            if (!next[field]) next[field] = issue.message
+        }
+        errors.value = next
+        setToast('warn', '请完善个人信息', parsed.error.issues[0]?.message ?? '')
+        return
+    }
+    errors.value = {}
+
+    const resp = await updateCurrentUser(values)
     if (resp?.code == 200) {
         setToast('success', '修改成功', '个人信息已更新！')
         await initAuthStore()
@@ -120,13 +133,7 @@ onMounted(async () => {
             </div>
         </div>
 
-        <Form
-            v-else
-            v-slot="$form"
-            :resolver="resolver"
-            :initial-values="authStore.userInfo ?? undefined"
-            @submit="onUpdateData"
-        >
+        <Form v-else @submit="onUpdateData">
             <!-- 头像 -->
             <div class="avatar">
                 <div>设置头像</div>
@@ -140,12 +147,21 @@ onMounted(async () => {
                     width="8rem"
                     height="8rem"
                     alt="用户头像"
-                    aria-label="更换头像"
+                    :aria-invalid="Boolean(errors.avatar)"
+                    :aria-describedby="errors.avatar ? fieldId('avatar-error') : undefined"
                     placeholder-size="3rem"
                     @uploaded="onAvatarUploaded"
                 />
                 <div class="tip">头像支持 JPG、PNG、GIF、WEBP、AVIF 格式，大小不得超过 4MB</div>
-                <InputText name="avatar" v-model="updateData.avatar" type="hidden" />
+                <Message
+                    v-if="errors.avatar"
+                    :id="fieldId('avatar-error')"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                >
+                    {{ errors.avatar }}
+                </Message>
             </div>
 
             <!-- 表单 -->
@@ -173,7 +189,7 @@ onMounted(async () => {
                         <InputText name="username" v-model="updateData.username" />
                     </IconField>
                     <Message severity="error" size="small" variant="simple">
-                        <span v-if="$form.username?.invalid">{{ $form.username.error?.message }}</span
+                        <span v-if="errors.username">{{ errors.username }}</span
                         >&nbsp;
                     </Message>
                 </div>
@@ -184,7 +200,7 @@ onMounted(async () => {
                         <InputText name="email" v-model="updateData.email" />
                     </IconField>
                     <Message severity="error" size="small" variant="simple">
-                        <span v-if="$form.email?.invalid">{{ $form.email.error?.message }}</span
+                        <span v-if="errors.email">{{ errors.email }}</span
                         >&nbsp;
                     </Message>
                 </div>
