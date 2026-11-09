@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { z } from 'zod'
 
 import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
@@ -11,8 +11,10 @@ import { login } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 import { toastApiError } from '@/utils/apiError'
 import { initAuthStore } from '@/utils/initAuthStore'
+import { resolveRedirect } from '@/utils/redirect'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const emit = defineEmits<{ forgot: [] }>()
 
@@ -56,7 +58,7 @@ async function onLogin() {
         if (resp?.code == 200) {
             authStore.beginLogin({ token: resp.data.token, refreshToken: resp.data.refresh_token })
             await initAuthStore()
-            router.push('/user')
+            router.push(resolveRedirect(route.query.redirect) || '/user')
         } else {
             toastApiError('登录失败', resp)
         }

@@ -21,7 +21,10 @@ const pinia = createPinia()
 configureRequestAuth({
     getCurrentRoute: () => router.currentRoute.value,
     redirectToAuth: () => {
-        void router.push('/auth')
+        const current = router.currentRoute.value
+        // 保留当前地址，登录后回到原页面（如 OAuth 授权页）
+        const location = current.path === '/auth' ? '/auth' : { path: '/auth', query: { redirect: current.fullPath } }
+        void router.push(location)
     },
     notify: (summary, detail) => setToast('error', summary, detail),
 })

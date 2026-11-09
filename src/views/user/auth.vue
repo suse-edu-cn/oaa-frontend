@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primevue'
 
 import AuthLogin from '@/components/AuthLogin.vue'
@@ -8,9 +8,11 @@ import AuthRegister from '@/components/AuthRegister.vue'
 import AuthResetPass from '@/components/AuthResetPass.vue'
 import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
+import { resolveRedirect } from '@/utils/redirect'
 import setToast from '@/utils/setToast'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // portal 模式 -> login / register / reset
@@ -23,7 +25,7 @@ onMounted(async () => {
     }
     if (authStore.isAuthed) {
         setToast('success', '用户已登录', '欢迎回来，正在跳转至主页')
-        router.push('/user')
+        router.push(resolveRedirect(route.query.redirect) || '/user')
     }
 })
 </script>

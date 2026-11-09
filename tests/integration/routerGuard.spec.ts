@@ -21,10 +21,17 @@ beforeEach(() => {
 })
 
 describe('router/guard', () => {
-    it('未登录访问受保护页时跳转登录页', async () => {
-        await expect(authGuard({ meta: {} })).resolves.toBe('/auth')
+    it('未登录访问受保护页时跳转登录页并带上回跳地址', async () => {
+        await expect(authGuard({ meta: {}, fullPath: '/user/oauth?client_id=a' })).resolves.toEqual({
+            path: '/auth',
+            query: { redirect: '/user/oauth?client_id=a' },
+        })
 
         expect(toastMock).toHaveBeenCalledWith('error', '未登录', '请先登录以访问该页面')
+    })
+
+    it('缺少当前路径时只跳转登录页', async () => {
+        await expect(authGuard({ meta: {} })).resolves.toBe('/auth')
     })
 
     it('未登录也可以访问公开页', async () => {

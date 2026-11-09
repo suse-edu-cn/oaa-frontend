@@ -1,4 +1,4 @@
-import { expect, makeUser, test } from './fixtures'
+import { expect, makeOAuthClient, makeUser, test } from './fixtures'
 
 test.describe('登录与登出', () => {
     test('登录成功进入个人中心，登出后无法访问受保护页', async ({ page, api }) => {
@@ -44,7 +44,28 @@ test.describe('登录与登出', () => {
 
         // 登出后
         await page.goto('/user')
-        await expect(page).toHaveURL(/\/auth$/)
+        await expect(page).toHaveURL(/\/auth\?redirect=/)
         await expect(page.getByText('请先登录以访问该页面')).toBeVisible()
+    })
+
+    test('未登录访问 OAuth 授权页，登录后回到授权页', async ({ page, api }) => {
+        api.scenario = { user: makeUser(), oauthClient: makeOAuthClient() }
+
+        await page.goto('/user/oauth?client_id=hydro_oj&scope=openid%20profile&state=abc')
+
+        // 守卫跳登录页，并带上原地址
+        await expect(page).toHaveURL(/\/auth\?redirect=/)
+        await expect(page.getByRole('heading', { name: '欢迎使用青蟹' })).toBeVisible()
+
+        const loginPanel = page.getByRole('tabpanel', { name: '登录' })
+        await loginPanel.locator('input[name="account"]').fill('tester')
+        await loginPanel.locator('input[name="password"]').fill('correct-password')
+        await loginPanel.locator('input[name="isAccepted"]').check({ force: true })
+        await loginPanel.getByRole('button', { name: '登录' }).click()
+
+        // 登录成功后回到授权页，且 OAuth 参数仍在
+        await expect(page).toHaveURL(/\/user\/oauth\?client_id=hydro_oj/)
+        await expect(page.getByRole('heading', { name: '授权登录' })).toBeVisible()
+        await expect(page.getByText('OJ 平台')).toBeVisible()
     })
 })

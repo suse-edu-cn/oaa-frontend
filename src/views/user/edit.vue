@@ -1,7 +1,7 @@
 <!-- 编辑个人信息页 /user/edit -->
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { z } from 'zod'
 
 import { Button, Dialog, IconField, InputIcon, InputText, Message, Skeleton } from 'primevue'
@@ -18,6 +18,7 @@ import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const infoSchema = z.object({
@@ -89,7 +90,7 @@ onMounted(async () => {
 
         if (!authStore.isAuthed) {
             setToast('error', '获取用户信息失败', '当前尚未登录！')
-            router.push('/auth')
+            router.push({ path: '/auth', query: { redirect: route.fullPath } })
         }
     } finally {
         loading.value = false

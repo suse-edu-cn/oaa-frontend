@@ -2,13 +2,21 @@ import { useAuthStore } from '@/stores/auth'
 import { initAuthStore } from '@/utils/initAuthStore'
 import setToast from '@/utils/setToast'
 
-import type { RouteMeta } from 'vue-router'
+import type { RouteLocationRaw, RouteMeta } from 'vue-router'
 
 export interface GuardRoute {
     meta: RouteMeta
+    /** 当前完整路径，用于登录后回跳；测试可省略 */
+    fullPath?: string
 }
 
-export async function authGuard(to: GuardRoute): Promise<true | string> {
+/** 跳转登录页并带上回跳参数 */
+function toAuthLocation(to: GuardRoute): RouteLocationRaw {
+    const redirect = to.fullPath && to.fullPath !== '/auth' ? to.fullPath : ''
+    return redirect ? { path: '/auth', query: { redirect } } : '/auth'
+}
+
+export async function authGuard(to: GuardRoute): Promise<true | RouteLocationRaw> {
     const authStore = useAuthStore()
     if (!authStore.isReady || !authStore.token) {
         authStore.hydrate()
@@ -16,7 +24,7 @@ export async function authGuard(to: GuardRoute): Promise<true | string> {
 
     if (to.meta.requiresAuth !== false && !authStore.hasSession) {
         setToast('error', '未登录', '请先登录以访问该页面')
-        return '/auth'
+        return toAuthLocation(to)
     }
 
     const requiredLevel = to.meta.level
@@ -30,7 +38,7 @@ export async function authGuard(to: GuardRoute): Promise<true | string> {
         await initAuthStore()
     }
     if (!authStore.hasSession) {
-        return '/auth'
+        return toAuthLocation(to)
     }
 
     const level = authStore.userInfo?.role_level

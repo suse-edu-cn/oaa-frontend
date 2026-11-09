@@ -36,7 +36,7 @@ test.describe('会话续期', () => {
 
         await page.goto('/user')
 
-        await expect(page).toHaveURL(/\/auth$/)
+        await expect(page).toHaveURL(/\/auth\?redirect=/)
         await expect(page.getByRole('heading', { name: '欢迎使用青蟹' })).toBeVisible()
         expect(api.count('POST', '/auth/refresh')).toBe(1)
 

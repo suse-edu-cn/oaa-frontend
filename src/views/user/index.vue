@@ -1,7 +1,7 @@
 <!-- 个人信息页 /user -->
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 
 import { Button, Skeleton } from 'primevue'
 
@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth'
 import type { AnnouncementItem } from '@/types'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const announcements = ref<AnnouncementItem[]>([])
@@ -43,7 +44,7 @@ onMounted(async () => {
 
     if (!authStore.isAuthed) {
         setToast('error', '获取用户信息失败', '当前尚未登录！')
-        router.push('/auth')
+        router.push({ path: '/auth', query: { redirect: route.fullPath } })
         return
     }
 

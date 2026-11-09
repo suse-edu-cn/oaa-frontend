@@ -114,7 +114,7 @@ onMounted(async () => {
     }
     if (!authStore.isAuthed) {
         setToast('error', '未登录', '请先登录后再授权第三方应用')
-        router.push('/auth')
+        router.push({ path: '/auth', query: { redirect: route.fullPath } })
         return
     }
     await loadClient()
