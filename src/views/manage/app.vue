@@ -25,6 +25,56 @@ import type { AppCreateResult, AppItem } from '@/types'
 const uid = useId()
 const fieldId = (name: string) => `${uid}-${name}`
 
+// 浏览器可导航到的危险 scheme 一律拒绝；http(s) 与原生 App 的自定义 scheme 放行。
+// 注：这里是管理台录入校验，真正的安全边界仍在后端的授权校验。
+const BLOCKED_REDIRECT_SCHEMES = new Set([
+    'about',
+    'blob',
+    'chrome',
+    'chrome-extension',
+    'data',
+    'edge',
+    'file',
+    'filesystem',
+    'jar',
+    'javascript',
+    'moz-extension',
+    'resource',
+    'view-source',
+    'vbscript',
+    'ws',
+    'wss',
+])
+
+function isValidRedirectUri(uri: string): boolean {
+    let parsed: URL
+    try {
+        parsed = new URL(uri)
+    } catch {
+        return false
+    }
+
+    const scheme = parsed.protocol.toLowerCase().replace(/:$/, '')
+    if (BLOCKED_REDIRECT_SCHEMES.has(scheme)) return false
+    // http(s) 必须有主机，避免 `https:` 这类被浏览器容错过的情况
+    if ((scheme === 'http' || scheme === 'https') && !parsed.hostname) return false
+
+    return true
+}
+
+// 校验一整段回调地址（空格 / 换行分隔），返回错误信息，空串表示通过
+function findRedirectUriError(value: string): string {
+    const items = value.trim().split(/\s+/).filter(Boolean)
+    if (!items.length) return ''
+
+    for (const uri of items) {
+        if (!isValidRedirectUri(uri)) {
+            return `${uri} 不是合法的回调地址（支持 http(s) 或自定义 scheme，禁止 javascript:/data:/file: 等）`
+        }
+    }
+    return ''
+}
+
 // 应用列表
 const apps = ref<AppItem[]>([])
 const loading = ref(true)
@@ -80,19 +130,8 @@ const clientIdError = computed(() => {
     if (!value) return ''
     return /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value) ? '' : '只能使用字母、数字、点、下划线和短横线'
 })
-// 允许空格 / 换行分隔多个回调地址，每个地址都必须是绝对地址
-const redirectUrisError = computed(() => {
-    const value = formRedirectUris.value.trim()
-    if (!value) return ''
-    for (const uri of value.split(/\s+/)) {
-        try {
-            new URL(uri)
-        } catch {
-            return `${uri} 不是有效的绝对地址`
-        }
-    }
-    return ''
-})
+// 允许空格 / 换行分隔多个回调地址，逐个校验 scheme
+const redirectUrisError = computed(() => findRedirectUriError(formRedirectUris.value))
 const canSave = computed(() => {
     if (!formName.value.trim() || !formRedirectUris.value.trim() || redirectUrisError.value) return false
     if (dialogMode.value === 'create' && (!formClientId.value.trim() || clientIdError.value)) return false
@@ -389,7 +428,9 @@ onMounted(loadApps)
                 <small v-if="redirectUrisError" :id="fieldId('redirectUris-error')" class="error">
                     {{ redirectUrisError }}
                 </small>
-                <small v-else :id="fieldId('redirectUris-hint')" class="hint">若有多个地址请换行分隔</small>
+                <small v-else :id="fieldId('redirectUris-hint')" class="hint"
+                    >支持 http(s) 或自定义 scheme，多个地址请换行分隔</small
+                >
             </div>
             <div class="form-field">
                 <label :for="fieldId('scope')">授权范围</label>

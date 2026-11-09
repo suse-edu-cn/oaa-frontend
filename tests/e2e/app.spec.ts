@@ -59,6 +59,24 @@ test.describe('应用管理', () => {
         await expect(page.getByText('suse_cli', { exact: true })).toBeVisible()
     })
 
+    test('回调地址拒绝 javascript:/data:/file: 等危险 scheme', async ({ page, api }) => {
+        await page.goto('/manage/app')
+        await page.getByRole('button', { name: '新建应用' }).click()
+
+        const createDialog = page.getByRole('dialog', { name: '新建应用' })
+        await createDialog.getByLabel('应用 ID').fill('evil_app')
+        await createDialog.getByLabel('应用名称').fill('危险应用')
+        await createDialog.getByLabel('回调地址').fill('javascript:alert(1)')
+
+        await expect(createDialog.getByText(/不是合法的回调地址/)).toBeVisible()
+        await expect(createDialog.getByRole('button', { name: '创建' })).toBeDisabled()
+
+        // 原生 App 常用的自定义 scheme 仍应放行
+        await createDialog.getByLabel('回调地址').fill('suseoaa://oauth/callback')
+        await expect(createDialog.getByRole('button', { name: '创建' })).toBeEnabled()
+        expect(api.count('POST', '/app/create')).toBe(0)
+    })
+
     test('编辑应用并保存启用状态', async ({ page, api }) => {
         await page.goto('/manage/app')
         await page.getByRole('button', { name: '编辑应用' }).click()
