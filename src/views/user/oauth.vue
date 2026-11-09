@@ -25,9 +25,20 @@ function readQueryString(value: unknown): string {
     return joined.replaceAll('+', ' ')
 }
 
+// 单值 URL 参数取第一个字符串
+function readFirstQueryString(value: unknown): string {
+    if (Array.isArray(value)) {
+        return value.find((item): item is string => typeof item === 'string') ?? ''
+    }
+    return typeof value === 'string' ? value : ''
+}
+
 const clientId = computed(() => readQueryString(route.query.client_id).trim())
+const redirectUri = computed(() => readFirstQueryString(route.query.redirect_uri))
+const scope = computed(() => readQueryString(route.query.scope).trim())
+const state = computed(() => readFirstQueryString(route.query.state))
 const hasScopeParam = computed(() => route.query.scope !== undefined && route.query.scope !== null)
-const requestedScopeKeys = computed(() => readQueryString(route.query.scope).split(/\s+/).filter(Boolean))
+const requestedScopeKeys = computed(() => scope.value.split(/\s+/).filter(Boolean))
 
 const client = ref<OAuthClientPublic | null>(null)
 const loading = ref(true)
@@ -44,22 +55,33 @@ const declaredScopes = computed<OAuthClientScope[]>(() => {
     return Array.isArray(value) ? value : []
 })
 
-// scope 缺省时展示应用声明的全部权限，否则只展示本次请求的范围
+// scope 缺省时展示应用声明的全部权限
 const scopes = computed<OAuthClientScope[]>(() => {
     if (!hasScopeParam.value) return declaredScopes.value
     const requested = new Set(requestedScopeKeys.value)
     return declaredScopes.value.filter((scope) => requested.has(scope.key))
 })
-
-// 请求了但应用资料里没声明的权限单独提示，避免授权页漏报
+// 请求了但应用资料里没声明的权限单独提示
 const unknownScopeKeys = computed(() => {
     if (!client.value) return []
     const declared = new Set(declaredScopes.value.map((scope) => scope.key))
     return [...new Set(requestedScopeKeys.value.filter((key) => !declared.has(key)))]
 })
 
-// 授权确认 / 拒绝的逻辑
+// 授权确认 / 拒绝
 const canRespond = computed(() => !loading.value && !errorMessage.value)
+// 同意授权
+function approve() {
+    if (!canRespond.value) return
+    const query = new URLSearchParams()
+    query.set('client_id', clientId.value)
+    if (redirectUri.value) query.set('redirect_uri', redirectUri.value)
+    query.set('response_type', 'code')
+    if (scope.value) query.set('scope', scope.value)
+    if (state.value) query.set('state', state.value)
+    const base = import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+    window.location.assign(`${base}/oauth/authorize?${query.toString().replaceAll('+', '%20')}`)
+}
 
 async function loadClient() {
     if (!clientId.value) {
@@ -191,8 +213,8 @@ onMounted(async () => {
         </div>
 
         <div v-if="!errorMessage" class="actions">
-            <Button label="拒绝" severity="secondary" :disabled="!canRespond" />
-            <Button label="同意并授权" :disabled="!canRespond" />
+            <Button label="拒绝" severity="secondary" :disabled="!canRespond" @click="goBack" />
+            <Button label="同意并授权" :disabled="!canRespond" @click="approve" />
         </div>
     </main>
 </template>
