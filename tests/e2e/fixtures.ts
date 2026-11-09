@@ -8,6 +8,7 @@ import type {
     DepartmentItem,
     InterviewExportFields,
     InterviewStaffItem,
+    OAuthClientPublic,
     RoleItem,
     TermInfo,
     UploadResponse,
@@ -93,6 +94,19 @@ export function makeApp(overrides: Partial<AppItem> = {}): AppItem {
     }
 }
 
+export function makeOAuthClient(overrides: Partial<OAuthClientPublic> = {}): OAuthClientPublic {
+    return {
+        client_id: 'hydro_oj',
+        client_name: 'OJ 平台',
+        scopes: [
+            { key: 'openid', title: '基础身份标识', description: '允许验证您的账号身份与唯一用户标识（ID）' },
+            { key: 'profile', title: '个人公开档案', description: '允许读取您的真实姓名、学号等公开资料' },
+            { key: 'email', title: '电子邮箱地址', description: '允许获取您绑定的电子邮箱' },
+        ],
+        ...overrides,
+    }
+}
+
 export function makeTerm(overrides: Partial<TermInfo> = {}): TermInfo {
     return {
         id: 7,
@@ -167,6 +181,7 @@ export interface MockScenario {
     announcement?: AnnouncementItem | null
     apps?: AppItem[]
     app?: AppItem | null
+    oauthClient?: OAuthClientPublic | null
     createApp?: 'success' | 'fail'
     updateApp?: 'success' | 'fail'
     deleteApp?: 'success' | 'fail'
@@ -278,6 +293,12 @@ async function handleApi(route: Route, api: ApiMock): Promise<void> {
 
     if (method === 'GET' && path === '/app/list') {
         return fulfill(route, ok(scenario.apps ?? []))
+    }
+
+    if (method === 'GET' && path === '/oauth/client/public') {
+        const client = scenario.oauthClient
+        if (!client) return fulfill(route, fail(404, '应用不存在'))
+        return fulfill(route, ok(client))
     }
 
     if (method === 'GET' && path === '/app/detail') {

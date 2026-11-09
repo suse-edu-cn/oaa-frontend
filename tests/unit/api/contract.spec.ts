@@ -36,6 +36,8 @@ import {
     updateInterviewResult,
     updateInterviewStaff,
 } from '@/api/interview'
+import * as oauthApi from '@/api/oauth'
+import { getOAuthClientPublic } from '@/api/oauth'
 import * as orgApi from '@/api/org'
 import { createDepartment, createRole, getDepartmentList, getRoleList, updateDepartment, updateRole } from '@/api/org'
 import * as termApi from '@/api/term'
@@ -52,6 +54,7 @@ const apiModules = {
     application: applicationApi,
     auth: authApi,
     interview: interviewApi,
+    oauth: oauthApi,
     org: orgApi,
     term: termApi,
     user: userApi,
@@ -250,6 +253,13 @@ const cases: Case[] = [
         name: 'app/deleteApp',
         run: () => deleteApp('suse_oj'),
         expected: { url: '/app/delete', method: 'POST', data: { client_id: 'suse_oj' } },
+    },
+
+    // oauth
+    {
+        name: 'oauth/getOAuthClientPublic',
+        run: () => getOAuthClientPublic('suse_oj'),
+        expected: { url: '/oauth/client/public', method: 'GET', params: { client_id: 'suse_oj' } },
     },
 
     // application

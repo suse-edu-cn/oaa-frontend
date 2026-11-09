@@ -22,8 +22,9 @@ const authStore = useAuthStore()
 // ====== 抽屉逻辑 BEGIN ======
 const isDesktop = useMediaQuery('(min-width: 801px)')
 // 抽屉展示条件
+const noDrawerPaths = ['/', '/auth', '/user/oauth']
 const canShowDrawer = computed(() => {
-    if (route.path === '/' || route.path === '/auth') return false
+    if (noDrawerPaths.includes(route.path)) return false
     return authStore.isReady && authStore.isAuthed
 })
 const mobileNavOpen = ref(false)

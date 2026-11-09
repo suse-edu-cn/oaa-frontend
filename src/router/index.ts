@@ -22,6 +22,11 @@ const router = createRouter({
         },
         { path: '/user', component: () => import('@/views/user/index.vue'), meta: { title: '个人中心' } },
         { path: '/user/edit', component: () => import('@/views/user/edit.vue'), meta: { title: '编辑个人资料' } },
+        {
+            path: '/user/oauth',
+            component: () => import('@/views/user/oauth.vue'),
+            meta: { title: '授权登录第三方应用' },
+        },
 
         // 管理
         {
